@@ -2,23 +2,25 @@
 
 ## Scope
 
-This audit is a pre-port cleanup pass for the current Phaser/Vite Tokenizer Training context pack. It focuses on redundant systems, stale visual/copy paths, mobile-touch readiness, and deletion candidates before any mobile app wrapper work.
+This audit is a pre-port cleanup pass for the current Phaser/Vite Tokenizer Training repo. It focuses on redundant systems, stale visual/copy paths, mobile-touch readiness, and deletion candidates before any mobile app wrapper work.
 
-The working directory is not a Git checkout. `git status --short` fails at both the workspace root and `manual_tokenization_codex_context_pack/` with `fatal: not a git repository`. Treat this folder as a context pack until it is moved back into a real repository.
+Current Git state: `manual_tokenization_codex_context_pack/` is now a Git checkout on `main`, tracking `origin/main` at `git@github.com:Synthetic-Humanities-Lab/tokenizer-training.git`. The repo has an initial baseline commit, a product-rename commit, and a README/runbook cleanup commit. Generated/dependency/archive files remain ignored rather than tracked.
 
 ## Validation Baseline
 
-Commands run from `manual_tokenization_codex_context_pack/`:
+Latest validation from `manual_tokenization_codex_context_pack/`:
 
-- `npm run test`: pass, 77 files / 653 tests.
+- `npm run playtest:audit:local`: pass; local package ready for user-session preflight.
+- `npm run playtest:audit`: expected fail; local package passes, but session evidence and completed rollup are still missing.
+- `npm run test`: pass, 77 files / 656 tests.
 - `npm run build`: pass, TypeScript plus Vite production build.
 - `npm run generate:fixtures`: pass, regenerated 78 `cl100k_base` fixtures.
 
-The green test/build state means the current behavior is internally consistent. It does not mean the repo is lean or port-ready, because several tests still preserve legacy surfaces that the visible product contract no longer wants.
+The green local package/test/build state means the current behavior is internally consistent. It does not mean the repo is lean, mobile-port-ready, or externally validated, because several tests still preserve legacy surfaces that the visible product contract no longer wants and the full playtest evidence gate is intentionally incomplete.
 
 ## Mobile Plugin Status
 
-The Build iOS Apps / XcodeBuildMCP plugin is accessible in this chat. `session_show_defaults` returned successfully, but no project, workspace, scheme, simulator, or bundle id is configured.
+The Build iOS Apps / XcodeBuildMCP plugin is accessible in this chat. No Xcode project/workspace exists in this web-game repo yet, and no native wrapper has been created.
 
 `list_sims` failed with:
 
@@ -26,7 +28,7 @@ The Build iOS Apps / XcodeBuildMCP plugin is accessible in this chat. `session_s
 Failed to list simulators: xcrun: error: unable to find utility "simctl", not a developer tool or in PATH
 ```
 
-Conclusion: the plugin is callable, but local simulator tooling is not ready. Mobile-wrapper work should wait until Xcode command-line tools / simulator support are available in the active environment.
+Conclusion: the plugin is callable, but local simulator tooling is not ready. Mobile-wrapper work should wait until Xcode command-line tools / simulator support are available in the active environment and a wrapper target exists.
 
 ## Current Architecture Snapshot
 
@@ -140,13 +142,21 @@ Examples:
 - `tests/overseer-panel.test.ts` still validates the hidden overseer panel.
 - `tests/robot-comment.test.ts` validates a robot-named system that is actually pet speech.
 - `tests/browser-qa-evidence.test.ts` and older docs repeatedly encode stale popup/overseer/moving-text screenshots.
-- `tests/menu-scene-qa.test.ts`, `tests/results-scene-qa.test.ts`, and `tests/session-flow.test.ts` still expect old manual-product copy in places.
+- Product-name expectations have been updated to `Tokenizer Training`; the remaining stale concepts are mostly hidden surfaces, robot/overseer naming, tutorial-popup terminology, and historical screenshot evidence.
 
 Recommended action: update tests by contract, not by deleting coverage. Replace hidden-surface tests with assertions that only the intended UI surface exists and that pet speech, feedback, touch targets, and review evidence remain non-overlapping.
 
 ### 8. Docs and Artifacts Are Stale Enough to Mislead Future Work
 
-Several docs describe earlier builds with moving text, overseer panels, robot popups, side assistant panels, or old product naming. The docs are useful historical evidence, but they should not be treated as current requirements.
+Several docs describe earlier builds with moving text, overseer panels, robot popups, side assistant panels, or older QA IDs. The docs are useful historical evidence, but they should not be treated as current requirements.
+
+Addressed since the original audit:
+
+- `README.md` is now a concise project entry point.
+- Detailed playtest operations moved to `docs/playtest_operations.md`.
+- The local readiness audit now requires `docs/playtest_operations.md`.
+- Product-facing copy now uses `Tokenizer Training`; legacy `tokenization-training.*`, `manual-tokenization-training.*`, and `mtt-*` support remains compatibility-only.
+- `.gitignore` excludes dependency/build/archive artifacts.
 
 Artifact/noise candidates:
 
@@ -156,7 +166,7 @@ Artifact/noise candidates:
 - `manual_tokenization_chatgpt_single_file_context_2026-06-07.txt`
 - old browser QA PNGs that encode rejected layouts, unless kept under a clearly historical folder
 
-Recommended action: split docs into `current/` versus `archive/`, or add a current-state index that names the authoritative docs. Do not let old screenshot docs define current UI contracts.
+Recommended action: keep the README and `docs/playtest_operations.md` as the current entry points, then split older browser-QA/history docs into `current/` versus `archive/` or add a current-state index that names authoritative docs. Do not let old screenshot docs define current UI contracts.
 
 ## Deletion Candidates
 
@@ -187,9 +197,9 @@ Do not delete:
 
 ## Recommended Cleanup Sequence
 
-1. Restore a real Git working tree or put this context pack under Git before deleting anything.
-2. Complete the product rename in constants, `index.html`, visible copy, tests, copied summaries, and docs marked current.
-3. Extract/rename the pet speech path:
+1. Complete: restore a real Git working tree and push it to GitHub.
+2. Complete: product rename in constants, `index.html`, visible copy, tests, copied summaries, and current docs.
+3. Next: extract/rename the pet speech path:
    - `RobotCommentSystem` -> pet/Wiener speech naming;
    - `robotToast*` -> `petSpeech*`;
    - remove the hidden overseer UI panel if no longer visible.
