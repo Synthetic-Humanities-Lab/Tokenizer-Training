@@ -20,6 +20,7 @@ describe("playtest readiness audit", () => {
     const audit = auditPlaytestReadiness({ rootDir: repoRoot });
 
     expect(audit.localFiles.every((file) => file.ok)).toBe(true);
+    expect(audit.localFiles.some((file) => file.path === "docs/playtest_operations.md" && file.ok)).toBe(true);
     expect(audit.localFiles.some((file) => file.path === "docs/playtest_day_checklist.md" && file.ok)).toBe(true);
     expect(audit.ready).toBe(false);
     expect(audit.sessionEvaluation?.ready).toBe(false);
@@ -40,6 +41,7 @@ describe("playtest readiness audit", () => {
     expect(rendered).toContain("docs/game_design_reading_notes/chapter_note_manifest.md");
     expect(rendered).toContain("docs/economy_tuning_audit.md");
     expect(rendered).toContain("docs/objective_completion_audit.md");
+    expect(rendered).toContain("docs/playtest_operations.md");
     expect(rendered).toContain("docs/browser_qa_2026-06-07.md");
     expect(rendered).toContain("2026-06-07-latest-canvas-small-phone-tutorial-active.png");
     expect(rendered).toContain("2026-06-07-tight-toast-small-phone-tutorial-active.png");

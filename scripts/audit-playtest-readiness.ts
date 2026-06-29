@@ -86,6 +86,7 @@ const requiredLocalFiles: ReadinessFileRequirement[] = [
   { path: "docs/design_verification_matrix.md" },
   { path: "docs/economy_tuning_audit.md" },
   { path: "docs/objective_completion_audit.md" },
+  { path: "docs/playtest_operations.md" },
   { path: "docs/user_playtest_protocol.md" },
   { path: "docs/playtest_facilitator_card.md" },
   { path: "docs/playtest_day_checklist.md" },
