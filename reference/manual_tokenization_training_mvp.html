@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manual Tokenization Training - MVP</title>
+  <style>
+    :root {
+      --bg: #74808c;
+      --bg-2: #5f6972;
+      --panel: #b7b8ae;
+      --panel-2: #9fa194;
+      --panel-3: #d2d1c8;
+      --text: #1f241f;
+      --muted: #4f5853;
+      --good: #2f6a43;
+      --bad: #8a3d3d;
+      --warn: #8b6a22;
+      --accent: #556a7a;
+      --line: rgba(30, 36, 31, 0.22);
+      --shadow: rgba(20, 20, 20, 0.25);
+      --screen: #c9c8bb;
+      --bezel: #86897f;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", Verdana, Tahoma, Arial, sans-serif;
+      background: linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    #app {
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      filter: saturate(0.82) contrast(0.96);
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr 1fr 1fr;
+      gap: 10px;
+      padding: 12px 14px 8px;
+      border-bottom: 2px solid rgba(255,255,255,0.18);
+      background: linear-gradient(180deg, #a9aca2 0%, #8f9388 100%);
+      box-shadow: inset 0 -1px 0 rgba(0,0,0,0.12);
+    }
+
+    .stat {
+      background: linear-gradient(180deg, var(--panel-3), var(--panel));
+      border: 2px solid var(--bezel);
+      border-radius: 4px;
+      padding: 9px 11px;
+      min-height: 60px;
+      box-shadow: inset 1px 1px 0 rgba(255,255,255,0.45), inset -1px -1px 0 rgba(0,0,0,0.08), 0 1px 3px var(--shadow);
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .value {
+      font-size: 24px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .value.small {
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .good { color: var(--good); }
+    .bad { color: var(--bad); }
+    .warn { color: var(--warn); }
+
+    .playfield {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(0,0,0,0.05)), linear-gradient(180deg, #b6b4a8 0%, #a6a296 100%);
+      border-top: 2px solid rgba(255,255,255,0.16);
+      border-bottom: 2px solid rgba(0,0,0,0.1);
+    }
+
+    .playfield::before {
+      content: '';
+      position: absolute;
+      inset: 8px;
+      border: 2px solid var(--bezel);
+      pointer-events: none;
+      box-shadow: inset 1px 1px 0 rgba(255,255,255,0.4), inset -2px -2px 0 rgba(0,0,0,0.08);
+    }
+
+    #arena {
+      position: absolute;
+      inset: 0;
+      user-select: none;
+      cursor: crosshair;
+    }
+
+    #slashCanvas {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .sentence-wrap {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(1000px, 90vw);
+      transition: opacity 0.2s ease;
+    }
+
+    .sentence {
+      display: inline-flex;
+      gap: 0;
+      flex-wrap: nowrap;
+      background: linear-gradient(180deg, #d5d3c7, var(--screen));
+      border: 2px solid var(--bezel);
+      border-radius: 3px;
+      padding: 16px 20px;
+      box-shadow: inset 1px 1px 0 rgba(255,255,255,0.55), inset -1px -1px 0 rgba(0,0,0,0.08), 0 6px 18px rgba(0,0,0,0.15);
+      max-width: 100%;
+      white-space: nowrap;
+      position: relative;
+    }
+
+    .char {
+      position: relative;
+      font-size: clamp(22px, 3vw, 38px);
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--text);
+      white-space: pre;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.22);
+    }
+
+    .char.space::before {
+      content: '·';
+      color: rgba(31,36,31,0.24);
+    }
+
+    .char.space {
+      color: transparent;
+      width: 0.45em;
+    }
+
+    .cut-line {
+      position: absolute;
+      top: -6px;
+      bottom: -6px;
+      width: 3px;
+      border-radius: 1px;
+      transform: translateX(-50%);
+      opacity: 0.95;
+      pointer-events: none;
+    }
+
+    .cut-line.player { background: #b88d2a; }
+    .cut-line.correct { background: #477556; box-shadow: 0 0 6px rgba(71,117,86,0.35); }
+    .cut-line.false { background: #9a4f4f; }
+    .cut-line.missed { background: #6a7885; box-shadow: 0 0 6px rgba(106,120,133,0.3); }
+
+    .feedback-card {
+      position: absolute;
+      left: 50%;
+      bottom: 7vh;
+      transform: translateX(-50%);
+      width: min(900px, 90vw);
+      background: linear-gradient(180deg, #d0cec2, #b4b2a7);
+      border: 2px solid var(--bezel);
+      border-radius: 4px;
+      padding: 14px 16px;
+      display: grid;
+      grid-template-columns: 1.4fr 0.9fr 1.4fr;
+      gap: 10px;
+      box-shadow: inset 1px 1px 0 rgba(255,255,255,0.45), inset -1px -1px 0 rgba(0,0,0,0.08), 0 10px 30px rgba(0,0,0,0.2);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .feedback-card.show {
+      animation: feedbackIn 2.5s ease forwards;
+    }
+
+    @keyframes feedbackIn {
+      0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+      10%, 82% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-4px); }
+    }
+
+    .feedback-section {
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(31,36,31,0.14);
+      border-radius: 2px;
+      padding: 10px 12px;
+      min-height: 88px;
+      box-shadow: inset 1px 1px 0 rgba(255,255,255,0.35);
+    }
+
+    .feedback-title {
+      color: var(--muted);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .feedback-main {
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+
+    .feedback-sub {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .bottombar {
+      display: grid;
+      grid-template-columns: 1.3fr auto auto;
+      gap: 10px;
+      padding: 8px 14px 12px;
+      border-top: 2px solid rgba(255,255,255,0.16);
+      background: linear-gradient(180deg, #9da196 0%, #888c82 100%);
+      align-items: center;
+    }
+
+    .overseer {
+      min-height: 56px;
+      background: linear-gradient(180deg, var(--panel-3), var(--panel));
+      border: 2px solid var(--bezel);
+      border-radius: 4px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      box-shadow: inset 1px 1px 0 rgba(255,255,255,0.45), inset -1px -1px 0 rgba(0,0,0,0.08);
+    }
+
+    .overseer-text {
+      font-size: 14px;
+      font-weight: 650;
+      color: var(--text);
+    }
+
+    .controls {
+      color: var(--muted);
+      font-size: 12px;
+      text-align: right;
+      line-height: 1.4;
+    }
+
+    .btn {
+      appearance: none;
+      border: 2px solid #7a7d74;
+      background: linear-gradient(180deg, #d8d5c8 0%, #b8b5a8 100%);
+      color: var(--text);
+      padding: 11px 16px;
+      font-size: 13px;
+      font-weight: 800;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: transform 0.08s ease, background 0.15s ease;
+      box-shadow: inset 1px 1px 0 rgba(255,255,255,0.55), inset -1px -1px 0 rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.12);
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(92, 99, 103, 0.68);
+      display: grid;
+      place-items: center;
+      z-index: 10;
+    }
+
+    .modal {
+      width: min(780px, 92vw);
+      background: linear-gradient(180deg, #d4d2c5 0%, #b6b3a7 100%);
+      border: 2px solid var(--bezel);
+      border-radius: 4px;
+      padding: 24px;
+      box-shadow: inset 1px 1px 0 rgba(255,255,255,0.55), inset -1px -1px 0 rgba(0,0,0,0.08), 0 20px 60px rgba(0,0,0,0.24);
+    }
+
+    .eyebrow {
+      color: var(--warn);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    h1, h2 {
+      margin: 0 0 12px;
+      line-height: 1.05;
+    }
+
+    h1 { font-size: clamp(30px, 5vw, 48px); }
+    h2 { font-size: 28px; }
+
+    p {
+      color: var(--muted);
+      line-height: 1.55;
+      margin: 0 0 12px;
+      font-size: 15px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 18px 0 20px;
+    }
+
+    .mini {
+      background: rgba(255,255,255,0.16);
+      border: 1px solid rgba(31,36,31,0.14);
+      border-radius: 2px;
+      padding: 14px;
+      box-shadow: inset 1px 1px 0 rgba(255,255,255,0.35);
+    }
+
+    .mini .k {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .mini .v {
+      font-size: 15px;
+      font-weight: 650;
+      line-height: 1.4;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .end-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 18px 0 20px;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 900px) {
+      .topbar, .feedback-card, .end-stats, .grid-2, .bottombar { grid-template-columns: 1fr; }
+      .controls { text-align: left; }
+      .feedback-card { bottom: 5vh; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="topbar">
+      <div class="stat">
+        <div class="label">Session Balance</div>
+        <div class="value" id="balanceValue">$40.00</div>
+      </div>
+      <div class="stat">
+        <div class="label">Pay Earned</div>
+        <div class="value small good" id="payValue">+$0.00</div>
+      </div>
+      <div class="stat">
+        <div class="label">Company Cost</div>
+        <div class="value small bad" id="costValue">-$0.00</div>
+      </div>
+      <div class="stat">
+        <div class="label">Round / Tier</div>
+        <div class="value small" id="roundValue">0 / 1</div>
+      </div>
+    </div>
+
+    <div class="playfield">
+      <div id="arena"></div>
+      <canvas id="slashCanvas"></canvas>
+
+      <div class="overlay" id="startOverlay">
+        <div class="modal">
+          <div class="eyebrow">Manual Tokenization Associate Training</div>
+          <h1>Manual Tokenization Training</h1>
+          <p>
+            Due to cost-saving measures, preliminary prompt segmentation is now human-assisted. Your task is to cut text where token boundaries will occur before the tokenizer resolves the correct answer.
+          </p>
+          <div class="grid-2">
+            <div class="mini">
+              <div class="k">How to Play</div>
+              <div class="v">Drag across the sentence to mark predicted token boundaries between characters. When the timer ends, the system reveals the actual segmentation.</div>
+            </div>
+            <div class="mini">
+              <div class="k">How You Fail</div>
+              <div class="v">Correct cuts earn wages. Missed and false cuts cost the company money. When your session balance hits zero, training ends.</div>
+            </div>
+          </div>
+          <div class="row">
+            <button class="btn" id="startBtn">Begin Training</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="overlay hidden" id="endOverlay">
+        <div class="modal">
+          <div class="eyebrow">Training Terminated</div>
+          <h2>Budget Exhausted</h2>
+          <p id="endLine">Finance has revoked your manual tokenization privileges.</p>
+          <div class="end-stats">
+            <div class="mini"><div class="k">Rounds Completed</div><div class="v" id="endRounds">0</div></div>
+            <div class="mini"><div class="k">Final Balance</div><div class="v" id="endBalance">$0.00</div></div>
+            <div class="mini"><div class="k">Accuracy</div><div class="v" id="endAccuracy">0%</div></div>
+          </div>
+          <div class="row">
+            <button class="btn" id="restartBtn">Run Training Again</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottombar">
+      <div class="overseer">
+        <div class="label">Overseer</div>
+        <div class="overseer-text" id="overseerText">Awaiting biological tokenizer.</div>
+      </div>
+      <button class="btn" id="skipBtn">Resolve Round</button>
+      <div class="controls">
+        Drag across the text to place cuts.<br />
+        This MVP uses a prototype tokenizer approximation, not a production tokenizer backend.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const arena = document.getElementById('arena');
+    const slashCanvas = document.getElementById('slashCanvas');
+    const ctx = slashCanvas.getContext('2d');
+
+    const balanceValue = document.getElementById('balanceValue');
+    const payValue = document.getElementById('payValue');
+    const costValue = document.getElementById('costValue');
+    const roundValue = document.getElementById('roundValue');
+    const overseerText = document.getElementById('overseerText');
+
+    const startOverlay = document.getElementById('startOverlay');
+    const endOverlay = document.getElementById('endOverlay');
+    const endRounds = document.getElementById('endRounds');
+    const endBalance = document.getElementById('endBalance');
+    const endAccuracy = document.getElementById('endAccuracy');
+    const endLine = document.getElementById('endLine');
+
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const skipBtn = document.getElementById('skipBtn');
+
+    const sentences = [
+      { text: 'the cat sat on the mat', tier: 1, weight: 1 },
+      { text: 'how many dogs are there?', tier: 1, weight: 1 },
+      { text: 'I can\'t believe it.', tier: 2, weight: 1.15 },
+      { text: 're-enter the room', tier: 2, weight: 1.1 },
+      { text: 'it costs $19.99', tier: 2, weight: 1.2 },
+      { text: 'lol!!! why tho', tier: 2, weight: 1.25 },
+      { text: 'openai.com/pricing', tier: 3, weight: 1.5 },
+      { text: 'parseJSONQuickly()', tier: 3, weight: 1.45 },
+      { text: 'hello_world_v2.py', tier: 3, weight: 1.45 },
+      { text: 'send to admin@example.com', tier: 3, weight: 1.55 },
+      { text: 'mañana 😂', tier: 4, weight: 1.8 },
+      { text: '#GameDev2026', tier: 4, weight: 1.7 },
+      { text: 'X Æ A-12', tier: 4, weight: 1.85 },
+      { text: 'cost_per_token++', tier: 4, weight: 1.8 },
+      { text: 'the  quick brown fox', tier: 2, weight: 1.2 },
+      { text: 'Why... like this??', tier: 3, weight: 1.45 },
+      { text: 'model_name=cl100k_base', tier: 4, weight: 1.85 },
+      { text: 'spaces matter more than you think', tier: 2, weight: 1.15 }
+    ];
+
+    const overseerGood = [
+      'Segmentation accepted.',
+      'Boundary confidence justified.',
+      'Prompt entered in efficient form.',
+      'Temporary employment extended.',
+      'Adequate. Irritatingly adequate.'
+    ];
+
+    const overseerBad = [
+      'Meaning preserved. Margins damaged.',
+      'You are expensive to supervise.',
+      'That word was whole.',
+      'Please stop freelancing with the punctuation.',
+      'This error has been monetized.',
+      'You cut with confidence, not competence.'
+    ];
+
+    const endLines = [
+      'Finance has revoked your manual tokenization privileges.',
+      'Training budget exhausted. Labor no longer cost-effective.',
+      'Company losses exceeded your educational value.',
+      'Manual segmentation services terminated.'
+    ];
+
+    let state = {
+      balance: 40,
+      totalPay: 0,
+      totalCost: 0,
+      round: 0,
+      current: null,
+      currentWrap: null,
+      currentSentenceEl: null,
+      currentCuts: [],
+      totalCorrect: 0,
+      totalPossible: 0,
+      isDrawing: false,
+      slashTrail: [],
+      roundTimer: null,
+      animFrame: null,
+      spawnTime: 0,
+      roundDuration: 8000,
+      resolving: false,
+      tutorialMode: false,
+      tutorialStep: 0,
+      tutorialQueue: [
+        {
+          text: 'the cat sat on the mat',
+          message: 'Tutorial 1 of 3. Start gently. Drag between words where you think boundaries occur. This one is forgiving because apparently morale matters.'
+        },
+        {
+          text: "I can't believe it.",
+          message: 'Tutorial 2 of 3. Punctuation and contractions complicate things. The tokenizer notices more than ordinary reading does.'
+        },
+        {
+          text: 'openai.com/pricing',
+          message: 'Tutorial 3 of 3. URLs and dense strings tend to splinter. These are where your wages go to die.'
+        }
+      ]
+    };
+
+    function resizeCanvas() {
+      slashCanvas.width = arena.clientWidth * devicePixelRatio;
+      slashCanvas.height = arena.clientHeight * devicePixelRatio;
+      slashCanvas.style.width = arena.clientWidth + 'px';
+      slashCanvas.style.height = arena.clientHeight + 'px';
+      ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+    }
+
+    function formatMoney(n) {
+      const sign = n >= 0 ? '' : '-';
+      return `${sign}$${Math.abs(n).toFixed(2)}`;
+    }
+
+    function updateHUD() {
+      balanceValue.textContent = `$${Math.max(0, state.balance).toFixed(2)}`;
+      payValue.textContent = `+${state.totalPay.toFixed(2)}`;
+      costValue.textContent = `-$${state.totalCost.toFixed(2)}`;
+      roundValue.textContent = `${state.round} / ${state.current ? state.current.tier : 1}`;
+      balanceValue.className = state.balance <= 10 ? 'value warn' : 'value';
+    }
+
+    function setOverseer(text) {
+      overseerText.textContent = text;
+    }
+
+    function chooseSentence() {
+      const tierCap = Math.min(4, 1 + Math.floor(state.round / 4));
+      const pool = sentences.filter(s => s.tier <= tierCap);
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    function getRoundDuration() {
+      if (state.tutorialMode) return 12000;
+      return Math.max(4200, 8000 - (state.round - 1) * 160);
+    }
+
+    function hasActiveSentence() {
+      return Boolean(state.currentSentenceEl && state.currentSentenceEl.isConnected);
+    }
+
+    function approximateTokenize(text) {
+      const boundaries = new Set();
+      const chars = Array.from(text);
+      const len = chars.length;
+
+      for (let i = 1; i < len; i++) {
+        const prev = chars[i - 1];
+        const curr = chars[i];
+        if (prev === ' ' || curr === ' ') boundaries.add(i);
+      }
+
+      const punct = /[.,!?;:()[\]{}"'`~@#$%^&*+=/\\|_-]/;
+      for (let i = 1; i < len; i++) {
+        const prev = chars[i - 1];
+        const curr = chars[i];
+        if (punct.test(prev) || punct.test(curr)) boundaries.add(i);
+      }
+
+      for (let i = 1; i < len; i++) {
+        if (/[a-z]/.test(chars[i - 1]) && /[A-Z]/.test(chars[i])) boundaries.add(i);
+      }
+
+      for (let i = 1; i < len; i++) {
+        if ((/[A-Za-z]/.test(chars[i - 1]) && /\d/.test(chars[i])) || (/\d/.test(chars[i - 1]) && /[A-Za-z]/.test(chars[i]))) boundaries.add(i);
+      }
+
+      let start = 0;
+      while (start < len) {
+        while (start < len && chars[start] === ' ') start++;
+        let end = start;
+        while (end < len && chars[end] !== ' ') end++;
+        const segment = chars.slice(start, end).join('');
+        if (/^[A-Za-zÀ-ÿ]+$/.test(segment) && segment.length >= 8) {
+          const pos = start + Math.max(4, Math.floor(segment.length / 2));
+          if (pos < end) boundaries.add(pos);
+        }
+        start = end + 1;
+      }
+
+      for (let i = 1; i < len; i++) {
+        if (punct.test(chars[i - 1]) && punct.test(chars[i])) boundaries.add(i);
+      }
+
+      for (let i = 1; i < len; i++) {
+        if (chars[i - 1] === ' ' && chars[i] === ' ') boundaries.add(i);
+      }
+
+      const sorted = [...boundaries].filter(b => b > 0 && b < len).sort((a, b) => a - b);
+      const tokens = [];
+      let last = 0;
+      for (const b of sorted) {
+        tokens.push(chars.slice(last, b).join(''));
+        last = b;
+      }
+      tokens.push(chars.slice(last).join(''));
+      return { boundaries: sorted, tokens };
+    }
+
+    function buildSentence(text) {
+      const wrap = document.createElement('div');
+      wrap.className = 'sentence-wrap';
+      wrap.style.top = `${arena.clientHeight - 140}px`;
+
+      const sentence = document.createElement('div');
+      sentence.className = 'sentence';
+      wrap.appendChild(sentence);
+
+      Array.from(text).forEach((ch, idx) => {
+        const span = document.createElement('span');
+        span.className = 'char' + (ch === ' ' ? ' space' : '');
+        span.dataset.index = idx;
+        span.textContent = ch;
+        sentence.appendChild(span);
+      });
+
+      arena.appendChild(wrap);
+      return { wrap, sentence };
+    }
+
+    function clearRound() {
+      if (state.currentWrap && state.currentWrap.isConnected) state.currentWrap.remove();
+      state.currentWrap = null;
+      state.currentSentenceEl = null;
+      state.current = null;
+      state.currentCuts = [];
+      state.resolving = false;
+      clearTimeout(state.roundTimer);
+      if (state.animFrame) cancelAnimationFrame(state.animFrame);
+      ctx.clearRect(0, 0, arena.clientWidth, arena.clientHeight);
+    }
+
+    function startRound() {
+      clearRound();
+      state.round += 1;
+
+      if (state.tutorialMode && state.tutorialStep < state.tutorialQueue.length) {
+        const tutorialItem = state.tutorialQueue[state.tutorialStep];
+        state.current = { text: tutorialItem.text, tier: 1 + state.tutorialStep, weight: 0.6, tutorial: true };
+        setOverseer(tutorialItem.message);
+      } else {
+        state.current = chooseSentence();
+        setOverseer('Predict the boundaries. Try not to embarrass the payroll system.');
+      }
+
+      const built = buildSentence(state.current.text);
+      state.currentWrap = built.wrap;
+      state.currentSentenceEl = built.sentence;
+      state.spawnTime = performance.now();
+      state.roundDuration = getRoundDuration();
+      updateHUD();
+      animateRise();
+      state.roundTimer = setTimeout(resolveRound, state.roundDuration);
+    }
+
+    function animateRise() {
+      const startY = arena.clientHeight - 150;
+      const endY = 150;
+      const tick = (t) => {
+        const p = Math.min(1, (t - state.spawnTime) / state.roundDuration);
+        const eased = 1 - Math.pow(1 - p, 2);
+        const y = startY + (endY - startY) * eased;
+        if (state.currentWrap && state.currentWrap.isConnected) state.currentWrap.style.top = `${y}px`;
+        if (p < 1 && !state.resolving && hasActiveSentence()) {
+          state.animFrame = requestAnimationFrame(tick);
+        }
+      };
+      state.animFrame = requestAnimationFrame(tick);
+    }
+
+    function getCharRects() {
+      if (!hasActiveSentence()) return [];
+      return Array.from(state.currentSentenceEl.querySelectorAll('.char')).map(el => ({ el, rect: el.getBoundingClientRect() }));
+    }
+
+    function nearestBoundaryIndex(x, y) {
+      if (!hasActiveSentence()) return null;
+      const chars = getCharRects();
+      if (chars.length < 2) return null;
+      const sentRect = state.currentSentenceEl.getBoundingClientRect();
+      if (y < sentRect.top - 20 || y > sentRect.bottom + 20) return null;
+      const boundaries = [];
+      for (let i = 1; i < chars.length; i++) {
+        const leftRect = chars[i - 1].rect;
+        const rightRect = chars[i].rect;
+        boundaries.push({ idx: i, x: (leftRect.right + rightRect.left) / 2 });
+      }
+      let best = null;
+      let bestDist = Infinity;
+      for (const b of boundaries) {
+        const d = Math.abs(x - b.x);
+        if (d < bestDist) {
+          best = b;
+          bestDist = d;
+        }
+      }
+      return bestDist <= 18 ? best.idx : null;
+    }
+
+    function addPlayerCut(idx) {
+      if (!Number.isInteger(idx)) return;
+      if (!state.currentCuts.includes(idx)) state.currentCuts.push(idx);
+      renderPlayerCuts();
+    }
+
+    function renderPlayerCuts() {
+      if (!hasActiveSentence()) return;
+      state.currentSentenceEl.querySelectorAll('.cut-line.player').forEach(n => n.remove());
+      const chars = Array.from(state.currentSentenceEl.querySelectorAll('.char'));
+      for (const idx of state.currentCuts) {
+        if (idx <= 0 || idx >= chars.length) continue;
+        const left = chars[idx - 1].offsetLeft + chars[idx - 1].offsetWidth;
+        const line = document.createElement('div');
+        line.className = 'cut-line player';
+        line.style.left = `${left}px`;
+        state.currentSentenceEl.appendChild(line);
+      }
+    }
+
+    function showResolvedCuts(correct, missed, falseCuts) {
+      if (!hasActiveSentence()) return;
+      state.currentSentenceEl.querySelectorAll('.cut-line').forEach(n => n.remove());
+      const chars = Array.from(state.currentSentenceEl.querySelectorAll('.char'));
+      const add = (idx, kind) => {
+        if (idx <= 0 || idx >= chars.length) return;
+        const left = chars[idx - 1].offsetLeft + chars[idx - 1].offsetWidth;
+        const line = document.createElement('div');
+        line.className = `cut-line ${kind}`;
+        line.style.left = `${left}px`;
+        state.currentSentenceEl.appendChild(line);
+      };
+      correct.forEach(i => add(i, 'correct'));
+      falseCuts.forEach(i => add(i, 'false'));
+      missed.forEach(i => add(i, 'missed'));
+    }
+
+    function classifyIssue(text, correct, missed, falseCuts, tokenCount) {
+      if (missed.length === 0 && falseCuts.length === 0) return 'Clean segmentation.';
+      if (/  /.test(text)) return 'Leading-space boundary missed.';
+      if (/[!?.,]{2,}/.test(text)) return 'Punctuation cluster mishandled.';
+      if (/[A-Za-z]+\.[A-Za-z/]/.test(text) || /@/.test(text)) return 'Dense string entered in unstable form.';
+      if (/[A-Z][a-z]+[A-Z]/.test(text)) return 'Common merge pattern ignored.';
+      if (/\d/.test(text) && /[$#@._-]/.test(text)) return 'Mixed symbol sequence increased token load.';
+      if (falseCuts.length > missed.length) return 'Over-segmentation increased token load.';
+      if (missed.length > 0) return 'Unexpected token overhead detected.';
+      return 'Sequence entered in ragged form.';
+    }
+
+    function showFeedback(issue, pay, cost, remark, tokens) {
+      const card = document.createElement('div');
+      card.className = 'feedback-card show';
+      card.innerHTML = `
+        <div class="feedback-section">
+          <div class="feedback-title">Technical</div>
+          <div class="feedback-main">${issue}</div>
+          <div class="feedback-sub">Final token count: ${tokens}</div>
+        </div>
+        <div class="feedback-section">
+          <div class="feedback-title">Economy</div>
+          <div class="feedback-main ${pay >= cost ? 'good' : 'bad'}">NET ${formatMoney(pay - cost)}</div>
+          <div class="feedback-sub">Pay ${formatMoney(pay)} · Cost ${formatMoney(-cost)}</div>
+        </div>
+        <div class="feedback-section">
+          <div class="feedback-title">Overseer</div>
+          <div class="feedback-main">${remark}</div>
+          <div class="feedback-sub">Training record updated.</div>
+        </div>
+      `;
+      arena.appendChild(card);
+      setTimeout(() => {
+        if (card.isConnected) card.remove();
+      }, 2600);
+    }
+
+    function resolveRound() {
+      if (!state.current || state.resolving) return;
+      state.resolving = true;
+      clearTimeout(state.roundTimer);
+      const tok = approximateTokenize(state.current.text);
+      const truth = tok.boundaries;
+      const guessed = [...state.currentCuts].sort((a, b) => a - b);
+      const correct = guessed.filter(x => truth.includes(x));
+      const falseCuts = guessed.filter(x => !truth.includes(x));
+      const missed = truth.filter(x => !guessed.includes(x));
+
+      state.totalCorrect += correct.length;
+      state.totalPossible += truth.length;
+
+      showResolvedCuts(correct, missed, falseCuts);
+
+      const basePay = 2 + state.current.tier * 0.6;
+      const accuracyRatio = truth.length ? correct.length / truth.length : 1;
+      const pay = +(basePay * (0.35 + accuracyRatio) * state.current.weight).toFixed(2);
+      const cost = +((missed.length * 1.4 + falseCuts.length * 1.0 + Math.max(0, tok.tokens.length - 6) * 0.15) * state.current.weight).toFixed(2);
+
+      state.totalPay += pay;
+      state.totalCost += cost;
+      state.balance += pay - cost;
+      updateHUD();
+
+      const issue = classifyIssue(state.current.text, correct, missed, falseCuts, tok.tokens.length);
+      const good = missed.length === 0 && falseCuts.length <= 1;
+      const remark = good
+        ? overseerGood[Math.floor(Math.random() * overseerGood.length)]
+        : overseerBad[Math.floor(Math.random() * overseerBad.length)];
+      setOverseer(remark);
+      showFeedback(issue, pay, cost, remark, tok.tokens.length);
+
+      setTimeout(() => {
+        if (state.tutorialMode && state.tutorialStep < state.tutorialQueue.length - 1) {
+          state.tutorialStep += 1;
+          startRound();
+          return;
+        }
+
+        if (state.tutorialMode && state.tutorialStep === state.tutorialQueue.length - 1) {
+          state.tutorialMode = false;
+          state.tutorialStep = 0;
+          startRound();
+          return;
+        }
+
+        if (state.balance <= 0) endSession();
+        else startRound();
+      }, 2600);
+    }
+
+    function drawTrail() {
+      ctx.clearRect(0, 0, arena.clientWidth, arena.clientHeight);
+      if (state.slashTrail.length < 2) return;
+      ctx.strokeStyle = 'rgba(184, 141, 42, 0.92)';
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(state.slashTrail[0].x, state.slashTrail[0].y);
+      for (const p of state.slashTrail.slice(1)) ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+    }
+
+    function getLocalPoint(e) {
+      const rect = arena.getBoundingClientRect();
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
+    function isOverlayVisible(overlay) {
+      return !overlay.classList.contains('hidden');
+    }
+
+    function pointerDown(e) {
+      if (!state.current || state.resolving || isOverlayVisible(startOverlay) || isOverlayVisible(endOverlay) || !hasActiveSentence()) return;
+      state.isDrawing = true;
+      state.slashTrail = [getLocalPoint(e)];
+      drawTrail();
+    }
+
+    function pointerMove(e) {
+      if (!state.isDrawing || !state.current || state.resolving || !hasActiveSentence()) return;
+      const p = getLocalPoint(e);
+      const prev = state.slashTrail[state.slashTrail.length - 1] || p;
+      state.slashTrail.push(p);
+      drawTrail();
+
+      const sentRect = state.currentSentenceEl.getBoundingClientRect();
+      const arenaRect = arena.getBoundingClientRect();
+      const globalY = p.y + arenaRect.top;
+      const globalPrevY = prev.y + arenaRect.top;
+      const withinVerticalBand =
+        (globalY >= sentRect.top - 10 && globalY <= sentRect.bottom + 10) ||
+        (globalPrevY >= sentRect.top - 10 && globalPrevY <= sentRect.bottom + 10);
+      if (!withinVerticalBand) return;
+
+      const boundary = nearestBoundaryIndex(p.x + arenaRect.left, p.y + arenaRect.top);
+      if (boundary !== null) addPlayerCut(boundary);
+    }
+
+    function pointerUp() {
+      state.isDrawing = false;
+      setTimeout(() => {
+        state.slashTrail = [];
+        drawTrail();
+      }, 50);
+    }
+
+    function resetState() {
+      clearRound();
+      state.balance = 40;
+      state.totalPay = 0;
+      state.totalCost = 0;
+      state.round = 0;
+      state.current = null;
+      state.currentWrap = null;
+      state.currentSentenceEl = null;
+      state.currentCuts = [];
+      state.totalCorrect = 0;
+      state.totalPossible = 0;
+      state.isDrawing = false;
+      state.slashTrail = [];
+      state.resolving = false;
+      state.tutorialMode = true;
+      state.tutorialStep = 0;
+      updateHUD();
+      setOverseer('Awaiting biological tokenizer.');
+    }
+
+    function endSession() {
+      clearRound();
+      endRounds.textContent = state.round;
+      endBalance.textContent = `$${Math.max(0, state.balance).toFixed(2)}`;
+      const accuracy = state.totalPossible ? Math.round((state.totalCorrect / state.totalPossible) * 100) : 0;
+      endAccuracy.textContent = `${accuracy}%`;
+      endLine.textContent = endLines[Math.floor(Math.random() * endLines.length)];
+      endOverlay.classList.remove('hidden');
+    }
+
+    function runTests() {
+      const results = [];
+      const test = (name, fn) => {
+        try {
+          fn();
+          results.push({ name, ok: true });
+        } catch (err) {
+          results.push({ name, ok: false, err });
+          console.error(`Test failed: ${name}`, err);
+        }
+      };
+
+      test('approximateTokenize returns tokens and sorted boundaries', () => {
+        const out = approximateTokenize('hello_world_v2.py');
+        if (!Array.isArray(out.boundaries) || !Array.isArray(out.tokens)) throw new Error('Tokenizer output shape invalid');
+        for (let i = 1; i < out.boundaries.length; i++) {
+          if (out.boundaries[i] <= out.boundaries[i - 1]) throw new Error('Boundaries not sorted');
+        }
+      });
+
+      test('renderPlayerCuts is safe when no sentence exists', () => {
+        state.currentSentenceEl = null;
+        renderPlayerCuts();
+      });
+
+      test('showResolvedCuts is safe when no sentence exists', () => {
+        state.currentSentenceEl = null;
+        showResolvedCuts([1], [2], [3]);
+      });
+
+      test('nearestBoundaryIndex returns null when no sentence exists', () => {
+        state.currentSentenceEl = null;
+        const value = nearestBoundaryIndex(0, 0);
+        if (value !== null) throw new Error('Expected null boundary without sentence');
+      });
+
+      test('buildSentence creates a sentence element with characters', () => {
+        const built = buildSentence('abc');
+        if (!built.sentence || built.sentence.querySelectorAll('.char').length !== 3) throw new Error('Sentence build failed');
+        built.wrap.remove();
+      });
+
+      test('getRoundDuration is slower in tutorial mode', () => {
+        state.tutorialMode = true;
+        const tutorialDuration = getRoundDuration();
+        state.tutorialMode = false;
+        state.round = 10;
+        const mainDuration = getRoundDuration();
+        if (!(tutorialDuration > mainDuration)) throw new Error('Tutorial should be slower than main rounds');
+      });
+
+      const failed = results.filter(r => !r.ok);
+      if (failed.length === 0) {
+        console.info(`Manual Tokenization Training tests passed: ${results.length}/${results.length}`);
+      } else {
+        console.warn(`Manual Tokenization Training tests failed: ${failed.length}/${results.length}`);
+      }
+      return results;
+    }
+
+    startBtn.addEventListener('click', () => {
+      startOverlay.classList.add('hidden');
+      resetState();
+      startRound();
+    });
+
+    restartBtn.addEventListener('click', () => {
+      endOverlay.classList.add('hidden');
+      resetState();
+      startRound();
+    });
+
+    skipBtn.addEventListener('click', resolveRound);
+
+    arena.addEventListener('pointerdown', pointerDown);
+    window.addEventListener('pointermove', pointerMove);
+    window.addEventListener('pointerup', pointerUp);
+
+    window.addEventListener('resize', () => {
+      resizeCanvas();
+      if (hasActiveSentence()) renderPlayerCuts();
+    });
+
+    resizeCanvas();
+    updateHUD();
+    runTests();
+  </script>
+</body>
+</html>

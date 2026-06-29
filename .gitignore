@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+.vite/
+.npm-cache/
+npm-debug.log*
+.DS_Store
+manual_tokenization_*_context_*.txt
+manual_tokenization_*_handoff_*.tar.gz

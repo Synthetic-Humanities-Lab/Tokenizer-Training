@@ -1,0 +1,54 @@
+Read AGENTS.md, the docs folder, and reference/manual_tokenization_training_mvp.html.
+
+Goal: set up the production workflow for Tokenization Training without overbuilding the game yet.
+
+Tasks:
+1. Create a Vite + TypeScript + Phaser project structure.
+2. Preserve the existing MVP as a reference file, not as the main architecture.
+3. Implement basic game states:
+   - BootScene
+   - MenuScene
+   - TutorialScene
+   - PlayScene
+   - ResultsScene
+4. Add modular systems:
+   - SwipeCutSystem
+   - ScoringSystem
+   - DifficultySystem
+   - FeedbackSystem
+   - StorageSystem
+   - TokenizerSystem placeholder
+5. Add a build-time tokenizer fixture pipeline:
+   - data/seed_strings.csv
+   - scripts/generate-token-fixtures.ts
+   - src/game/data/fixtures.json
+   - tests that verify fixture shape and reconstruction
+6. For now, if real tokenizer integration is blocked, create the fixture pipeline interface and use deterministic hand-authored fixtures. Document the blocker clearly.
+7. Add npm scripts:
+   - dev
+   - build
+   - test
+   - generate:fixtures
+8. Add tests for:
+   - scoring
+   - difficulty progression
+   - fixture validation
+   - local high score storage
+9. Use responsive browser layout suitable for desktop and mobile.
+10. Run tests and build.
+
+Important constraints:
+- Do not add React unless there is a strong reason.
+- Do not add native mobile packaging yet.
+- Do not change the core loop.
+- Do not turn the game into a generic AI simulator.
+- Keep the worn 2000s enterprise aesthetic.
+- Keep feedback short, technical, and dry.
+
+Before coding, inspect the repo and summarize your plan. Then implement.
+
+When finished, report:
+- commands to run
+- what changed
+- tests/build result
+- known limitations

@@ -1,0 +1,62 @@
+Read AGENTS.md and the current repo.
+
+Goal: build a polished vertical slice of Tokenization Training.
+
+Definition of Done:
+1. The game runs in browser with npm run dev.
+2. The game builds successfully with npm run build.
+3. The player can complete a slow guided tutorial.
+4. The player can enter endless training mode.
+5. The player swipes/cuts text to predict token boundaries.
+6. Actual tokenization fixtures resolve each round.
+7. The game shows:
+   - correct cuts
+   - missed boundaries
+   - false cuts
+   - token count
+   - pay
+   - company cost
+   - net balance change
+   - one short overseer line
+8. Balance starts positive and session ends when it reaches zero.
+9. Difficulty increases through:
+   - reduced time window
+   - higher-tier fixture categories
+   - denser token boundary patterns
+10. High score and best rank are saved locally.
+11. UI is mobile-first and playable with mouse or touch.
+12. Add placeholder sound effects with a mute toggle, or implement an AudioSystem stub if assets are missing.
+13. Add a simple rank system based on score/accuracy/cost efficiency.
+14. Add tests for scoring, difficulty, fixture selection, and tokenizer fixture validation.
+15. Use the game design skill/plugin if available to audit the core loop, tutorial clarity, game feel, and difficulty ramp. If the skill/plugin is unavailable, note that and proceed with an internal design audit.
+
+Game feel requirements:
+- swipe must feel responsive
+- cuts should leave a visible trail
+- correct cuts should snap or flash
+- missed boundaries should appear clearly
+- false cuts should feel costly but not confusing
+- feedback should linger long enough to read
+- tutorial should be much slower than main mode
+
+Aesthetic requirements:
+- haggard future corporate training software
+- worn 2000s computing
+- grimy beige/grey/green palette
+- bureaucratic typography
+- no neon cyberpunk
+- no glossy SaaS dashboard
+
+Tone requirements:
+- technical first, funny second
+- short overseer lines only
+- no long narration during active play
+- no fake generated answers
+- consequences should be about tokenization cost, overhead, and accuracy
+
+When finished:
+- run tests
+- run build
+- report what changed
+- report known risks
+- list next recommended tasks

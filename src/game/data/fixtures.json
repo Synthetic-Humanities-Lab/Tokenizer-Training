@@ -1,0 +1,10478 @@
+[
+  {
+    "id": "simple_001",
+    "text": "the cat sat on the mat",
+    "category": "simple_prose",
+    "tier": 1,
+    "token_count": 6,
+    "token_ids": [
+      1820,
+      8415,
+      7731,
+      389,
+      279,
+      5634
+    ],
+    "token_strings": [
+      "the",
+      " cat",
+      " sat",
+      " on",
+      " the",
+      " mat"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        7,
+        11
+      ],
+      [
+        11,
+        14
+      ],
+      [
+        14,
+        18
+      ],
+      [
+        18,
+        22
+      ]
+    ],
+    "graphemes": [
+      "t",
+      "h",
+      "e",
+      " ",
+      "c",
+      "a",
+      "t",
+      " ",
+      "s",
+      "a",
+      "t",
+      " ",
+      "o",
+      "n",
+      " ",
+      "t",
+      "h",
+      "e",
+      " ",
+      "m",
+      "a",
+      "t"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ]
+    ],
+    "boundary_positions": [
+      3,
+      7,
+      11,
+      14,
+      18
+    ],
+    "boundary_byte_positions": [
+      3,
+      7,
+      11,
+      14,
+      18
+    ],
+    "difficulty_weight": 1.23,
+    "notes": "starter; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "simple_002",
+    "text": "how many dogs are there",
+    "category": "simple_prose",
+    "tier": 1,
+    "token_count": 5,
+    "token_ids": [
+      5269,
+      1690,
+      12875,
+      527,
+      1070
+    ],
+    "token_strings": [
+      "how",
+      " many",
+      " dogs",
+      " are",
+      " there"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        8
+      ],
+      [
+        8,
+        13
+      ],
+      [
+        13,
+        17
+      ],
+      [
+        17,
+        23
+      ]
+    ],
+    "graphemes": [
+      "h",
+      "o",
+      "w",
+      " ",
+      "m",
+      "a",
+      "n",
+      "y",
+      " ",
+      "d",
+      "o",
+      "g",
+      "s",
+      " ",
+      "a",
+      "r",
+      "e",
+      " ",
+      "t",
+      "h",
+      "e",
+      "r",
+      "e"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ],
+      [
+        22,
+        23
+      ]
+    ],
+    "boundary_positions": [
+      3,
+      8,
+      13,
+      17
+    ],
+    "boundary_byte_positions": [
+      3,
+      8,
+      13,
+      17
+    ],
+    "difficulty_weight": 1.15,
+    "notes": "starter question; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "simple_003",
+    "text": "a small prompt arrives",
+    "category": "simple_prose",
+    "tier": 1,
+    "token_count": 4,
+    "token_ids": [
+      64,
+      2678,
+      10137,
+      30782
+    ],
+    "token_strings": [
+      "a",
+      " small",
+      " prompt",
+      " arrives"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        7,
+        14
+      ],
+      [
+        14,
+        22
+      ]
+    ],
+    "graphemes": [
+      "a",
+      " ",
+      "s",
+      "m",
+      "a",
+      "l",
+      "l",
+      " ",
+      "p",
+      "r",
+      "o",
+      "m",
+      "p",
+      "t",
+      " ",
+      "a",
+      "r",
+      "r",
+      "i",
+      "v",
+      "e",
+      "s"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ]
+    ],
+    "boundary_positions": [
+      1,
+      7,
+      14
+    ],
+    "boundary_byte_positions": [
+      1,
+      7,
+      14
+    ],
+    "difficulty_weight": 1.07,
+    "notes": "starter; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "simple_004",
+    "text": "please summarize this sentence",
+    "category": "simple_prose",
+    "tier": 1,
+    "token_count": 4,
+    "token_ids": [
+      31121,
+      63179,
+      420,
+      11914
+    ],
+    "token_strings": [
+      "please",
+      " summarize",
+      " this",
+      " sentence"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        6
+      ],
+      [
+        6,
+        16
+      ],
+      [
+        16,
+        21
+      ],
+      [
+        21,
+        30
+      ]
+    ],
+    "graphemes": [
+      "p",
+      "l",
+      "e",
+      "a",
+      "s",
+      "e",
+      " ",
+      "s",
+      "u",
+      "m",
+      "m",
+      "a",
+      "r",
+      "i",
+      "z",
+      "e",
+      " ",
+      "t",
+      "h",
+      "i",
+      "s",
+      " ",
+      "s",
+      "e",
+      "n",
+      "t",
+      "e",
+      "n",
+      "c",
+      "e"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ],
+      [
+        22,
+        23
+      ],
+      [
+        23,
+        24
+      ],
+      [
+        24,
+        25
+      ],
+      [
+        25,
+        26
+      ],
+      [
+        26,
+        27
+      ],
+      [
+        27,
+        28
+      ],
+      [
+        28,
+        29
+      ],
+      [
+        29,
+        30
+      ]
+    ],
+    "boundary_positions": [
+      6,
+      16,
+      21
+    ],
+    "boundary_byte_positions": [
+      6,
+      16,
+      21
+    ],
+    "difficulty_weight": 1.07,
+    "notes": "ordinary prompt language; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "simple_005",
+    "text": "the model reads the text",
+    "category": "simple_prose",
+    "tier": 1,
+    "token_count": 5,
+    "token_ids": [
+      1820,
+      1646,
+      16181,
+      279,
+      1495
+    ],
+    "token_strings": [
+      "the",
+      " model",
+      " reads",
+      " the",
+      " text"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        9
+      ],
+      [
+        9,
+        15
+      ],
+      [
+        15,
+        19
+      ],
+      [
+        19,
+        24
+      ]
+    ],
+    "graphemes": [
+      "t",
+      "h",
+      "e",
+      " ",
+      "m",
+      "o",
+      "d",
+      "e",
+      "l",
+      " ",
+      "r",
+      "e",
+      "a",
+      "d",
+      "s",
+      " ",
+      "t",
+      "h",
+      "e",
+      " ",
+      "t",
+      "e",
+      "x",
+      "t"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ],
+      [
+        22,
+        23
+      ],
+      [
+        23,
+        24
+      ]
+    ],
+    "boundary_positions": [
+      3,
+      9,
+      15,
+      19
+    ],
+    "boundary_byte_positions": [
+      3,
+      9,
+      15,
+      19
+    ],
+    "difficulty_weight": 1.15,
+    "notes": "ordinary words; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "simple_006",
+    "text": "write a short reply",
+    "category": "simple_prose",
+    "tier": 1,
+    "token_count": 4,
+    "token_ids": [
+      5040,
+      264,
+      2875,
+      10052
+    ],
+    "token_strings": [
+      "write",
+      " a",
+      " short",
+      " reply"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        7,
+        13
+      ],
+      [
+        13,
+        19
+      ]
+    ],
+    "graphemes": [
+      "w",
+      "r",
+      "i",
+      "t",
+      "e",
+      " ",
+      "a",
+      " ",
+      "s",
+      "h",
+      "o",
+      "r",
+      "t",
+      " ",
+      "r",
+      "e",
+      "p",
+      "l",
+      "y"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ]
+    ],
+    "boundary_positions": [
+      5,
+      7,
+      13
+    ],
+    "boundary_byte_positions": [
+      5,
+      7,
+      13
+    ],
+    "difficulty_weight": 1.07,
+    "notes": "ordinary instruction; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "simple_007",
+    "text": "tokens hide in plain sight",
+    "category": "simple_prose",
+    "tier": 1,
+    "token_count": 5,
+    "token_ids": [
+      31666,
+      10477,
+      304,
+      14733,
+      14254
+    ],
+    "token_strings": [
+      "tokens",
+      " hide",
+      " in",
+      " plain",
+      " sight"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        6
+      ],
+      [
+        6,
+        11
+      ],
+      [
+        11,
+        14
+      ],
+      [
+        14,
+        20
+      ],
+      [
+        20,
+        26
+      ]
+    ],
+    "graphemes": [
+      "t",
+      "o",
+      "k",
+      "e",
+      "n",
+      "s",
+      " ",
+      "h",
+      "i",
+      "d",
+      "e",
+      " ",
+      "i",
+      "n",
+      " ",
+      "p",
+      "l",
+      "a",
+      "i",
+      "n",
+      " ",
+      "s",
+      "i",
+      "g",
+      "h",
+      "t"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ],
+      [
+        22,
+        23
+      ],
+      [
+        23,
+        24
+      ],
+      [
+        24,
+        25
+      ],
+      [
+        25,
+        26
+      ]
+    ],
+    "boundary_positions": [
+      6,
+      11,
+      14,
+      20
+    ],
+    "boundary_byte_positions": [
+      6,
+      11,
+      14,
+      20
+    ],
+    "difficulty_weight": 1.15,
+    "notes": "teaching phrase; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "simple_008",
+    "text": "the answer looks simple",
+    "category": "simple_prose",
+    "tier": 1,
+    "token_count": 4,
+    "token_ids": [
+      1820,
+      4320,
+      5992,
+      4382
+    ],
+    "token_strings": [
+      "the",
+      " answer",
+      " looks",
+      " simple"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        10
+      ],
+      [
+        10,
+        16
+      ],
+      [
+        16,
+        23
+      ]
+    ],
+    "graphemes": [
+      "t",
+      "h",
+      "e",
+      " ",
+      "a",
+      "n",
+      "s",
+      "w",
+      "e",
+      "r",
+      " ",
+      "l",
+      "o",
+      "o",
+      "k",
+      "s",
+      " ",
+      "s",
+      "i",
+      "m",
+      "p",
+      "l",
+      "e"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ],
+      [
+        22,
+        23
+      ]
+    ],
+    "boundary_positions": [
+      3,
+      10,
+      16
+    ],
+    "boundary_byte_positions": [
+      3,
+      10,
+      16
+    ],
+    "difficulty_weight": 1.07,
+    "notes": "ordinary sentence; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "simple_009",
+    "text": "count the quiet boundary",
+    "category": "simple_prose",
+    "tier": 1,
+    "token_count": 4,
+    "token_ids": [
+      1868,
+      279,
+      11594,
+      19254
+    ],
+    "token_strings": [
+      "count",
+      " the",
+      " quiet",
+      " boundary"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        9
+      ],
+      [
+        9,
+        15
+      ],
+      [
+        15,
+        24
+      ]
+    ],
+    "graphemes": [
+      "c",
+      "o",
+      "u",
+      "n",
+      "t",
+      " ",
+      "t",
+      "h",
+      "e",
+      " ",
+      "q",
+      "u",
+      "i",
+      "e",
+      "t",
+      " ",
+      "b",
+      "o",
+      "u",
+      "n",
+      "d",
+      "a",
+      "r",
+      "y"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ],
+      [
+        22,
+        23
+      ],
+      [
+        23,
+        24
+      ]
+    ],
+    "boundary_positions": [
+      5,
+      9,
+      15
+    ],
+    "boundary_byte_positions": [
+      5,
+      9,
+      15
+    ],
+    "difficulty_weight": 1.07,
+    "notes": "ordinary tokenizer phrase; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "simple_010",
+    "text": "draw the boundary line",
+    "category": "simple_prose",
+    "tier": 1,
+    "token_count": 4,
+    "token_ids": [
+      7788,
+      279,
+      19254,
+      1584
+    ],
+    "token_strings": [
+      "draw",
+      " the",
+      " boundary",
+      " line"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        4
+      ],
+      [
+        4,
+        8
+      ],
+      [
+        8,
+        17
+      ],
+      [
+        17,
+        22
+      ]
+    ],
+    "graphemes": [
+      "d",
+      "r",
+      "a",
+      "w",
+      " ",
+      "t",
+      "h",
+      "e",
+      " ",
+      "b",
+      "o",
+      "u",
+      "n",
+      "d",
+      "a",
+      "r",
+      "y",
+      " ",
+      "l",
+      "i",
+      "n",
+      "e"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ]
+    ],
+    "boundary_positions": [
+      4,
+      8,
+      17
+    ],
+    "boundary_byte_positions": [
+      4,
+      8,
+      17
+    ],
+    "difficulty_weight": 1.07,
+    "notes": "ordinary boundary phrase; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "simple_011",
+    "text": "the robot counts tokens",
+    "category": "simple_prose",
+    "tier": 1,
+    "token_count": 4,
+    "token_ids": [
+      1820,
+      12585,
+      14921,
+      11460
+    ],
+    "token_strings": [
+      "the",
+      " robot",
+      " counts",
+      " tokens"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        9
+      ],
+      [
+        9,
+        16
+      ],
+      [
+        16,
+        23
+      ]
+    ],
+    "graphemes": [
+      "t",
+      "h",
+      "e",
+      " ",
+      "r",
+      "o",
+      "b",
+      "o",
+      "t",
+      " ",
+      "c",
+      "o",
+      "u",
+      "n",
+      "t",
+      "s",
+      " ",
+      "t",
+      "o",
+      "k",
+      "e",
+      "n",
+      "s"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ],
+      [
+        22,
+        23
+      ]
+    ],
+    "boundary_positions": [
+      3,
+      9,
+      16
+    ],
+    "boundary_byte_positions": [
+      3,
+      9,
+      16
+    ],
+    "difficulty_weight": 1.07,
+    "notes": "labor frame phrase; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "simple_012",
+    "text": "move text before it fades",
+    "category": "simple_prose",
+    "tier": 1,
+    "token_count": 5,
+    "token_ids": [
+      3479,
+      1495,
+      1603,
+      433,
+      87509
+    ],
+    "token_strings": [
+      "move",
+      " text",
+      " before",
+      " it",
+      " fades"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        4
+      ],
+      [
+        4,
+        9
+      ],
+      [
+        9,
+        16
+      ],
+      [
+        16,
+        19
+      ],
+      [
+        19,
+        25
+      ]
+    ],
+    "graphemes": [
+      "m",
+      "o",
+      "v",
+      "e",
+      " ",
+      "t",
+      "e",
+      "x",
+      "t",
+      " ",
+      "b",
+      "e",
+      "f",
+      "o",
+      "r",
+      "e",
+      " ",
+      "i",
+      "t",
+      " ",
+      "f",
+      "a",
+      "d",
+      "e",
+      "s"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ],
+      [
+        22,
+        23
+      ],
+      [
+        23,
+        24
+      ],
+      [
+        24,
+        25
+      ]
+    ],
+    "boundary_positions": [
+      4,
+      9,
+      16,
+      19
+    ],
+    "boundary_byte_positions": [
+      4,
+      9,
+      16,
+      19
+    ],
+    "difficulty_weight": 1.15,
+    "notes": "motion phrase; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "simple_013",
+    "text": "review the token ledger",
+    "category": "simple_prose",
+    "tier": 1,
+    "token_count": 4,
+    "token_ids": [
+      19981,
+      279,
+      4037,
+      48033
+    ],
+    "token_strings": [
+      "review",
+      " the",
+      " token",
+      " ledger"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        6
+      ],
+      [
+        6,
+        10
+      ],
+      [
+        10,
+        16
+      ],
+      [
+        16,
+        23
+      ]
+    ],
+    "graphemes": [
+      "r",
+      "e",
+      "v",
+      "i",
+      "e",
+      "w",
+      " ",
+      "t",
+      "h",
+      "e",
+      " ",
+      "t",
+      "o",
+      "k",
+      "e",
+      "n",
+      " ",
+      "l",
+      "e",
+      "d",
+      "g",
+      "e",
+      "r"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ],
+      [
+        22,
+        23
+      ]
+    ],
+    "boundary_positions": [
+      6,
+      10,
+      16
+    ],
+    "boundary_byte_positions": [
+      6,
+      10,
+      16
+    ],
+    "difficulty_weight": 1.07,
+    "notes": "review phrase; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "simple_014",
+    "text": "pay cost and balance",
+    "category": "simple_prose",
+    "tier": 1,
+    "token_count": 4,
+    "token_ids": [
+      14214,
+      2853,
+      323,
+      8335
+    ],
+    "token_strings": [
+      "pay",
+      " cost",
+      " and",
+      " balance"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        8
+      ],
+      [
+        8,
+        12
+      ],
+      [
+        12,
+        20
+      ]
+    ],
+    "graphemes": [
+      "p",
+      "a",
+      "y",
+      " ",
+      "c",
+      "o",
+      "s",
+      "t",
+      " ",
+      "a",
+      "n",
+      "d",
+      " ",
+      "b",
+      "a",
+      "l",
+      "a",
+      "n",
+      "c",
+      "e"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ]
+    ],
+    "boundary_positions": [
+      3,
+      8,
+      12
+    ],
+    "boundary_byte_positions": [
+      3,
+      8,
+      12
+    ],
+    "difficulty_weight": 1.07,
+    "notes": "economy words; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "simple_015",
+    "text": "the browser files work",
+    "category": "simple_prose",
+    "tier": 1,
+    "token_count": 4,
+    "token_ids": [
+      1820,
+      7074,
+      3626,
+      990
+    ],
+    "token_strings": [
+      "the",
+      " browser",
+      " files",
+      " work"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        11
+      ],
+      [
+        11,
+        17
+      ],
+      [
+        17,
+        22
+      ]
+    ],
+    "graphemes": [
+      "t",
+      "h",
+      "e",
+      " ",
+      "b",
+      "r",
+      "o",
+      "w",
+      "s",
+      "e",
+      "r",
+      " ",
+      "f",
+      "i",
+      "l",
+      "e",
+      "s",
+      " ",
+      "w",
+      "o",
+      "r",
+      "k"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ]
+    ],
+    "boundary_positions": [
+      3,
+      11,
+      17
+    ],
+    "boundary_byte_positions": [
+      3,
+      11,
+      17
+    ],
+    "difficulty_weight": 1.07,
+    "notes": "labor frame; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "simple_016",
+    "text": "cut before the audit",
+    "category": "simple_prose",
+    "tier": 1,
+    "token_count": 4,
+    "token_ids": [
+      10453,
+      1603,
+      279,
+      25261
+    ],
+    "token_strings": [
+      "cut",
+      " before",
+      " the",
+      " audit"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        10
+      ],
+      [
+        10,
+        14
+      ],
+      [
+        14,
+        20
+      ]
+    ],
+    "graphemes": [
+      "c",
+      "u",
+      "t",
+      " ",
+      "b",
+      "e",
+      "f",
+      "o",
+      "r",
+      "e",
+      " ",
+      "t",
+      "h",
+      "e",
+      " ",
+      "a",
+      "u",
+      "d",
+      "i",
+      "t"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ]
+    ],
+    "boundary_positions": [
+      3,
+      10,
+      14
+    ],
+    "boundary_byte_positions": [
+      3,
+      10,
+      14
+    ],
+    "difficulty_weight": 1.07,
+    "notes": "instruction phrase; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_001",
+    "text": "I can't believe it.",
+    "category": "contraction",
+    "tier": 2,
+    "token_count": 6,
+    "token_ids": [
+      40,
+      649,
+      956,
+      4510,
+      433,
+      13
+    ],
+    "token_strings": [
+      "I",
+      " can",
+      "'t",
+      " believe",
+      " it",
+      "."
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        7,
+        15
+      ],
+      [
+        15,
+        18
+      ],
+      [
+        18,
+        19
+      ]
+    ],
+    "graphemes": [
+      "I",
+      " ",
+      "c",
+      "a",
+      "n",
+      "'",
+      "t",
+      " ",
+      "b",
+      "e",
+      "l",
+      "i",
+      "e",
+      "v",
+      "e",
+      " ",
+      "i",
+      "t",
+      "."
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ]
+    ],
+    "boundary_positions": [
+      1,
+      5,
+      7,
+      15,
+      18
+    ],
+    "boundary_byte_positions": [
+      1,
+      5,
+      7,
+      15,
+      18
+    ],
+    "difficulty_weight": 1.45,
+    "notes": "apostrophe; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_002",
+    "text": "re-enter the room",
+    "category": "hyphenation",
+    "tier": 2,
+    "token_count": 4,
+    "token_ids": [
+      265,
+      49315,
+      279,
+      3130
+    ],
+    "token_strings": [
+      "re",
+      "-enter",
+      " the",
+      " room"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        2
+      ],
+      [
+        2,
+        8
+      ],
+      [
+        8,
+        12
+      ],
+      [
+        12,
+        17
+      ]
+    ],
+    "graphemes": [
+      "r",
+      "e",
+      "-",
+      "e",
+      "n",
+      "t",
+      "e",
+      "r",
+      " ",
+      "t",
+      "h",
+      "e",
+      " ",
+      "r",
+      "o",
+      "o",
+      "m"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ]
+    ],
+    "boundary_positions": [
+      2,
+      8,
+      12
+    ],
+    "boundary_byte_positions": [
+      2,
+      8,
+      12
+    ],
+    "difficulty_weight": 1.29,
+    "notes": "hyphen; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_003",
+    "text": "it costs $19.99",
+    "category": "numbers_symbols",
+    "tier": 2,
+    "token_count": 6,
+    "token_ids": [
+      275,
+      7194,
+      400,
+      777,
+      13,
+      1484
+    ],
+    "token_strings": [
+      "it",
+      " costs",
+      " $",
+      "19",
+      ".",
+      "99"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        2
+      ],
+      [
+        2,
+        8
+      ],
+      [
+        8,
+        10
+      ],
+      [
+        10,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        15
+      ]
+    ],
+    "graphemes": [
+      "i",
+      "t",
+      " ",
+      "c",
+      "o",
+      "s",
+      "t",
+      "s",
+      " ",
+      "$",
+      "1",
+      "9",
+      ".",
+      "9",
+      "9"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ]
+    ],
+    "boundary_positions": [
+      2,
+      8,
+      10,
+      12,
+      13
+    ],
+    "boundary_byte_positions": [
+      2,
+      8,
+      10,
+      12,
+      13
+    ],
+    "difficulty_weight": 1.45,
+    "notes": "currency and decimal; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_004",
+    "text": "wait... what?",
+    "category": "punctuation",
+    "tier": 2,
+    "token_count": 4,
+    "token_ids": [
+      11748,
+      1131,
+      1148,
+      30
+    ],
+    "token_strings": [
+      "wait",
+      "...",
+      " what",
+      "?"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        4
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        7,
+        12
+      ],
+      [
+        12,
+        13
+      ]
+    ],
+    "graphemes": [
+      "w",
+      "a",
+      "i",
+      "t",
+      ".",
+      ".",
+      ".",
+      " ",
+      "w",
+      "h",
+      "a",
+      "t",
+      "?"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ]
+    ],
+    "boundary_positions": [
+      4,
+      7,
+      12
+    ],
+    "boundary_byte_positions": [
+      4,
+      7,
+      12
+    ],
+    "difficulty_weight": 1.29,
+    "notes": "ellipsis and question mark; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_005",
+    "text": "lol!!! why tho",
+    "category": "internet_punctuation",
+    "tier": 2,
+    "token_count": 4,
+    "token_ids": [
+      60419,
+      12340,
+      3249,
+      40425
+    ],
+    "token_strings": [
+      "lol",
+      "!!!",
+      " why",
+      " tho"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        6
+      ],
+      [
+        6,
+        10
+      ],
+      [
+        10,
+        14
+      ]
+    ],
+    "graphemes": [
+      "l",
+      "o",
+      "l",
+      "!",
+      "!",
+      "!",
+      " ",
+      "w",
+      "h",
+      "y",
+      " ",
+      "t",
+      "h",
+      "o"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ]
+    ],
+    "boundary_positions": [
+      3,
+      6,
+      10
+    ],
+    "boundary_byte_positions": [
+      3,
+      6,
+      10
+    ],
+    "difficulty_weight": 1.29,
+    "notes": "punctuation cluster; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_006",
+    "text": "don't split that yet",
+    "category": "contraction",
+    "tier": 2,
+    "token_count": 5,
+    "token_ids": [
+      15357,
+      956,
+      6859,
+      430,
+      3686
+    ],
+    "token_strings": [
+      "don",
+      "'t",
+      " split",
+      " that",
+      " yet"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        5,
+        11
+      ],
+      [
+        11,
+        16
+      ],
+      [
+        16,
+        20
+      ]
+    ],
+    "graphemes": [
+      "d",
+      "o",
+      "n",
+      "'",
+      "t",
+      " ",
+      "s",
+      "p",
+      "l",
+      "i",
+      "t",
+      " ",
+      "t",
+      "h",
+      "a",
+      "t",
+      " ",
+      "y",
+      "e",
+      "t"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ]
+    ],
+    "boundary_positions": [
+      3,
+      5,
+      11,
+      16
+    ],
+    "boundary_byte_positions": [
+      3,
+      5,
+      11,
+      16
+    ],
+    "difficulty_weight": 1.37,
+    "notes": "common contraction; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_007",
+    "text": "pre-token audit",
+    "category": "hyphenation",
+    "tier": 2,
+    "token_count": 3,
+    "token_ids": [
+      1762,
+      35941,
+      25261
+    ],
+    "token_strings": [
+      "pre",
+      "-token",
+      " audit"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        9
+      ],
+      [
+        9,
+        15
+      ]
+    ],
+    "graphemes": [
+      "p",
+      "r",
+      "e",
+      "-",
+      "t",
+      "o",
+      "k",
+      "e",
+      "n",
+      " ",
+      "a",
+      "u",
+      "d",
+      "i",
+      "t"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ]
+    ],
+    "boundary_positions": [
+      3,
+      9
+    ],
+    "boundary_byte_positions": [
+      3,
+      9
+    ],
+    "difficulty_weight": 1.29,
+    "notes": "hyphen and tokenizer term; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_008",
+    "text": "hello, tokenizer.",
+    "category": "punctuation",
+    "tier": 2,
+    "token_count": 4,
+    "token_ids": [
+      15339,
+      11,
+      47058,
+      13
+    ],
+    "token_strings": [
+      "hello",
+      ",",
+      " tokenizer",
+      "."
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        16
+      ],
+      [
+        16,
+        17
+      ]
+    ],
+    "graphemes": [
+      "h",
+      "e",
+      "l",
+      "l",
+      "o",
+      ",",
+      " ",
+      "t",
+      "o",
+      "k",
+      "e",
+      "n",
+      "i",
+      "z",
+      "e",
+      "r",
+      "."
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ]
+    ],
+    "boundary_positions": [
+      5,
+      6,
+      16
+    ],
+    "boundary_byte_positions": [
+      5,
+      6,
+      16
+    ],
+    "difficulty_weight": 1.29,
+    "notes": "comma and period; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_009",
+    "text": "sure?! maybe.",
+    "category": "punctuation",
+    "tier": 2,
+    "token_count": 4,
+    "token_ids": [
+      19643,
+      27074,
+      7344,
+      13
+    ],
+    "token_strings": [
+      "sure",
+      "?!",
+      " maybe",
+      "."
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        4
+      ],
+      [
+        4,
+        6
+      ],
+      [
+        6,
+        12
+      ],
+      [
+        12,
+        13
+      ]
+    ],
+    "graphemes": [
+      "s",
+      "u",
+      "r",
+      "e",
+      "?",
+      "!",
+      " ",
+      "m",
+      "a",
+      "y",
+      "b",
+      "e",
+      "."
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ]
+    ],
+    "boundary_positions": [
+      4,
+      6,
+      12
+    ],
+    "boundary_byte_positions": [
+      4,
+      6,
+      12
+    ],
+    "difficulty_weight": 1.29,
+    "notes": "mixed punctuation; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_010",
+    "text": "ok, but why?",
+    "category": "punctuation",
+    "tier": 2,
+    "token_count": 5,
+    "token_ids": [
+      564,
+      11,
+      719,
+      3249,
+      30
+    ],
+    "token_strings": [
+      "ok",
+      ",",
+      " but",
+      " why",
+      "?"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        7,
+        11
+      ],
+      [
+        11,
+        12
+      ]
+    ],
+    "graphemes": [
+      "o",
+      "k",
+      ",",
+      " ",
+      "b",
+      "u",
+      "t",
+      " ",
+      "w",
+      "h",
+      "y",
+      "?"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ]
+    ],
+    "boundary_positions": [
+      2,
+      3,
+      7,
+      11
+    ],
+    "boundary_byte_positions": [
+      2,
+      3,
+      7,
+      11
+    ],
+    "difficulty_weight": 1.37,
+    "notes": "comma and question mark; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_011",
+    "text": "invoice#429",
+    "category": "numbers_symbols",
+    "tier": 2,
+    "token_count": 3,
+    "token_ids": [
+      23009,
+      2,
+      16371
+    ],
+    "token_strings": [
+      "invoice",
+      "#",
+      "429"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        11
+      ]
+    ],
+    "graphemes": [
+      "i",
+      "n",
+      "v",
+      "o",
+      "i",
+      "c",
+      "e",
+      "#",
+      "4",
+      "2",
+      "9"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ]
+    ],
+    "boundary_positions": [
+      7,
+      8
+    ],
+    "boundary_byte_positions": [
+      7,
+      8
+    ],
+    "difficulty_weight": 1.29,
+    "notes": "hash and digits; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_012",
+    "text": "save-as draft",
+    "category": "hyphenation",
+    "tier": 2,
+    "token_count": 3,
+    "token_ids": [
+      6766,
+      33534,
+      10165
+    ],
+    "token_strings": [
+      "save",
+      "-as",
+      " draft"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        4
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        7,
+        13
+      ]
+    ],
+    "graphemes": [
+      "s",
+      "a",
+      "v",
+      "e",
+      "-",
+      "a",
+      "s",
+      " ",
+      "d",
+      "r",
+      "a",
+      "f",
+      "t"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ]
+    ],
+    "boundary_positions": [
+      4,
+      7
+    ],
+    "boundary_byte_positions": [
+      4,
+      7
+    ],
+    "difficulty_weight": 1.29,
+    "notes": "hyphenated command; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_013",
+    "text": "can't-stop now",
+    "category": "contraction",
+    "tier": 2,
+    "token_count": 4,
+    "token_ids": [
+      4919,
+      956,
+      42311,
+      1457
+    ],
+    "token_strings": [
+      "can",
+      "'t",
+      "-stop",
+      " now"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        5,
+        10
+      ],
+      [
+        10,
+        14
+      ]
+    ],
+    "graphemes": [
+      "c",
+      "a",
+      "n",
+      "'",
+      "t",
+      "-",
+      "s",
+      "t",
+      "o",
+      "p",
+      " ",
+      "n",
+      "o",
+      "w"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ]
+    ],
+    "boundary_positions": [
+      3,
+      5,
+      10
+    ],
+    "boundary_byte_positions": [
+      3,
+      5,
+      10
+    ],
+    "difficulty_weight": 1.29,
+    "notes": "apostrophe plus hyphen; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_014",
+    "text": "A/B test",
+    "category": "numbers_symbols",
+    "tier": 2,
+    "token_count": 3,
+    "token_ids": [
+      32,
+      16675,
+      1296
+    ],
+    "token_strings": [
+      "A",
+      "/B",
+      " test"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        3,
+        8
+      ]
+    ],
+    "graphemes": [
+      "A",
+      "/",
+      "B",
+      " ",
+      "t",
+      "e",
+      "s",
+      "t"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ]
+    ],
+    "boundary_positions": [
+      1,
+      3
+    ],
+    "boundary_byte_positions": [
+      1,
+      3
+    ],
+    "difficulty_weight": 1.29,
+    "notes": "slash phrase; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_015",
+    "text": "v2.0",
+    "category": "numbers_symbols",
+    "tier": 2,
+    "token_count": 4,
+    "token_ids": [
+      85,
+      17,
+      13,
+      15
+    ],
+    "token_strings": [
+      "v",
+      "2",
+      ".",
+      "0"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "graphemes": [
+      "v",
+      "2",
+      ".",
+      "0"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ]
+    ],
+    "boundary_positions": [
+      1,
+      2,
+      3
+    ],
+    "boundary_byte_positions": [
+      1,
+      2,
+      3
+    ],
+    "difficulty_weight": 1.29,
+    "notes": "compact version decimal; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_017",
+    "text": "3+5=8",
+    "category": "numbers_symbols",
+    "tier": 2,
+    "token_count": 5,
+    "token_ids": [
+      18,
+      10,
+      20,
+      28,
+      23
+    ],
+    "token_strings": [
+      "3",
+      "+",
+      "5",
+      "=",
+      "8"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "graphemes": [
+      "3",
+      "+",
+      "5",
+      "=",
+      "8"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "boundary_positions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "boundary_byte_positions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "difficulty_weight": 1.37,
+    "notes": "arithmetic symbols; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_018",
+    "text": "verify: yes/no",
+    "category": "punctuation",
+    "tier": 2,
+    "token_count": 4,
+    "token_ids": [
+      12728,
+      25,
+      10035,
+      34200
+    ],
+    "token_strings": [
+      "verify",
+      ":",
+      " yes",
+      "/no"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        11
+      ],
+      [
+        11,
+        14
+      ]
+    ],
+    "graphemes": [
+      "v",
+      "e",
+      "r",
+      "i",
+      "f",
+      "y",
+      ":",
+      " ",
+      "y",
+      "e",
+      "s",
+      "/",
+      "n",
+      "o"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ]
+    ],
+    "boundary_positions": [
+      6,
+      7,
+      11
+    ],
+    "boundary_byte_positions": [
+      6,
+      7,
+      11
+    ],
+    "difficulty_weight": 1.29,
+    "notes": "colon slash; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_019",
+    "text": "worker-id2040",
+    "category": "numbers_symbols",
+    "tier": 2,
+    "token_count": 4,
+    "token_ids": [
+      22179,
+      13193,
+      7854,
+      15
+    ],
+    "token_strings": [
+      "worker",
+      "-id",
+      "204",
+      "0"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        6
+      ],
+      [
+        6,
+        9
+      ],
+      [
+        9,
+        12
+      ],
+      [
+        12,
+        13
+      ]
+    ],
+    "graphemes": [
+      "w",
+      "o",
+      "r",
+      "k",
+      "e",
+      "r",
+      "-",
+      "i",
+      "d",
+      "2",
+      "0",
+      "4",
+      "0"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ]
+    ],
+    "boundary_positions": [
+      6,
+      9,
+      12
+    ],
+    "boundary_byte_positions": [
+      6,
+      9,
+      12
+    ],
+    "difficulty_weight": 1.29,
+    "notes": "hyphen id digits no space; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_020",
+    "text": "fine... proceed.",
+    "category": "punctuation",
+    "tier": 2,
+    "token_count": 4,
+    "token_ids": [
+      63157,
+      1131,
+      10570,
+      13
+    ],
+    "token_strings": [
+      "fine",
+      "...",
+      " proceed",
+      "."
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        4
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        7,
+        15
+      ],
+      [
+        15,
+        16
+      ]
+    ],
+    "graphemes": [
+      "f",
+      "i",
+      "n",
+      "e",
+      ".",
+      ".",
+      ".",
+      " ",
+      "p",
+      "r",
+      "o",
+      "c",
+      "e",
+      "e",
+      "d",
+      "."
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ]
+    ],
+    "boundary_positions": [
+      4,
+      7,
+      15
+    ],
+    "boundary_byte_positions": [
+      4,
+      7,
+      15
+    ],
+    "difficulty_weight": 1.29,
+    "notes": "ellipsis period; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_021",
+    "text": "budget=$42",
+    "category": "numbers_symbols",
+    "tier": 2,
+    "token_count": 3,
+    "token_ids": [
+      49506,
+      3266,
+      2983
+    ],
+    "token_strings": [
+      "budget",
+      "=$",
+      "42"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        6
+      ],
+      [
+        6,
+        8
+      ],
+      [
+        8,
+        10
+      ]
+    ],
+    "graphemes": [
+      "b",
+      "u",
+      "d",
+      "g",
+      "e",
+      "t",
+      "=",
+      "$",
+      "4",
+      "2"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ]
+    ],
+    "boundary_positions": [
+      6,
+      8
+    ],
+    "boundary_byte_positions": [
+      6,
+      8
+    ],
+    "difficulty_weight": 1.29,
+    "notes": "currency assignment; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_022",
+    "text": "case#2040",
+    "category": "numbers_symbols",
+    "tier": 2,
+    "token_count": 4,
+    "token_ids": [
+      5756,
+      2,
+      7854,
+      15
+    ],
+    "token_strings": [
+      "case",
+      "#",
+      "204",
+      "0"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        8
+      ],
+      [
+        8,
+        9
+      ]
+    ],
+    "graphemes": [
+      "c",
+      "a",
+      "s",
+      "e",
+      "#",
+      "2",
+      "0",
+      "4",
+      "0"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ]
+    ],
+    "boundary_positions": [
+      4,
+      5,
+      8
+    ],
+    "boundary_byte_positions": [
+      4,
+      5,
+      8
+    ],
+    "difficulty_weight": 1.29,
+    "notes": "case hash digits; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_023",
+    "text": "line:42",
+    "category": "numbers_symbols",
+    "tier": 2,
+    "token_count": 3,
+    "token_ids": [
+      1074,
+      25,
+      2983
+    ],
+    "token_strings": [
+      "line",
+      ":",
+      "42"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        7
+      ]
+    ],
+    "graphemes": [
+      "l",
+      "i",
+      "n",
+      "e",
+      ":",
+      "4",
+      "2"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ]
+    ],
+    "boundary_positions": [
+      4,
+      5
+    ],
+    "boundary_byte_positions": [
+      4,
+      5
+    ],
+    "difficulty_weight": 1.29,
+    "notes": "colon digits; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_024",
+    "text": "ok/no?",
+    "category": "punctuation",
+    "tier": 2,
+    "token_count": 3,
+    "token_ids": [
+      564,
+      34200,
+      30
+    ],
+    "token_strings": [
+      "ok",
+      "/no",
+      "?"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        2
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        5,
+        6
+      ]
+    ],
+    "graphemes": [
+      "o",
+      "k",
+      "/",
+      "n",
+      "o",
+      "?"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ]
+    ],
+    "boundary_positions": [
+      2,
+      5
+    ],
+    "boundary_byte_positions": [
+      2,
+      5
+    ],
+    "difficulty_weight": 1.29,
+    "notes": "slash question; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "punct_025",
+    "text": "ID-2040",
+    "category": "numbers_symbols",
+    "tier": 2,
+    "token_count": 4,
+    "token_ids": [
+      926,
+      12,
+      7854,
+      15
+    ],
+    "token_strings": [
+      "ID",
+      "-",
+      "204",
+      "0"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        6
+      ],
+      [
+        6,
+        7
+      ]
+    ],
+    "graphemes": [
+      "I",
+      "D",
+      "-",
+      "2",
+      "0",
+      "4",
+      "0"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ]
+    ],
+    "boundary_positions": [
+      2,
+      3,
+      6
+    ],
+    "boundary_byte_positions": [
+      2,
+      3,
+      6
+    ],
+    "difficulty_weight": 1.29,
+    "notes": "uppercase id hyphen digits; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "dense_001",
+    "text": "openai.com/pricing",
+    "category": "url",
+    "tier": 3,
+    "token_count": 5,
+    "token_ids": [
+      2569,
+      2192,
+      916,
+      45772,
+      10332
+    ],
+    "token_strings": [
+      "open",
+      "ai",
+      ".com",
+      "/pr",
+      "icing"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        4
+      ],
+      [
+        4,
+        6
+      ],
+      [
+        6,
+        10
+      ],
+      [
+        10,
+        13
+      ],
+      [
+        13,
+        18
+      ]
+    ],
+    "graphemes": [
+      "o",
+      "p",
+      "e",
+      "n",
+      "a",
+      "i",
+      ".",
+      "c",
+      "o",
+      "m",
+      "/",
+      "p",
+      "r",
+      "i",
+      "c",
+      "i",
+      "n",
+      "g"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ]
+    ],
+    "boundary_positions": [
+      4,
+      6,
+      10,
+      13
+    ],
+    "boundary_byte_positions": [
+      4,
+      6,
+      10,
+      13
+    ],
+    "difficulty_weight": 1.59,
+    "notes": "dense string; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "dense_002",
+    "text": "admin@example.com",
+    "category": "email",
+    "tier": 3,
+    "token_count": 3,
+    "token_ids": [
+      2953,
+      36587,
+      916
+    ],
+    "token_strings": [
+      "admin",
+      "@example",
+      ".com"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        13
+      ],
+      [
+        13,
+        17
+      ]
+    ],
+    "graphemes": [
+      "a",
+      "d",
+      "m",
+      "i",
+      "n",
+      "@",
+      "e",
+      "x",
+      "a",
+      "m",
+      "p",
+      "l",
+      "e",
+      ".",
+      "c",
+      "o",
+      "m"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ]
+    ],
+    "boundary_positions": [
+      5,
+      13
+    ],
+    "boundary_byte_positions": [
+      5,
+      13
+    ],
+    "difficulty_weight": 1.51,
+    "notes": "email address; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "dense_003",
+    "text": "hello_world_v2.py",
+    "category": "filename",
+    "tier": 3,
+    "token_count": 5,
+    "token_ids": [
+      15339,
+      32892,
+      2325,
+      17,
+      7345
+    ],
+    "token_strings": [
+      "hello",
+      "_world",
+      "_v",
+      "2",
+      ".py"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        11
+      ],
+      [
+        11,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        17
+      ]
+    ],
+    "graphemes": [
+      "h",
+      "e",
+      "l",
+      "l",
+      "o",
+      "_",
+      "w",
+      "o",
+      "r",
+      "l",
+      "d",
+      "_",
+      "v",
+      "2",
+      ".",
+      "p",
+      "y"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ]
+    ],
+    "boundary_positions": [
+      5,
+      11,
+      13,
+      14
+    ],
+    "boundary_byte_positions": [
+      5,
+      11,
+      13,
+      14
+    ],
+    "difficulty_weight": 1.59,
+    "notes": "snake case and extension; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "dense_004",
+    "text": "parseJSONQuickly()",
+    "category": "code",
+    "tier": 3,
+    "token_count": 5,
+    "token_ids": [
+      6534,
+      5483,
+      25310,
+      398,
+      368
+    ],
+    "token_strings": [
+      "parse",
+      "JSON",
+      "Quick",
+      "ly",
+      "()"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        9
+      ],
+      [
+        9,
+        14
+      ],
+      [
+        14,
+        16
+      ],
+      [
+        16,
+        18
+      ]
+    ],
+    "graphemes": [
+      "p",
+      "a",
+      "r",
+      "s",
+      "e",
+      "J",
+      "S",
+      "O",
+      "N",
+      "Q",
+      "u",
+      "i",
+      "c",
+      "k",
+      "l",
+      "y",
+      "(",
+      ")"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ]
+    ],
+    "boundary_positions": [
+      5,
+      9,
+      14,
+      16
+    ],
+    "boundary_byte_positions": [
+      5,
+      9,
+      14,
+      16
+    ],
+    "difficulty_weight": 1.59,
+    "notes": "camel case and parentheses; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "dense_005",
+    "text": "#GameDev2026",
+    "category": "hashtag",
+    "tier": 3,
+    "token_count": 5,
+    "token_ids": [
+      2,
+      4973,
+      14934,
+      2366,
+      21
+    ],
+    "token_strings": [
+      "#",
+      "Game",
+      "Dev",
+      "202",
+      "6"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        5,
+        8
+      ],
+      [
+        8,
+        11
+      ],
+      [
+        11,
+        12
+      ]
+    ],
+    "graphemes": [
+      "#",
+      "G",
+      "a",
+      "m",
+      "e",
+      "D",
+      "e",
+      "v",
+      "2",
+      "0",
+      "2",
+      "6"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ]
+    ],
+    "boundary_positions": [
+      1,
+      5,
+      8,
+      11
+    ],
+    "boundary_byte_positions": [
+      1,
+      5,
+      8,
+      11
+    ],
+    "difficulty_weight": 1.59,
+    "notes": "hashtag and digits; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "dense_006",
+    "text": "docs.example.org/api",
+    "category": "url",
+    "tier": 3,
+    "token_count": 4,
+    "token_ids": [
+      14452,
+      7880,
+      2726,
+      10729
+    ],
+    "token_strings": [
+      "docs",
+      ".example",
+      ".org",
+      "/api"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        4
+      ],
+      [
+        4,
+        12
+      ],
+      [
+        12,
+        16
+      ],
+      [
+        16,
+        20
+      ]
+    ],
+    "graphemes": [
+      "d",
+      "o",
+      "c",
+      "s",
+      ".",
+      "e",
+      "x",
+      "a",
+      "m",
+      "p",
+      "l",
+      "e",
+      ".",
+      "o",
+      "r",
+      "g",
+      "/",
+      "a",
+      "p",
+      "i"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ]
+    ],
+    "boundary_positions": [
+      4,
+      12,
+      16
+    ],
+    "boundary_byte_positions": [
+      4,
+      12,
+      16
+    ],
+    "difficulty_weight": 1.51,
+    "notes": "domain path variant; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "dense_007",
+    "text": "ops-team@example.dev",
+    "category": "email",
+    "tier": 3,
+    "token_count": 4,
+    "token_ids": [
+      3806,
+      43942,
+      36587,
+      22247
+    ],
+    "token_strings": [
+      "ops",
+      "-team",
+      "@example",
+      ".dev"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        8
+      ],
+      [
+        8,
+        16
+      ],
+      [
+        16,
+        20
+      ]
+    ],
+    "graphemes": [
+      "o",
+      "p",
+      "s",
+      "-",
+      "t",
+      "e",
+      "a",
+      "m",
+      "@",
+      "e",
+      "x",
+      "a",
+      "m",
+      "p",
+      "l",
+      "e",
+      ".",
+      "d",
+      "e",
+      "v"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ]
+    ],
+    "boundary_positions": [
+      3,
+      8,
+      16
+    ],
+    "boundary_byte_positions": [
+      3,
+      8,
+      16
+    ],
+    "difficulty_weight": 1.51,
+    "notes": "hyphenated mailbox; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "dense_008",
+    "text": "invoice.final.04.csv",
+    "category": "filename",
+    "tier": 3,
+    "token_count": 5,
+    "token_ids": [
+      23009,
+      44980,
+      13,
+      2371,
+      11468
+    ],
+    "token_strings": [
+      "invoice",
+      ".final",
+      ".",
+      "04",
+      ".csv"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        7
+      ],
+      [
+        7,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        16
+      ],
+      [
+        16,
+        20
+      ]
+    ],
+    "graphemes": [
+      "i",
+      "n",
+      "v",
+      "o",
+      "i",
+      "c",
+      "e",
+      ".",
+      "f",
+      "i",
+      "n",
+      "a",
+      "l",
+      ".",
+      "0",
+      "4",
+      ".",
+      "c",
+      "s",
+      "v"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ]
+    ],
+    "boundary_positions": [
+      7,
+      13,
+      14,
+      16
+    ],
+    "boundary_byte_positions": [
+      7,
+      13,
+      14,
+      16
+    ],
+    "difficulty_weight": 1.59,
+    "notes": "filename and digits; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "dense_009",
+    "text": "getUserID42()",
+    "category": "code",
+    "tier": 3,
+    "token_count": 4,
+    "token_ids": [
+      29540,
+      926,
+      2983,
+      368
+    ],
+    "token_strings": [
+      "getUser",
+      "ID",
+      "42",
+      "()"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        7
+      ],
+      [
+        7,
+        9
+      ],
+      [
+        9,
+        11
+      ],
+      [
+        11,
+        13
+      ]
+    ],
+    "graphemes": [
+      "g",
+      "e",
+      "t",
+      "U",
+      "s",
+      "e",
+      "r",
+      "I",
+      "D",
+      "4",
+      "2",
+      "(",
+      ")"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ]
+    ],
+    "boundary_positions": [
+      7,
+      9,
+      11
+    ],
+    "boundary_byte_positions": [
+      7,
+      9,
+      11
+    ],
+    "difficulty_weight": 1.51,
+    "notes": "camel case digits parentheses; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "dense_010",
+    "text": "#TokenAudit2040",
+    "category": "hashtag",
+    "tier": 3,
+    "token_count": 5,
+    "token_ids": [
+      2,
+      3404,
+      75616,
+      7854,
+      15
+    ],
+    "token_strings": [
+      "#",
+      "Token",
+      "Audit",
+      "204",
+      "0"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        6
+      ],
+      [
+        6,
+        11
+      ],
+      [
+        11,
+        14
+      ],
+      [
+        14,
+        15
+      ]
+    ],
+    "graphemes": [
+      "#",
+      "T",
+      "o",
+      "k",
+      "e",
+      "n",
+      "A",
+      "u",
+      "d",
+      "i",
+      "t",
+      "2",
+      "0",
+      "4",
+      "0"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ]
+    ],
+    "boundary_positions": [
+      1,
+      6,
+      11,
+      14
+    ],
+    "boundary_byte_positions": [
+      1,
+      6,
+      11,
+      14
+    ],
+    "difficulty_weight": 1.59,
+    "notes": "hashtag with digits; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "dense_011",
+    "text": "status_code=200",
+    "category": "code",
+    "tier": 3,
+    "token_count": 4,
+    "token_ids": [
+      2899,
+      4229,
+      28,
+      1049
+    ],
+    "token_strings": [
+      "status",
+      "_code",
+      "=",
+      "200"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        6
+      ],
+      [
+        6,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        15
+      ]
+    ],
+    "graphemes": [
+      "s",
+      "t",
+      "a",
+      "t",
+      "u",
+      "s",
+      "_",
+      "c",
+      "o",
+      "d",
+      "e",
+      "=",
+      "2",
+      "0",
+      "0"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ]
+    ],
+    "boundary_positions": [
+      6,
+      11,
+      12
+    ],
+    "boundary_byte_positions": [
+      6,
+      11,
+      12
+    ],
+    "difficulty_weight": 1.51,
+    "notes": "status code assignment; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "dense_012",
+    "text": "api/v1/users",
+    "category": "url",
+    "tier": 3,
+    "token_count": 4,
+    "token_ids": [
+      2113,
+      5574,
+      16,
+      19728
+    ],
+    "token_strings": [
+      "api",
+      "/v",
+      "1",
+      "/users"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        12
+      ]
+    ],
+    "graphemes": [
+      "a",
+      "p",
+      "i",
+      "/",
+      "v",
+      "1",
+      "/",
+      "u",
+      "s",
+      "e",
+      "r",
+      "s"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ]
+    ],
+    "boundary_positions": [
+      3,
+      5,
+      6
+    ],
+    "boundary_byte_positions": [
+      3,
+      5,
+      6
+    ],
+    "difficulty_weight": 1.51,
+    "notes": "slash path without domain; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "dense_013",
+    "text": "user.name@example.net",
+    "category": "email",
+    "tier": 3,
+    "token_count": 4,
+    "token_ids": [
+      882,
+      2710,
+      36587,
+      5181
+    ],
+    "token_strings": [
+      "user",
+      ".name",
+      "@example",
+      ".net"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        4
+      ],
+      [
+        4,
+        9
+      ],
+      [
+        9,
+        17
+      ],
+      [
+        17,
+        21
+      ]
+    ],
+    "graphemes": [
+      "u",
+      "s",
+      "e",
+      "r",
+      ".",
+      "n",
+      "a",
+      "m",
+      "e",
+      "@",
+      "e",
+      "x",
+      "a",
+      "m",
+      "p",
+      "l",
+      "e",
+      ".",
+      "n",
+      "e",
+      "t"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ]
+    ],
+    "boundary_positions": [
+      4,
+      9,
+      17
+    ],
+    "boundary_byte_positions": [
+      4,
+      9,
+      17
+    ],
+    "difficulty_weight": 1.51,
+    "notes": "dotted mailbox; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "dense_014",
+    "text": "deploy.sh --dry-run",
+    "category": "command",
+    "tier": 3,
+    "token_count": 5,
+    "token_ids": [
+      36894,
+      2452,
+      1198,
+      54310,
+      23831
+    ],
+    "token_strings": [
+      "deploy",
+      ".sh",
+      " --",
+      "dry",
+      "-run"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        6
+      ],
+      [
+        6,
+        9
+      ],
+      [
+        9,
+        12
+      ],
+      [
+        12,
+        15
+      ],
+      [
+        15,
+        19
+      ]
+    ],
+    "graphemes": [
+      "d",
+      "e",
+      "p",
+      "l",
+      "o",
+      "y",
+      ".",
+      "s",
+      "h",
+      " ",
+      "-",
+      "-",
+      "d",
+      "r",
+      "y",
+      "-",
+      "r",
+      "u",
+      "n"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ]
+    ],
+    "boundary_positions": [
+      6,
+      9,
+      12,
+      15
+    ],
+    "boundary_byte_positions": [
+      6,
+      9,
+      12,
+      15
+    ],
+    "difficulty_weight": 1.59,
+    "notes": "shell command; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "dense_015",
+    "text": "snake_case_id",
+    "category": "code",
+    "tier": 3,
+    "token_count": 3,
+    "token_ids": [
+      73239,
+      19640,
+      851
+    ],
+    "token_strings": [
+      "snake",
+      "_case",
+      "_id"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        10
+      ],
+      [
+        10,
+        13
+      ]
+    ],
+    "graphemes": [
+      "s",
+      "n",
+      "a",
+      "k",
+      "e",
+      "_",
+      "c",
+      "a",
+      "s",
+      "e",
+      "_",
+      "i",
+      "d"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ]
+    ],
+    "boundary_positions": [
+      5,
+      10
+    ],
+    "boundary_byte_positions": [
+      5,
+      10
+    ],
+    "difficulty_weight": 1.51,
+    "notes": "snake case identifier; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "dense_016",
+    "text": "billing.ai/report",
+    "category": "url",
+    "tier": 3,
+    "token_count": 3,
+    "token_ids": [
+      39737,
+      41483,
+      63485
+    ],
+    "token_strings": [
+      "billing",
+      ".ai",
+      "/report"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        7
+      ],
+      [
+        7,
+        10
+      ],
+      [
+        10,
+        17
+      ]
+    ],
+    "graphemes": [
+      "b",
+      "i",
+      "l",
+      "l",
+      "i",
+      "n",
+      "g",
+      ".",
+      "a",
+      "i",
+      "/",
+      "r",
+      "e",
+      "p",
+      "o",
+      "r",
+      "t"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ]
+    ],
+    "boundary_positions": [
+      7,
+      10
+    ],
+    "boundary_byte_positions": [
+      7,
+      10
+    ],
+    "difficulty_weight": 1.51,
+    "notes": "short domain path; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "dense_017",
+    "text": "root@localhost.dev",
+    "category": "email",
+    "tier": 3,
+    "token_count": 4,
+    "token_ids": [
+      2959,
+      31,
+      8465,
+      22247
+    ],
+    "token_strings": [
+      "root",
+      "@",
+      "localhost",
+      ".dev"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        14
+      ],
+      [
+        14,
+        18
+      ]
+    ],
+    "graphemes": [
+      "r",
+      "o",
+      "o",
+      "t",
+      "@",
+      "l",
+      "o",
+      "c",
+      "a",
+      "l",
+      "h",
+      "o",
+      "s",
+      "t",
+      ".",
+      "d",
+      "e",
+      "v"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ]
+    ],
+    "boundary_positions": [
+      4,
+      5,
+      14
+    ],
+    "boundary_byte_positions": [
+      4,
+      5,
+      14
+    ],
+    "difficulty_weight": 1.51,
+    "notes": "local style email; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "dense_018",
+    "text": "audit.log.2026.txt",
+    "category": "filename",
+    "tier": 3,
+    "token_count": 6,
+    "token_ids": [
+      49645,
+      1699,
+      13,
+      2366,
+      21,
+      3996
+    ],
+    "token_strings": [
+      "audit",
+      ".log",
+      ".",
+      "202",
+      "6",
+      ".txt"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        18
+      ]
+    ],
+    "graphemes": [
+      "a",
+      "u",
+      "d",
+      "i",
+      "t",
+      ".",
+      "l",
+      "o",
+      "g",
+      ".",
+      "2",
+      "0",
+      "2",
+      "6",
+      ".",
+      "t",
+      "x",
+      "t"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ]
+    ],
+    "boundary_positions": [
+      5,
+      9,
+      10,
+      13,
+      14
+    ],
+    "boundary_byte_positions": [
+      5,
+      9,
+      10,
+      13,
+      14
+    ],
+    "difficulty_weight": 1.67,
+    "notes": "log filename; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "dense_019",
+    "text": "setTokenLimit(8192)",
+    "category": "code",
+    "tier": 3,
+    "token_count": 7,
+    "token_ids": [
+      751,
+      3404,
+      16934,
+      7,
+      18831,
+      17,
+      8
+    ],
+    "token_strings": [
+      "set",
+      "Token",
+      "Limit",
+      "(",
+      "819",
+      "2",
+      ")"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        8
+      ],
+      [
+        8,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ]
+    ],
+    "graphemes": [
+      "s",
+      "e",
+      "t",
+      "T",
+      "o",
+      "k",
+      "e",
+      "n",
+      "L",
+      "i",
+      "m",
+      "i",
+      "t",
+      "(",
+      "8",
+      "1",
+      "9",
+      "2",
+      ")"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ]
+    ],
+    "boundary_positions": [
+      3,
+      8,
+      13,
+      14,
+      17,
+      18
+    ],
+    "boundary_byte_positions": [
+      3,
+      8,
+      13,
+      14,
+      17,
+      18
+    ],
+    "difficulty_weight": 1.75,
+    "notes": "function call digits; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "chaos_001",
+    "text": "café mañana",
+    "category": "multilingual",
+    "tier": 4,
+    "token_count": 3,
+    "token_ids": [
+      936,
+      59958,
+      96616
+    ],
+    "token_strings": [
+      "ca",
+      "fé",
+      " mañana"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        2
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        5,
+        13
+      ]
+    ],
+    "graphemes": [
+      "c",
+      "a",
+      "f",
+      "é",
+      " ",
+      "m",
+      "a",
+      "ñ",
+      "a",
+      "n",
+      "a"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ]
+    ],
+    "boundary_positions": [
+      2,
+      4
+    ],
+    "boundary_byte_positions": [
+      2,
+      5
+    ],
+    "difficulty_weight": 1.73,
+    "notes": "accented words; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "chaos_002",
+    "text": "Model A-12",
+    "category": "proper_noun",
+    "tier": 4,
+    "token_count": 4,
+    "token_ids": [
+      1747,
+      362,
+      12,
+      717
+    ],
+    "token_strings": [
+      "Model",
+      " A",
+      "-",
+      "12"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        10
+      ]
+    ],
+    "graphemes": [
+      "M",
+      "o",
+      "d",
+      "e",
+      "l",
+      " ",
+      "A",
+      "-",
+      "1",
+      "2"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ]
+    ],
+    "boundary_positions": [
+      5,
+      7,
+      8
+    ],
+    "boundary_byte_positions": [
+      5,
+      7,
+      8
+    ],
+    "difficulty_weight": 1.73,
+    "notes": "mixed symbols; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "chaos_003",
+    "text": "cost_per_token++",
+    "category": "code_symbols",
+    "tier": 4,
+    "token_count": 4,
+    "token_ids": [
+      16845,
+      5796,
+      6594,
+      1044
+    ],
+    "token_strings": [
+      "cost",
+      "_per",
+      "_token",
+      "++"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        4
+      ],
+      [
+        4,
+        8
+      ],
+      [
+        8,
+        14
+      ],
+      [
+        14,
+        16
+      ]
+    ],
+    "graphemes": [
+      "c",
+      "o",
+      "s",
+      "t",
+      "_",
+      "p",
+      "e",
+      "r",
+      "_",
+      "t",
+      "o",
+      "k",
+      "e",
+      "n",
+      "+",
+      "+"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ]
+    ],
+    "boundary_positions": [
+      4,
+      8,
+      14
+    ],
+    "boundary_byte_positions": [
+      4,
+      8,
+      14
+    ],
+    "difficulty_weight": 1.73,
+    "notes": "operators; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "chaos_004",
+    "text": "model_name=cl100k_base",
+    "category": "tokenizer_string",
+    "tier": 4,
+    "token_count": 7,
+    "token_ids": [
+      2590,
+      1292,
+      28,
+      566,
+      1041,
+      74,
+      7806
+    ],
+    "token_strings": [
+      "model",
+      "_name",
+      "=",
+      "cl",
+      "100",
+      "k",
+      "_base"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        13
+      ],
+      [
+        13,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        22
+      ]
+    ],
+    "graphemes": [
+      "m",
+      "o",
+      "d",
+      "e",
+      "l",
+      "_",
+      "n",
+      "a",
+      "m",
+      "e",
+      "=",
+      "c",
+      "l",
+      "1",
+      "0",
+      "0",
+      "k",
+      "_",
+      "b",
+      "a",
+      "s",
+      "e"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ],
+      [
+        19,
+        20
+      ],
+      [
+        20,
+        21
+      ],
+      [
+        21,
+        22
+      ]
+    ],
+    "boundary_positions": [
+      5,
+      10,
+      11,
+      13,
+      16,
+      17
+    ],
+    "boundary_byte_positions": [
+      5,
+      10,
+      11,
+      13,
+      16,
+      17
+    ],
+    "difficulty_weight": 1.97,
+    "notes": "technical token-like string; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "chaos_005",
+    "text": "spaces matter",
+    "category": "spacing",
+    "tier": 4,
+    "token_count": 2,
+    "token_ids": [
+      45385,
+      5030
+    ],
+    "token_strings": [
+      "spaces",
+      " matter"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        6
+      ],
+      [
+        6,
+        13
+      ]
+    ],
+    "graphemes": [
+      "s",
+      "p",
+      "a",
+      "c",
+      "e",
+      "s",
+      " ",
+      "m",
+      "a",
+      "t",
+      "t",
+      "e",
+      "r"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ]
+    ],
+    "boundary_positions": [
+      6
+    ],
+    "boundary_byte_positions": [
+      6
+    ],
+    "difficulty_weight": 1.73,
+    "notes": "single clean tokenizer space; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "chaos_006",
+    "text": " leading space",
+    "category": "leading_space",
+    "tier": 4,
+    "token_count": 2,
+    "token_ids": [
+      6522,
+      3634
+    ],
+    "token_strings": [
+      " leading",
+      " space"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        8
+      ],
+      [
+        8,
+        14
+      ]
+    ],
+    "graphemes": [
+      " ",
+      "l",
+      "e",
+      "a",
+      "d",
+      "i",
+      "n",
+      "g",
+      " ",
+      "s",
+      "p",
+      "a",
+      "c",
+      "e"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ]
+    ],
+    "boundary_positions": [
+      8
+    ],
+    "boundary_byte_positions": [
+      8
+    ],
+    "difficulty_weight": 1.73,
+    "notes": "leading visible space; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "chaos_007",
+    "text": "naïve façade",
+    "category": "multilingual",
+    "tier": 4,
+    "token_count": 5,
+    "token_ids": [
+      3458,
+      38672,
+      588,
+      95972,
+      1037
+    ],
+    "token_strings": [
+      "na",
+      "ï",
+      "ve",
+      " faç",
+      "ade"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        2
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        4,
+        6
+      ],
+      [
+        6,
+        11
+      ],
+      [
+        11,
+        14
+      ]
+    ],
+    "graphemes": [
+      "n",
+      "a",
+      "ï",
+      "v",
+      "e",
+      " ",
+      "f",
+      "a",
+      "ç",
+      "a",
+      "d",
+      "e"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ]
+    ],
+    "boundary_positions": [
+      2,
+      3,
+      5,
+      9
+    ],
+    "boundary_byte_positions": [
+      2,
+      4,
+      6,
+      11
+    ],
+    "difficulty_weight": 1.81,
+    "notes": "diaeresis and cedilla; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "chaos_008",
+    "text": "rate_limit=429",
+    "category": "tokenizer_string",
+    "tier": 4,
+    "token_count": 4,
+    "token_ids": [
+      7853,
+      15106,
+      28,
+      16371
+    ],
+    "token_strings": [
+      "rate",
+      "_limit",
+      "=",
+      "429"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        4
+      ],
+      [
+        4,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        14
+      ]
+    ],
+    "graphemes": [
+      "r",
+      "a",
+      "t",
+      "e",
+      "_",
+      "l",
+      "i",
+      "m",
+      "i",
+      "t",
+      "=",
+      "4",
+      "2",
+      "9"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ]
+    ],
+    "boundary_positions": [
+      4,
+      10,
+      11
+    ],
+    "boundary_byte_positions": [
+      4,
+      10,
+      11
+    ],
+    "difficulty_weight": 1.73,
+    "notes": "technical assignment; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "chaos_009",
+    "text": "UTF8_mode=true",
+    "category": "code_symbols",
+    "tier": 4,
+    "token_count": 4,
+    "token_ids": [
+      8729,
+      23,
+      7450,
+      11516
+    ],
+    "token_strings": [
+      "UTF",
+      "8",
+      "_mode",
+      "=true"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        9
+      ],
+      [
+        9,
+        14
+      ]
+    ],
+    "graphemes": [
+      "U",
+      "T",
+      "F",
+      "8",
+      "_",
+      "m",
+      "o",
+      "d",
+      "e",
+      "=",
+      "t",
+      "r",
+      "u",
+      "e"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ]
+    ],
+    "boundary_positions": [
+      3,
+      4,
+      9
+    ],
+    "boundary_byte_positions": [
+      3,
+      4,
+      9
+    ],
+    "difficulty_weight": 1.73,
+    "notes": "technical flag; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "chaos_010",
+    "text": " manual audit",
+    "category": "leading_space",
+    "tier": 4,
+    "token_count": 2,
+    "token_ids": [
+      11630,
+      25261
+    ],
+    "token_strings": [
+      " manual",
+      " audit"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        7
+      ],
+      [
+        7,
+        13
+      ]
+    ],
+    "graphemes": [
+      " ",
+      "m",
+      "a",
+      "n",
+      "u",
+      "a",
+      "l",
+      " ",
+      "a",
+      "u",
+      "d",
+      "i",
+      "t"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ]
+    ],
+    "boundary_positions": [
+      7
+    ],
+    "boundary_byte_positions": [
+      7
+    ],
+    "difficulty_weight": 1.73,
+    "notes": "leading visible space variant; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "chaos_011",
+    "text": "queue→worker",
+    "category": "symbolic",
+    "tier": 4,
+    "token_count": 3,
+    "token_ids": [
+      4687,
+      52118,
+      22179
+    ],
+    "token_strings": [
+      "queue",
+      "→",
+      "worker"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        8
+      ],
+      [
+        8,
+        14
+      ]
+    ],
+    "graphemes": [
+      "q",
+      "u",
+      "e",
+      "u",
+      "e",
+      "→",
+      "w",
+      "o",
+      "r",
+      "k",
+      "e",
+      "r"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ]
+    ],
+    "boundary_positions": [
+      5,
+      6
+    ],
+    "boundary_byte_positions": [
+      5,
+      8
+    ],
+    "difficulty_weight": 1.73,
+    "notes": "arrow symbol; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "chaos_012",
+    "text": "résumé audit",
+    "category": "multilingual",
+    "tier": 4,
+    "token_count": 4,
+    "token_ids": [
+      43711,
+      1264,
+      978,
+      25261
+    ],
+    "token_strings": [
+      "ré",
+      "sum",
+      "é",
+      " audit"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        3
+      ],
+      [
+        3,
+        6
+      ],
+      [
+        6,
+        8
+      ],
+      [
+        8,
+        14
+      ]
+    ],
+    "graphemes": [
+      "r",
+      "é",
+      "s",
+      "u",
+      "m",
+      "é",
+      " ",
+      "a",
+      "u",
+      "d",
+      "i",
+      "t"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ]
+    ],
+    "boundary_positions": [
+      2,
+      5,
+      6
+    ],
+    "boundary_byte_positions": [
+      3,
+      6,
+      8
+    ],
+    "difficulty_weight": 1.73,
+    "notes": "accented loanword; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "chaos_013",
+    "text": "QA_approved=false",
+    "category": "code_symbols",
+    "tier": 4,
+    "token_count": 3,
+    "token_ids": [
+      48622,
+      87950,
+      12497
+    ],
+    "token_strings": [
+      "QA",
+      "_approved",
+      "=false"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        2
+      ],
+      [
+        2,
+        11
+      ],
+      [
+        11,
+        17
+      ]
+    ],
+    "graphemes": [
+      "Q",
+      "A",
+      "_",
+      "a",
+      "p",
+      "p",
+      "r",
+      "o",
+      "v",
+      "e",
+      "d",
+      "=",
+      "f",
+      "a",
+      "l",
+      "s",
+      "e"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ]
+    ],
+    "boundary_positions": [
+      2,
+      11
+    ],
+    "boundary_byte_positions": [
+      2,
+      11
+    ],
+    "difficulty_weight": 1.73,
+    "notes": "boolean flag; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "chaos_014",
+    "text": "token→token→fee",
+    "category": "symbolic",
+    "tier": 4,
+    "token_count": 5,
+    "token_ids": [
+      5963,
+      52118,
+      5963,
+      52118,
+      31117
+    ],
+    "token_strings": [
+      "token",
+      "→",
+      "token",
+      "→",
+      "fee"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        8
+      ],
+      [
+        8,
+        13
+      ],
+      [
+        13,
+        16
+      ],
+      [
+        16,
+        19
+      ]
+    ],
+    "graphemes": [
+      "t",
+      "o",
+      "k",
+      "e",
+      "n",
+      "→",
+      "t",
+      "o",
+      "k",
+      "e",
+      "n",
+      "→",
+      "f",
+      "e",
+      "e"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ],
+      [
+        18,
+        19
+      ]
+    ],
+    "boundary_positions": [
+      5,
+      6,
+      11,
+      12
+    ],
+    "boundary_byte_positions": [
+      5,
+      8,
+      13,
+      16
+    ],
+    "difficulty_weight": 1.81,
+    "notes": "repeated arrow; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "chaos_015",
+    "text": "model.v3.alpha",
+    "category": "tokenizer_string",
+    "tier": 4,
+    "token_count": 4,
+    "token_ids": [
+      2590,
+      3211,
+      18,
+      24879
+    ],
+    "token_strings": [
+      "model",
+      ".v",
+      "3",
+      ".alpha"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        14
+      ]
+    ],
+    "graphemes": [
+      "m",
+      "o",
+      "d",
+      "e",
+      "l",
+      ".",
+      "v",
+      "3",
+      ".",
+      "a",
+      "l",
+      "p",
+      "h",
+      "a"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ]
+    ],
+    "boundary_positions": [
+      5,
+      7,
+      8
+    ],
+    "boundary_byte_positions": [
+      5,
+      7,
+      8
+    ],
+    "difficulty_weight": 1.73,
+    "notes": "dotted model version; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "chaos_016",
+    "text": "über token",
+    "category": "multilingual",
+    "tier": 4,
+    "token_count": 2,
+    "token_ids": [
+      50085,
+      4037
+    ],
+    "token_strings": [
+      "über",
+      " token"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        11
+      ]
+    ],
+    "graphemes": [
+      "ü",
+      "b",
+      "e",
+      "r",
+      " ",
+      "t",
+      "o",
+      "k",
+      "e",
+      "n"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ]
+    ],
+    "boundary_positions": [
+      4
+    ],
+    "boundary_byte_positions": [
+      5
+    ],
+    "difficulty_weight": 1.73,
+    "notes": "umlaut word; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "chaos_017",
+    "text": "rank→cost",
+    "category": "symbolic",
+    "tier": 4,
+    "token_count": 3,
+    "token_ids": [
+      13430,
+      52118,
+      16845
+    ],
+    "token_strings": [
+      "rank",
+      "→",
+      "cost"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        4
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        7,
+        11
+      ]
+    ],
+    "graphemes": [
+      "r",
+      "a",
+      "n",
+      "k",
+      "→",
+      "c",
+      "o",
+      "s",
+      "t"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ]
+    ],
+    "boundary_positions": [
+      4,
+      5
+    ],
+    "boundary_byte_positions": [
+      4,
+      7
+    ],
+    "difficulty_weight": 1.73,
+    "notes": "arrow cost; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "chaos_018",
+    "text": "assistant_v4=stale",
+    "category": "tokenizer_string",
+    "tier": 4,
+    "token_count": 6,
+    "token_ids": [
+      78191,
+      2325,
+      19,
+      28,
+      267,
+      1604
+    ],
+    "token_strings": [
+      "assistant",
+      "_v",
+      "4",
+      "=",
+      "st",
+      "ale"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        9
+      ],
+      [
+        9,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        15
+      ],
+      [
+        15,
+        18
+      ]
+    ],
+    "graphemes": [
+      "a",
+      "s",
+      "s",
+      "i",
+      "s",
+      "t",
+      "a",
+      "n",
+      "t",
+      "_",
+      "v",
+      "4",
+      "=",
+      "s",
+      "t",
+      "a",
+      "l",
+      "e"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        15,
+        16
+      ],
+      [
+        16,
+        17
+      ],
+      [
+        17,
+        18
+      ]
+    ],
+    "boundary_positions": [
+      9,
+      11,
+      12,
+      13,
+      15
+    ],
+    "boundary_byte_positions": [
+      9,
+      11,
+      12,
+      13,
+      15
+    ],
+    "difficulty_weight": 1.89,
+    "notes": "assistant version assignment; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  },
+  {
+    "id": "chaos_019",
+    "text": " audit queue",
+    "category": "leading_space",
+    "tier": 4,
+    "token_count": 2,
+    "token_ids": [
+      25261,
+      7325
+    ],
+    "token_strings": [
+      " audit",
+      " queue"
+    ],
+    "token_byte_spans": [
+      [
+        0,
+        6
+      ],
+      [
+        6,
+        12
+      ]
+    ],
+    "graphemes": [
+      " ",
+      "a",
+      "u",
+      "d",
+      "i",
+      "t",
+      " ",
+      "q",
+      "u",
+      "e",
+      "u",
+      "e"
+    ],
+    "grapheme_byte_spans": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        5,
+        6
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        9,
+        10
+      ],
+      [
+        10,
+        11
+      ],
+      [
+        11,
+        12
+      ]
+    ],
+    "boundary_positions": [
+      6
+    ],
+    "boundary_byte_positions": [
+      6
+    ],
+    "difficulty_weight": 1.73,
+    "notes": "leading queue phrase; cl100k_base fixture; byte spans validated against grapheme boundaries",
+    "tokenizer": "cl100k_base"
+  }
+]

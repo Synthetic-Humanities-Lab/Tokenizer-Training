@@ -1,0 +1,44 @@
+# Target Repository Shape
+
+tokenization-training/
+  AGENTS.md
+  README.md
+  package.json
+  index.html
+  src/
+    main.ts
+    game/
+      Game.ts
+      scenes/
+        BootScene.ts
+        MenuScene.ts
+        TutorialScene.ts
+        PlayScene.ts
+        ResultsScene.ts
+      systems/
+        TokenizerSystem.ts
+        ScoringSystem.ts
+        DifficultySystem.ts
+        SwipeCutSystem.ts
+        FeedbackSystem.ts
+        AudioSystem.ts
+        StorageSystem.ts
+      ui/
+        Hud.ts
+        OverseerPanel.ts
+        FeedbackCard.ts
+      data/
+        fixtures.json
+        overseer_lines.json
+    styles/
+  scripts/
+    generate-token-fixtures.ts
+  tests/
+    tokenizer-fixtures.test.ts
+    scoring.test.ts
+    difficulty.test.ts
+    swipe-cut.test.ts
+  docs/
+  data/
+    seed_strings.csv
+  reference/

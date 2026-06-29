@@ -1,0 +1,79 @@
+id,text,tier,category,notes
+simple_001,the cat sat on the mat,1,simple_prose,starter
+simple_002,how many dogs are there,1,simple_prose,starter question
+simple_003,a small prompt arrives,1,simple_prose,starter
+simple_004,please summarize this sentence,1,simple_prose,ordinary prompt language
+simple_005,the model reads the text,1,simple_prose,ordinary words
+simple_006,write a short reply,1,simple_prose,ordinary instruction
+simple_007,tokens hide in plain sight,1,simple_prose,teaching phrase
+simple_008,the answer looks simple,1,simple_prose,ordinary sentence
+simple_009,count the quiet boundary,1,simple_prose,ordinary tokenizer phrase
+simple_010,draw the boundary line,1,simple_prose,ordinary boundary phrase
+simple_011,the robot counts tokens,1,simple_prose,labor frame phrase
+simple_012,move text before it fades,1,simple_prose,motion phrase
+simple_013,review the token ledger,1,simple_prose,review phrase
+simple_014,pay cost and balance,1,simple_prose,economy words
+simple_015,the browser files work,1,simple_prose,labor frame
+simple_016,cut before the audit,1,simple_prose,instruction phrase
+punct_001,I can't believe it.,2,contraction,apostrophe
+punct_002,re-enter the room,2,hyphenation,hyphen
+punct_003,it costs $19.99,2,numbers_symbols,currency and decimal
+punct_004,wait... what?,2,punctuation,ellipsis and question mark
+punct_005,lol!!! why tho,2,internet_punctuation,punctuation cluster
+punct_006,don't split that yet,2,contraction,common contraction
+punct_007,pre-token audit,2,hyphenation,hyphen and tokenizer term
+punct_008,"hello, tokenizer.",2,punctuation,comma and period
+punct_009,sure?! maybe.,2,punctuation,mixed punctuation
+punct_010,"ok, but why?",2,punctuation,comma and question mark
+punct_011,invoice#429,2,numbers_symbols,hash and digits
+punct_012,save-as draft,2,hyphenation,hyphenated command
+punct_013,can't-stop now,2,contraction,apostrophe plus hyphen
+punct_014,A/B test,2,numbers_symbols,slash phrase
+punct_015,v2.0,2,numbers_symbols,compact version decimal
+punct_017,3+5=8,2,numbers_symbols,arithmetic symbols
+punct_018,verify: yes/no,2,punctuation,colon slash
+punct_019,worker-id2040,2,numbers_symbols,hyphen id digits no space
+punct_020,fine... proceed.,2,punctuation,ellipsis period
+punct_021,budget=$42,2,numbers_symbols,currency assignment
+punct_022,case#2040,2,numbers_symbols,case hash digits
+punct_023,line:42,2,numbers_symbols,colon digits
+punct_024,ok/no?,2,punctuation,slash question
+punct_025,ID-2040,2,numbers_symbols,uppercase id hyphen digits
+dense_001,openai.com/pricing,3,url,dense string
+dense_002,admin@example.com,3,email,email address
+dense_003,hello_world_v2.py,3,filename,snake case and extension
+dense_004,parseJSONQuickly(),3,code,camel case and parentheses
+dense_005,#GameDev2026,3,hashtag,hashtag and digits
+dense_006,docs.example.org/api,3,url,domain path variant
+dense_007,ops-team@example.dev,3,email,hyphenated mailbox
+dense_008,invoice.final.04.csv,3,filename,filename and digits
+dense_009,getUserID42(),3,code,camel case digits parentheses
+dense_010,#TokenAudit2040,3,hashtag,hashtag with digits
+dense_011,status_code=200,3,code,status code assignment
+dense_012,api/v1/users,3,url,slash path without domain
+dense_013,user.name@example.net,3,email,dotted mailbox
+dense_014,deploy.sh --dry-run,3,command,shell command
+dense_015,snake_case_id,3,code,snake case identifier
+dense_016,billing.ai/report,3,url,short domain path
+dense_017,root@localhost.dev,3,email,local style email
+dense_018,audit.log.2026.txt,3,filename,log filename
+dense_019,setTokenLimit(8192),3,code,function call digits
+chaos_001,café mañana,4,multilingual,accented words
+chaos_002,Model A-12,4,proper_noun,mixed symbols
+chaos_003,cost_per_token++,4,code_symbols,operators
+chaos_004,model_name=cl100k_base,4,tokenizer_string,technical token-like string
+chaos_005,spaces matter,4,spacing,single clean tokenizer space
+chaos_006," leading space",4,leading_space,leading visible space
+chaos_007,naïve façade,4,multilingual,diaeresis and cedilla
+chaos_008,rate_limit=429,4,tokenizer_string,technical assignment
+chaos_009,UTF8_mode=true,4,code_symbols,technical flag
+chaos_010," manual audit",4,leading_space,leading visible space variant
+chaos_011,queue→worker,4,symbolic,arrow symbol
+chaos_012,résumé audit,4,multilingual,accented loanword
+chaos_013,QA_approved=false,4,code_symbols,boolean flag
+chaos_014,token→token→fee,4,symbolic,repeated arrow
+chaos_015,model.v3.alpha,4,tokenizer_string,dotted model version
+chaos_016,über token,4,multilingual,umlaut word
+chaos_017,rank→cost,4,symbolic,arrow cost
+chaos_018,assistant_v4=stale,4,tokenizer_string,assistant version assignment
+chaos_019," audit queue",4,leading_space,leading queue phrase

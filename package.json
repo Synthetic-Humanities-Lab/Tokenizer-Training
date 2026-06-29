@@ -1,0 +1,39 @@
+{
+  "name": "tokenization-training",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "dev:lan": "vite --host 0.0.0.0",
+    "playtest:serve": "vite --host 127.0.0.1 --port 5173 --strictPort",
+    "playtest:serve:lan": "vite --host 0.0.0.0 --port 5173 --strictPort",
+    "playtest:links": "tsx scripts/print-playtest-links.ts",
+    "playtest:qa-links": "tsx scripts/print-playtest-qa-links.ts",
+    "playtest:notes": "tsx scripts/prepare-playtest-notes.ts",
+    "playtest:rollup": "tsx scripts/prepare-playtest-rollup.ts",
+    "playtest:status": "tsx scripts/report-playtest-status.ts",
+    "playtest:brief": "tsx scripts/report-playtest-brief.ts",
+    "playtest:doctor": "tsx scripts/check-playtest-server.ts",
+    "playtest:launch-check": "tsx scripts/check-playtest-launch.ts",
+    "playtest:preflight": "npm run generate:fixtures && npm run test && npm run build && npm run playtest:audit:local",
+    "playtest:audit:local": "tsx scripts/audit-playtest-readiness.ts --local",
+    "playtest:audit": "tsx scripts/audit-playtest-readiness.ts",
+    "playtest:evaluate": "tsx scripts/evaluate-playtest-notes.ts",
+    "playtest:evaluate-rollup": "tsx scripts/evaluate-playtest-rollup.ts",
+    "build": "tsc --noEmit && vite build",
+    "test": "vitest run",
+    "generate:fixtures": "tsx scripts/generate-token-fixtures.ts"
+  },
+  "dependencies": {
+    "phaser": "^3.90.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "js-tiktoken": "^1.0.21",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.4",
+    "vitest": "^4.0.13"
+  }
+}
