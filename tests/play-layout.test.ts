@@ -160,10 +160,10 @@ describe("computePlayLayout", () => {
 
     expect(startingEdges.top).toBeGreaterThanOrEqual(playfieldEdges.top);
     expect(startingEdges.bottom).toBeLessThanOrEqual(playfieldEdges.bottom);
-    expect(overlaps(startingTextPanel, layout.assistantPanel)).toBe(false);
+    expect(overlaps(startingTextPanel, layout.petWienerSlot)).toBe(false);
   });
 
-  it("does not allocate side panels in the simplified play chrome", () => {
+  it("keeps desktop prompt inside the simplified central playfield", () => {
     const medium = computePlayLayout({ width: 960, height: 720 });
     const desktop = computePlayLayout({ width: 1280, height: 720 });
     const activeDesktopTextPanel = {
@@ -171,24 +171,19 @@ describe("computePlayLayout", () => {
       y: desktop.sentenceActiveY
     };
 
-    expect(medium.sideAssistant).toBe(false);
-    expect(medium.sideBrandPanel).toBe(false);
-    expect(desktop.sideAssistant).toBe(false);
-    expect(desktop.sideBrandPanel).toBe(false);
+    expect(contains(medium.playfield, { ...medium.textPanel, y: medium.sentenceActiveY })).toBe(true);
     expect(contains(desktop.playfield, activeDesktopTextPanel)).toBe(true);
   });
 
-  it("does not reserve side or footer chrome in the simplified play screen", () => {
+  it("uses one pet slot instead of side assistant geometry", () => {
     const portrait = computePlayLayout({ width: 390, height: 844 });
     const medium = computePlayLayout({ width: 960, height: 720 });
     const wide = computePlayLayout({ width: 1280, height: 720 });
 
-    expect(portrait.sideAssistant).toBe(false);
-    expect(medium.sideAssistant).toBe(false);
-    expect(wide.sideAssistant).toBe(false);
-    expect(portrait.footerPanel.height).toBe(0);
-    expect(medium.footerPanel.height).toBe(0);
-    expect(wide.footerPanel.height).toBe(0);
+    expect(withinViewport(portrait.petWienerSlot, 390, 844)).toBe(true);
+    expect(withinViewport(medium.petWienerSlot, 960, 720)).toBe(true);
+    expect(withinViewport(wide.petWienerSlot, 1280, 720)).toBe(true);
+    expect(overlaps(portrait.petWienerSlot, portrait.textPanel)).toBe(false);
   });
 
   it("keeps desktop exit and bottom controls in a shared bottom row", () => {
@@ -201,7 +196,6 @@ describe("computePlayLayout", () => {
     expect(edges(layout.resolveButton).top).toBeGreaterThan(edges(layout.playfield).bottom);
     expect(edges(layout.clearButton).top).toBeGreaterThan(edges(layout.playfield).bottom);
     expect(edges(layout.muteButton).top).toBeGreaterThan(edges(layout.playfield).bottom);
-    expect(layout.footerPanel.height).toBe(0);
     expect(overlaps(layout.resolveButton, layout.clearButton)).toBe(false);
     expect(overlaps(layout.clearButton, layout.muteButton)).toBe(false);
     expect(overlaps(layout.exitButton, layout.clearButton)).toBe(false);
@@ -232,7 +226,6 @@ describe("computePlayLayout", () => {
     const hud = computeHudLayout(width, layout.contentPanel).background;
     const feedback = computeFeedbackCardLayout(width, height, layout.contentPanel);
 
-    expect(layout.sideBrandPanel).toBe(false);
     expect(contains(layout.contentPanel, {
       x: hud.x,
       y: hud.y + hud.height / 2,

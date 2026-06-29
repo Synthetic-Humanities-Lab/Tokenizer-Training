@@ -1,4 +1,5 @@
 import type { EconomyTone, FeedbackSummary } from "../systems/FeedbackSystem";
+import type { GameQaRect } from "../systems/GameQaSystem";
 import {
   computePlayLayout,
   shortLandscapeReviewColumns,
@@ -35,6 +36,7 @@ export interface FeedbackCardQaState {
   text: string;
   technical: string;
   tokenSplit: string;
+  tokenSplitRect?: GameQaRect;
   economy: string;
   audit: string;
 }
@@ -322,6 +324,7 @@ export class FeedbackCard {
       text: [technical, tokenSplit, economy, audit].filter(Boolean).join("\n"),
       technical,
       tokenSplit,
+      tokenSplitRect: this.textRect(this.tokenSplitText),
       economy,
       audit
     };
@@ -347,6 +350,20 @@ export class FeedbackCard {
       fontSize: `${layout.fontSize}px`,
       align: layout.align ?? "left"
     });
+  }
+
+  private textRect(text: Phaser.GameObjects.Text): GameQaRect | undefined {
+    if (!text.visible || text.text.length === 0) {
+      return undefined;
+    }
+
+    const bounds = text.getBounds();
+    return {
+      x: bounds.centerX,
+      y: bounds.centerY,
+      width: bounds.width,
+      height: bounds.height
+    };
   }
 
   private relayoutWithCurrentSummary(): void {

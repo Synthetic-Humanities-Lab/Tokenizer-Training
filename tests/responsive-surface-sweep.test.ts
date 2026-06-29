@@ -7,7 +7,6 @@ import {
 } from "../src/game/systems/PlayLayoutSystem";
 import { computeResultsLayout, RESULT_LEDGER_LINE_COUNT, resultLedgerRect } from "../src/game/systems/ResultsLayoutSystem";
 import { computeTutorialCompleteLayout } from "../src/game/systems/TutorialCompleteLayoutSystem";
-import { computeTutorialPopupLayout } from "../src/game/systems/TutorialPopupLayoutSystem";
 import { computeFeedbackCardLayout } from "../src/game/ui/FeedbackCard";
 
 const firstUserViewports = [
@@ -84,14 +83,6 @@ describe("first-user responsive surface sweep", () => {
       ...layout.textPanel,
       y: layout.sentenceReviewY
     };
-    const activeTutorialPopup = computeTutorialPopupLayout({
-      width,
-      height,
-      resolving: false,
-      referenceTop: activeTextPanel.y - activeTextPanel.height / 2,
-      referenceBottom: activeTextPanel.y + activeTextPanel.height / 2
-    });
-
     for (const rect of [
       layout.playfield,
       layout.chrome,
@@ -100,8 +91,7 @@ describe("first-user responsive surface sweep", () => {
       layout.muteButton,
       layout.exitButton,
       activeTextPanel,
-      reviewTextPanel,
-      activeTutorialPopup.panel
+      reviewTextPanel
     ]) {
       expect(withinViewport(rect, width, height)).toBe(true);
     }
@@ -111,10 +101,9 @@ describe("first-user responsive surface sweep", () => {
     expect(overlaps(activeTextPanel, layout.resolveButton)).toBe(false);
     expect(overlaps(activeTextPanel, layout.clearButton)).toBe(false);
     expect(overlaps(activeTextPanel, layout.muteButton)).toBe(false);
-    expect(overlaps(activeTextPanel, layout.assistantPanel)).toBe(false);
-    expect(overlaps(activeTutorialPopup.panel, activeTextPanel)).toBe(false);
+    expect(overlaps(activeTextPanel, layout.petWienerSlot)).toBe(false);
     expect(overlaps(reviewTextPanel, layout.resolveButton)).toBe(false);
-    expect(overlaps(startingTextPanel, layout.assistantPanel)).toBe(false);
+    expect(overlaps(startingTextPanel, layout.petWienerSlot)).toBe(false);
     expect(edges(layout.resolveButton).top).toBeGreaterThan(edges(layout.chrome).bottom);
     expect(hasTouchTarget(layout.resolveButton)).toBe(true);
     expect(hasTouchTarget(layout.clearButton)).toBe(true);

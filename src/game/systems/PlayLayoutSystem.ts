@@ -14,26 +14,20 @@ export interface LayoutRect {
 
 export interface PlayLayout {
   compact: boolean;
-  sideBrandPanel: boolean;
-  sideAssistant: boolean;
   topOffset: number;
   bottomOffset: number;
   contentPanel: LayoutRect;
-  brandPanel: LayoutRect;
   playfield: LayoutRect;
   chrome: LayoutRect;
   logoWiener: LayoutRect;
   chromeText: { x: number; y: number };
   timer: LayoutRect;
   textPanel: LayoutRect;
-  footerPanel: LayoutRect;
   resolveButton: LayoutRect;
   clearButton: LayoutRect;
   muteButton: LayoutRect;
   exitButton: LayoutRect;
-  assistantPanel: LayoutRect;
-  assistantText: { x: number; y: number };
-  overseerReservedRight: number;
+  petWienerSlot: LayoutRect;
   sentenceStartY: number;
   sentenceActiveY: number;
   sentenceEndY: number;
@@ -59,7 +53,6 @@ export interface ControlButtonVisualState {
 }
 
 const TEXT_PANEL_HEIGHT = 96;
-const DESKTOP_CONTROL_RESERVED_RIGHT = 480;
 const DESKTOP_BOTTOM_OFFSET = 150;
 const DESKTOP_REVIEW_SENTENCE_LIFT = 36;
 export const MIN_TOUCH_TARGET_SIZE = 44;
@@ -83,8 +76,6 @@ export interface ShortLandscapeReviewColumns {
 
 export function computePlayLayout({ width, height }: ViewportSize): PlayLayout {
   const compact = width < 760;
-  const sideAssistant = false;
-  const sideBrandPanel = false;
   const topOffset = compact ? 190 : 118;
   const bottomOffset = compact ? 136 : DESKTOP_BOTTOM_OFFSET;
   const playfieldHeight = Math.max(260, height - topOffset - bottomOffset);
@@ -94,12 +85,6 @@ export function computePlayLayout({ width, height }: ViewportSize): PlayLayout {
   const contentWidth = Math.max(280, contentRight - contentLeft);
   const contentX = contentLeft + contentWidth / 2;
   const controls = computeControlButtons(width, height, compact, contentRight);
-  const brandPanel = computeBrandPanel(width, height, compact, sideBrandPanel);
-  const controlsLeft = Math.min(
-    controls.muteButton.x - controls.muteButton.width / 2,
-    controls.clearButton.x - controls.clearButton.width / 2,
-    controls.resolveButton.x - controls.resolveButton.width / 2
-  );
   const maxPanelWidth = computeTextPanelWidth(width, compact, contentWidth);
   const sentenceActiveY = playfieldY;
   const playfieldTop = playfieldY - playfieldHeight / 2;
@@ -109,8 +94,6 @@ export function computePlayLayout({ width, height }: ViewportSize): PlayLayout {
     controls.clearButton.y - controls.clearButton.height / 2,
     controls.muteButton.y - controls.muteButton.height / 2
   );
-  const footerHeight = 0;
-  const footerY = height + 100;
   const sentenceStartY = sentenceActiveY;
   const sentenceEndY = sentenceActiveY;
   const sentenceReviewY = reviewSentenceY({
@@ -120,11 +103,10 @@ export function computePlayLayout({ width, height }: ViewportSize): PlayLayout {
     sentenceActiveY,
     playfieldTop
   });
-  const assistantPanel = computeAssistantPanel({
+  const petWienerSlot = computePetWienerSlot({
     width,
     height,
     compact,
-    sideAssistant,
     sentenceActiveY,
     textPanelHeight: TEXT_PANEL_HEIGHT,
     controlBottom: controls.resolveButton.y + controls.resolveButton.height / 2
@@ -140,8 +122,6 @@ export function computePlayLayout({ width, height }: ViewportSize): PlayLayout {
 
   return {
     compact,
-    sideBrandPanel,
-    sideAssistant,
     topOffset,
     bottomOffset,
     contentPanel: {
@@ -150,7 +130,6 @@ export function computePlayLayout({ width, height }: ViewportSize): PlayLayout {
       width: contentWidth,
       height: Math.max(0, height - 24)
     },
-    brandPanel,
     playfield: {
       x: contentX,
       y: playfieldY,
@@ -180,20 +159,9 @@ export function computePlayLayout({ width, height }: ViewportSize): PlayLayout {
       width: maxPanelWidth,
       height: TEXT_PANEL_HEIGHT
     },
-    footerPanel: {
-      x: contentX,
-      y: compact ? height + 100 : footerY,
-      width: compact ? 0 : Math.max(280, contentWidth - 32),
-      height: footerHeight
-    },
     ...controls,
     exitButton: controls.exitButton,
-    assistantPanel,
-    assistantText: {
-      x: assistantPanel.x - assistantPanel.width / 2 + 14,
-      y: assistantPanel.y - assistantPanel.height / 2 + 14
-    },
-    overseerReservedRight: compact ? 0 : Math.max(width - (controlsLeft - 18), DESKTOP_CONTROL_RESERVED_RIGHT),
+    petWienerSlot,
     sentenceStartY,
     sentenceActiveY,
     sentenceEndY,
@@ -233,24 +201,6 @@ export function shortLandscapeReviewColumns({ width, height }: ViewportSize): Sh
       width: columnWidth,
       height: 0
     }
-  };
-}
-
-function computeBrandPanel(width: number, height: number, compact: boolean, sideBrandPanel: boolean): LayoutRect {
-  if (sideBrandPanel) {
-    return {
-      x: 150,
-      y: height / 2,
-      width: 268,
-      height: Math.max(260, height - 36)
-    };
-  }
-
-  return {
-    x: compact ? width / 2 : -268,
-    y: height / 2,
-    width: 0,
-    height: 0
   };
 }
 
@@ -482,24 +432,14 @@ function computeControlButtons(
   };
 }
 
-function computeAssistantPanel(input: {
+function computePetWienerSlot(input: {
   width: number;
   height: number;
   compact: boolean;
-  sideAssistant: boolean;
   sentenceActiveY: number;
   textPanelHeight: number;
   controlBottom: number;
 }): LayoutRect {
-  if (input.sideAssistant) {
-    return {
-      x: input.width - 130 - 16,
-      y: input.height / 2,
-      width: 260,
-      height: Math.max(118, input.height - 36)
-    };
-  }
-
   if (input.compact) {
     const petHeight = 62;
     const promptTop = input.sentenceActiveY - input.textPanelHeight / 2;

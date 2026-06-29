@@ -224,7 +224,7 @@ describe("PlayScene input lifecycle", () => {
     expect(qaSystemSource).toContain('id: "promptAcquisition"');
     expect(startBeatMethod).not.toContain("this.scoring.scoreRound");
     expect(drawBeatMethod).not.toContain("this.scoring.scoreRound");
-    expect(drawBeatMethod).not.toContain("this.setRobotComment");
+    expect(drawBeatMethod).not.toContain("this.setWienerSpeech");
   });
 
   it("pauses active round timing on browser focus loss without changing scoring or speech", () => {
@@ -260,9 +260,9 @@ describe("PlayScene input lifecycle", () => {
     expect(cancelMethod).toContain("this.clearTrail();");
     expect(cancelMethod).not.toContain("this.currentCuts = []");
     expect(pauseMethod).not.toContain("this.scoring.scoreRound");
-    expect(pauseMethod).not.toContain("this.setRobotComment");
+    expect(pauseMethod).not.toContain("this.setWienerSpeech");
     expect(resumeMethod).not.toContain("this.scoring.scoreRound");
-    expect(resumeMethod).not.toContain("this.setRobotComment");
+    expect(resumeMethod).not.toContain("this.setWienerSpeech");
     expect(shutdownMethod.indexOf("this.unregisterFocusPauseListeners();")).toBeGreaterThan(-1);
     expect(shutdownMethod.indexOf("this.focusPauseRequested = false;")).toBeGreaterThan(
       shutdownMethod.indexOf("this.unregisterFocusPauseListeners();")
@@ -294,96 +294,72 @@ describe("PlayScene input lifecycle", () => {
     );
   });
 
-  it("stages review evidence before feedback and tutorial advancement", () => {
+  it("stages one combined review feedback reveal before tutorial advancement", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
     const resolveMethod = source.match(/private resolveRound\(trigger: RoundResolveTrigger = "manual"\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
 
-    expect(resolveMethod).toContain("this.hideRobotToast();");
+    expect(resolveMethod).toContain("this.hideWienerSpeech();");
     expect(resolveMethod).toContain("const reviewSequence = reviewPanelSequence({");
     expect(resolveMethod).toContain("const pendingReviewReveal: PendingReviewReveal = {");
     expect(resolveMethod).toContain("this.pendingReviewReveal = pendingReviewReveal;");
-    expect(resolveMethod).toContain("this.scheduleReviewReveal(reviewSequence.evidenceDelayMs");
-    expect(resolveMethod).toContain("this.revealReviewEvidence(pendingReviewReveal);");
     expect(resolveMethod).toContain("this.scheduleReviewReveal(Math.max(reviewSequence.feedbackDelayMs, reviewSequence.speechDelayMs)");
     expect(resolveMethod).toContain("this.revealReviewFeedback(pendingReviewReveal);");
     expect(resolveMethod).toContain("this.time.delayedCall(reviewSequence.reviewDelayMs");
+    expect(resolveMethod).not.toContain("this.revealReviewEvidence");
+    expect(resolveMethod).not.toContain("this.showTokenStrip");
   });
 
   it("services pending review reveals during resolving frames so compact review cannot stall hidden", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
     const updateMethod = source.match(/update\(time: number\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const fallbackMethod = source.match(/private updatePendingReviewReveal\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
-    const evidenceMethod = source.match(/private revealReviewEvidence\(pending: PendingReviewReveal\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const feedbackMethod = source.match(/private revealReviewFeedback\(pending: PendingReviewReveal\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
 
     expect(source).toContain("interface PendingReviewReveal");
     expect(source).toContain("private pendingReviewReveal?: PendingReviewReveal;");
-    expect(updateMethod).toContain("if (this.resolving) {\n      this.updatePendingReviewReveal();\n      this.updateSegmentationEvidenceReveal();\n      this.updateTutorialReviewReady();\n      return;\n    }");
-    expect(fallbackMethod).toContain("now >= pending.evidenceAtMs");
-    expect(fallbackMethod).toContain("this.revealReviewEvidence(pending);");
+    expect(updateMethod).toContain("if (this.resolving) {\n      this.updatePendingReviewReveal();\n      this.updateTutorialReviewReady();\n      return;\n    }");
     expect(fallbackMethod).toContain("now >= pending.feedbackAtMs");
     expect(fallbackMethod).toContain("this.revealReviewFeedback(pending);");
-    expect(evidenceMethod).toContain("this.showTokenStrip(pending.fixture, pending.score);");
-    expect(feedbackMethod.indexOf("this.revealReviewEvidence(pending);")).toBeLessThan(
-      feedbackMethod.indexOf("this.feedbackCard.show(pending.summary);")
-    );
     expect(feedbackMethod.indexOf("this.scheduleTutorialReviewReady();")).toBeLessThan(
-      feedbackMethod.indexOf("this.setRobotComment(pending.resolutionLine, {")
+      feedbackMethod.indexOf("this.setWienerSpeech(pending.resolutionLine, {")
     );
     expect(feedbackMethod).toContain("this.pendingReviewReveal = undefined;");
+    expect(source).not.toContain("private revealReviewEvidence");
+    expect(source).not.toContain("private updateSegmentationEvidenceReveal");
   });
 
-  it("clears stale token-split evidence text before a new active round starts", () => {
+  it("does not keep stale token-strip scene objects for new active rounds", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
     const startRoundMethod = source.match(/private startRound\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
 
-    expect(startRoundMethod.indexOf("this.tokenStripText.setVisible(false);")).toBeGreaterThan(-1);
-    expect(startRoundMethod.indexOf('this.tokenStripText.setText("");')).toBeGreaterThan(
-      startRoundMethod.indexOf("this.tokenStripText.setVisible(false);")
-    );
-    expect(startRoundMethod.indexOf("this.clearSegmentationEvidenceReveal();")).toBeGreaterThan(
-      startRoundMethod.indexOf('this.tokenStripText.setText("");')
-    );
-    expect(startRoundMethod.indexOf("this.tokenEvidenceChrome.clear();")).toBeGreaterThan(
-      startRoundMethod.indexOf("this.clearSegmentationEvidenceReveal();")
-    );
+    expect(startRoundMethod).not.toContain("tokenStripText");
+    expect(startRoundMethod).not.toContain("clearSegmentationEvidenceReveal");
+    expect(startRoundMethod).not.toContain("tokenEvidenceChrome");
+    expect(source).not.toContain("tokenStripText");
   });
 
-  it("stores token-split review data hidden while the feedback card owns visible review", () => {
+  it("exposes token-split review data only through the feedback card QA surface", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
     const resolveMethod = source.match(/private resolveRound\(trigger: RoundResolveTrigger = "manual"\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
-    const showTokenStripMethod = source.match(/private showTokenStrip\(fixture: TokenFixture, score\?: RoundScoreResult\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
-    const updateRevealMethod = source.match(/private updateSegmentationEvidenceReveal\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const qaMethod = writePlayQaSnapshotMethod(source);
 
-    expect(source).toContain("private segmentationEvidenceRevealStartedAt?: number;");
     expect(source).toContain("score: RoundScoreResult;");
     expect(resolveMethod).toContain("score,");
-    expect(showTokenStripMethod).toContain("this.tokenStripText.setVisible(false);");
-    expect(showTokenStripMethod).toContain("this.segmentationEvidenceRevealStartedAt = undefined;");
-    expect(showTokenStripMethod).toContain("this.tokenEvidenceChrome?.clear();");
-    expect(showTokenStripMethod).toContain("this.tokenEvidenceRect = undefined;");
-    expect(showTokenStripMethod).toContain("submittedCutCount: this.currentCuts.length");
-    expect(showTokenStripMethod).toContain("truthBoundaryCount: fixture.boundary_positions.length");
-    expect(showTokenStripMethod).toContain("correctCutCount: score?.correctCuts.length");
-    expect(showTokenStripMethod).toContain("missedCutCount: score?.missedCuts.length");
-    expect(showTokenStripMethod).toContain("falseCutCount: score?.falseCuts.length");
-    expect(updateRevealMethod).toContain("this.currentSegmentationEvidenceRevealState();");
-    expect(updateRevealMethod).toContain("this.layoutSegmentationEvidence();");
-    expect(updateRevealMethod).toContain("this.segmentationEvidenceRevealStartedAt = undefined;");
-    expect(qaMethod).toContain("segmentationEvidenceRevealActive: this.currentSegmentationEvidenceRevealState().active");
-    expect(qaMethod).toContain("segmentationEvidenceRevealProgress: this.currentSegmentationEvidenceRevealState().progress");
-    expect(showTokenStripMethod).not.toContain("this.scoring.scoreRound");
-    expect(updateRevealMethod).not.toContain("this.scoring.scoreRound");
+    expect(qaMethod).toContain("const feedbackQa = this.feedbackCard.qaState();");
+    expect(qaMethod).toContain("feedbackTokenSplitText: feedbackQa.tokenSplit");
+    expect(qaMethod).toContain("feedbackTokenSplitRect: feedbackQa.tokenSplitRect");
+    expect(source).not.toContain("private showTokenStrip");
+    expect(source).not.toContain("SegmentationEvidence");
   });
 
-  it("keeps falling split pieces below actual-tokenization evidence", () => {
+  it("keeps falling split pieces below review UI surfaces", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
     const splitMethod = source.match(/private animateResolvedTextPieces\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
 
     expect(source).toContain("const FALLING_TEXT_PIECE_DEPTH = 7.4;");
-    expect(source).toContain("this.tokenEvidenceChrome = this.add.graphics().setDepth(7.8)");
-    expect(source).toContain("}).setOrigin(0.5).setDepth(8).setVisible(false);");
+    expect(readRepoFile("src/game/ui/FeedbackCard.ts")).toContain("setDepth(18)");
+    expect(source).toContain("this.wienerSpeechPanel = this.add.rectangle");
+    expect(source).toContain("setDepth(32)");
     expect(splitMethod).toContain("setDepth(FALLING_TEXT_PIECE_DEPTH)");
     expect(splitMethod).not.toContain("setDepth(15)");
   });
@@ -556,7 +532,7 @@ describe("PlayScene input lifecycle", () => {
     expect(clearMethod.indexOf("this.updateResolveButtonState();")).toBeGreaterThan(
       clearMethod.indexOf("this.currentCuts = [];")
     );
-    expect(clearMethod).not.toContain("this.setRobotComment");
+    expect(clearMethod).not.toContain("this.setWienerSpeech");
     expect(clearMethod).not.toContain("this.scoring.scoreRound");
     expect(clearMethod).toContain('this.audio.play("clear");');
     expect(clearMethod).not.toContain('this.audio.play("ui");');
@@ -589,7 +565,7 @@ describe("PlayScene input lifecycle", () => {
     expect(autoReleaseMethod).toContain("this.playCutReleaseFeedback(cuts, style);");
     expect(autoReleaseMethod).not.toContain("this.audio.play");
     expect(autoReleaseMethod).not.toContain("this.haptics.play");
-    expect(autoReleaseMethod).not.toContain("this.setRobotComment");
+    expect(autoReleaseMethod).not.toContain("this.setWienerSpeech");
     expect(autoReleaseMethod).not.toContain("this.scoring.scoreRound");
     expect(releaseMethod).toContain("this.clearClearCutFeedback();");
     expect(releaseMethod).toContain("this.clearCutFeedbackRect = {");
@@ -804,7 +780,7 @@ describe("PlayScene input lifecycle", () => {
     expect(correctionMethod).toContain("this.writePlayQaSnapshot();");
     expect(correctionMethod).not.toContain("this.currentCuts =");
     expect(correctionMethod).not.toContain("this.scoring.scoreRound");
-    expect(correctionMethod).not.toContain("this.setRobotComment");
+    expect(correctionMethod).not.toContain("this.setWienerSpeech");
     expect(clearMethod).toContain("this.cutCorrectionFeedbackRect = undefined;");
     expect(qaMethod).toContain("cutCorrectionFeedbackActive: this.cutCorrectionFeedbackRect !== undefined");
     expect(qaMethod).toContain("cutCorrectionFeedbackRect: this.cutCorrectionFeedbackRect");
@@ -844,7 +820,7 @@ describe("PlayScene input lifecycle", () => {
     expect(chainMethod).toContain("this.writePlayQaSnapshot();");
     expect(chainMethod).not.toContain("this.currentCuts =");
     expect(chainMethod).not.toContain("this.scoring.scoreRound");
-    expect(chainMethod).not.toContain("this.setRobotComment");
+    expect(chainMethod).not.toContain("this.setWienerSpeech");
     expect(clearMethod).toContain("this.chainSwipeFeedbackTween?.stop();");
     expect(clearMethod).toContain("this.chainSwipeFeedbackRect = undefined;");
     expect(qaMethod).toContain("chainSwipeFeedbackActive: this.chainSwipeFeedbackRect !== undefined");
@@ -911,7 +887,7 @@ describe("PlayScene input lifecycle", () => {
     expect(commitMethod).toContain("targets: [this.resolveCommitGraphics, this.resolveCommitText]");
     expect(commitMethod).not.toContain("this.scoring.scoreRound");
     expect(commitMethod).not.toContain("this.currentCuts.push");
-    expect(commitMethod).not.toContain("this.setRobotComment");
+    expect(commitMethod).not.toContain("this.setWienerSpeech");
     expect(clearMethod).toContain("this.resolveCommitTween?.stop();");
     expect(clearMethod).toContain("this.resetResolveCommitGraphics();");
     expect(source).toContain("this.resolveCommitText?.setVisible(false);");
@@ -933,7 +909,7 @@ describe("PlayScene input lifecycle", () => {
     expect(updateMethod).toContain("this.resolveRound(\"deadline\");");
     expect(buttonMethod).toContain("this.resolveRound(\"manual\");");
     expect(startRoundMethod).toContain("this.lastResolveTrigger = null;");
-    expect(source).not.toContain("this.setRobotComment(\"deadline");
+    expect(source).not.toContain("this.setWienerSpeech(\"deadline");
   });
 
   it("acknowledges cut-band gestures that release without staging a boundary", () => {
@@ -988,7 +964,7 @@ describe("PlayScene input lifecycle", () => {
     expect(noCutMethod).not.toContain('this.audio.play("cut")');
     expect(noCutMethod).not.toContain('this.audio.play("clear")');
     expect(noCutMethod).not.toContain('this.audio.play("resolve")');
-    expect(noCutMethod).not.toContain("this.setRobotComment");
+    expect(noCutMethod).not.toContain("this.setWienerSpeech");
     expect(noCutMethod).not.toContain("this.scoring.scoreRound");
     expect(source).toContain("noCutFeedbackDirection: this.noCutFeedbackText?.visible ? this.noCutFeedbackDirection : undefined");
   });
@@ -1015,7 +991,7 @@ describe("PlayScene input lifecycle", () => {
     expect(endMethod).toContain("this.gestureAddedCuts.clear();");
     expect(endMethod).toContain("this.gestureReleaseSampleCuts.clear();");
     expect(endMethod).not.toContain("this.audio.play");
-    expect(endMethod).not.toContain("this.setRobotComment");
+    expect(endMethod).not.toContain("this.setWienerSpeech");
     expect(endMethod).not.toContain("this.scoring.scoreRound");
   });
 
@@ -1059,7 +1035,7 @@ describe("PlayScene input lifecycle", () => {
     expect(resolveMethod).toContain("this.gestureTouchedExistingCuts.clear();");
     expect(sampleMethod).not.toContain('this.audio.play("miss");\n      this.haptics.play("confirm"');
     expect(sampleMethod).not.toContain("this.scoring.scoreRound");
-    expect(sampleMethod).not.toContain("this.setRobotComment");
+    expect(sampleMethod).not.toContain("this.setWienerSpeech");
   });
 
   it("ties the touch aim loupe accent to snap-ready preview state without changing cuts", () => {
@@ -1120,7 +1096,6 @@ describe("PlayScene input lifecycle", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
     const layoutPetMethod = source.match(/private layoutPetWiener\(layout: ReturnType<typeof computePlayLayout>\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const restartBobMethod = source.match(/private restartPetIdleBob\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
-    const showTokenStripMethod = source.match(/private showTokenStrip\(fixture: TokenFixture, score\?: RoundScoreResult\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const shutdownMethod = source.match(/private shutdownScene\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
 
     expect(source).toContain("private petIdleTween?: Phaser.Tweens.Tween;");
@@ -1131,21 +1106,20 @@ describe("PlayScene input lifecycle", () => {
     expect(source).toContain("private petReactionPeakScaleX = 1;");
     expect(source).toContain("private petReactionPeakScaleY = 1;");
     expect(source).not.toContain('y: "-=5"');
-    expect(layoutPetMethod).toContain("const evidenceTop = this.tokenEvidenceRect");
-    expect(layoutPetMethod).toContain("evidenceTop - 12 - petHeight / 2");
+    expect(layoutPetMethod).toContain("const feedback = computeFeedbackCardLayout");
+    expect(layoutPetMethod).toContain("const feedbackTop = feedback.y - feedback.height / 2;");
+    expect(layoutPetMethod).toContain("const minY = playfieldTop + petHeight / 2 + 18;");
+    expect(layoutPetMethod).toContain("const maxY = feedbackTop - 10 - petHeight / 2;");
     expect(layoutPetMethod).toContain("feedbackTop - 10 - petHeight / 2");
     expect(layoutPetMethod).toContain("this.petWienerBaseY = petY;");
-    expect(layoutPetMethod.indexOf("this.petWiener.setPosition(layout.assistantPanel.x, petY);")).toBeGreaterThan(
+    expect(layoutPetMethod.indexOf("this.petWiener.setPosition(layout.petWienerSlot.x, petY);")).toBeGreaterThan(
       layoutPetMethod.indexOf("this.petWienerBaseY = petY;")
     );
-    expect(layoutPetMethod).toContain("sizeWienerImage(this.petWiener, layout.assistantPanel.height);");
+    expect(layoutPetMethod).toContain("sizeWienerImage(this.petWiener, layout.petWienerSlot.height);");
     expect(layoutPetMethod).toContain("this.petWienerBaseScaleX = this.petWiener.scaleX;");
     expect(layoutPetMethod).toContain("this.petWienerBaseScaleY = this.petWiener.scaleY;");
     expect(layoutPetMethod).toContain("this.restartPetIdleBob();");
-    expect(showTokenStripMethod.indexOf("this.tokenEvidenceRect = undefined;")).toBeLessThan(
-      showTokenStripMethod.indexOf("this.layoutPetWiener(computePlayLayout({ width: this.scale.width, height: this.scale.height }));")
-    );
-    expect(showTokenStripMethod).toContain("this.layoutRobotToast();");
+    expect(source).not.toContain("tokenEvidenceRect");
     expect(restartBobMethod).toContain("this.petIdleTween?.stop();");
     expect(restartBobMethod).toContain("this.petWiener.setY(this.petWienerBaseY);");
     expect(restartBobMethod).toContain("y: this.petWienerBaseY - 5");
@@ -1157,15 +1131,12 @@ describe("PlayScene input lifecycle", () => {
     const resolveMethod = source.match(/private resolveRound\(trigger: RoundResolveTrigger = "manual"\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const revealFeedbackMethod = source.match(/private revealReviewFeedback\(pending: PendingReviewReveal\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
 
-    expect(resolveMethod).toContain("this.hideTutorialPopup();");
-    expect(resolveMethod).toContain("this.hideRobotToast();");
-    expect(resolveMethod.indexOf("this.hideRobotToast();")).toBeGreaterThan(
-      resolveMethod.indexOf("this.hideTutorialPopup();")
+    expect(resolveMethod).toContain("this.hideWienerSpeech();");
+    expect(resolveMethod.indexOf("this.hideWienerSpeech();")).toBeLessThan(
+      resolveMethod.indexOf("this.scheduleReviewReveal(Math.max(reviewSequence.feedbackDelayMs, reviewSequence.speechDelayMs)")
     );
-    expect(resolveMethod.indexOf("this.hideRobotToast();")).toBeLessThan(
-      resolveMethod.indexOf("this.scheduleReviewReveal(reviewSequence.evidenceDelayMs")
-    );
-    expect(revealFeedbackMethod).toContain("this.setRobotComment(pending.resolutionLine");
+    expect(revealFeedbackMethod).toContain("this.setWienerSpeech(pending.resolutionLine");
+    expect(source).not.toContain("hideTutorialPopup");
   });
 
   it("applies Wiener reaction squash relative to layout scale and resets it", () => {

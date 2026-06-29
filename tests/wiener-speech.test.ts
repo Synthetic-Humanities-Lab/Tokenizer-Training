@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   COMPACT_REVIEW_SPEECH_CLEARANCE_PX,
   computePetSpeechLayout,
-  computeRobotToastLayout,
+  computeWienerSpeechLayout,
   REVIEW_SPEECH_CLEARANCE_PX,
-  robotBriefLine,
-  robotToastDurationMs,
-  robotToastMaxLength,
-  robotToastSourceText
-} from "../src/game/systems/RobotCommentSystem";
+  wienerBriefLine,
+  wienerSpeechDurationMs,
+  wienerSpeechMaxLength,
+  wienerSpeechSourceText
+} from "../src/game/systems/WienerSpeechSystem";
 import { computePlayLayout, type LayoutRect } from "../src/game/systems/PlayLayoutSystem";
 import { resolutionAuditLegendPromptOffsetY } from "../src/game/systems/ResolutionFeedbackSystem";
 import { TUTORIAL_ROUND_DURATION_MS, TutorialSystem } from "../src/game/systems/TutorialSystem";
@@ -68,9 +68,9 @@ function estimatedWrappedLineCount(text: string, maxCharsPerLine: number): numbe
   return lineCount;
 }
 
-describe("RobotCommentSystem", () => {
-  it("keeps near-action robot comments brief", () => {
-    const line = robotBriefLine(
+describe("WienerSpeechSystem", () => {
+  it("keeps near-action Wiener speechs brief", () => {
+    const line = wienerBriefLine(
       "TUTORIAL 6/10 - Contractions: Tokens are learned byte-pattern chunks and do not respect ordinary classroom word boundaries.",
       76
     );
@@ -81,7 +81,7 @@ describe("RobotCommentSystem", () => {
   });
 
   it("clips near-action comments on readable word boundaries when possible", () => {
-    const line = robotBriefLine(
+    const line = wienerBriefLine(
       "TUTORIAL 1/10 - Swipe orange targets; pale guides show legal slots; payroll wants tokenizer boundaries.",
       76
     );
@@ -90,11 +90,11 @@ describe("RobotCommentSystem", () => {
   });
 
   it("keeps compact tutorial toasts as complete short instructions when possible", () => {
-    const source = robotToastSourceText(
+    const source = wienerSpeechSourceText(
       "TUTORIAL 1/10 - Slot guides: Learn legal cut positions before guessing token boundaries. Pale guides are legal slots.",
       true
     );
-    const line = robotBriefLine(
+    const line = wienerBriefLine(
       source,
       78
     );
@@ -105,15 +105,15 @@ describe("RobotCommentSystem", () => {
   });
 
   it("strips Wiener speaker prefixes before shortening near-action toasts", () => {
-    expect(robotToastSourceText("WIENER: Help disabled to preserve margin.", true)).toBe(
+    expect(wienerSpeechSourceText("WIENER: Help disabled to preserve margin.", true)).toBe(
       "Help disabled to preserve margin."
     );
   });
 
   it("keeps every tutorial near-action toast within compact wrap capacity", () => {
     const tutorial = new TutorialSystem();
-    const maxLength = robotToastMaxLength(true);
-    const layout = computeRobotToastLayout(
+    const maxLength = wienerSpeechMaxLength(true);
+    const layout = computeWienerSpeechLayout(
       { width: 390, height: 844 },
       { x: 195, y: 650, width: 358, height: 96 },
       true
@@ -130,7 +130,7 @@ describe("RobotCommentSystem", () => {
         tutorial.rulePromptFor(index),
         tutorial.followupPromptFor(index)
       ]) {
-        const line = robotBriefLine(robotToastSourceText(prompt, true), maxLength);
+        const line = wienerBriefLine(wienerSpeechSourceText(prompt, true), maxLength);
 
         expect(line.length, line).toBeLessThanOrEqual(maxLength);
         expect(estimatedWrappedLineCount(line, maxCharsPerLine), line).toBeLessThanOrEqual(2);
@@ -139,16 +139,16 @@ describe("RobotCommentSystem", () => {
   });
 
   it("keeps near-action comments visible long enough to read", () => {
-    const short = robotToastDurationMs("Leading-space boundary missed.");
-    const long = robotToastDurationMs(
+    const short = wienerSpeechDurationMs("Leading-space boundary missed.");
+    const long = wienerSpeechDurationMs(
       "TUTORIAL 4/10 - One orange target: cut before the visible gap. Do not add a cut after it.",
       { tutorialMode: true }
     );
-    const capped = robotToastDurationMs(
+    const capped = wienerSpeechDurationMs(
       "TUTORIAL 8/10 - URLs fragment quickly because dots, slashes, short names, and suffixes often become separate tokenizer chunks.",
       { tutorialMode: true }
     );
-    const compact = robotToastDurationMs(
+    const compact = wienerSpeechDurationMs(
       "TUTORIAL 1/10 - Slot guides: Learn legal cut positions before guessing token boundaries.",
       { tutorialMode: true, maxLength: 78 }
     );
@@ -160,8 +160,8 @@ describe("RobotCommentSystem", () => {
     expect(capped).toBeLessThanOrEqual(6200);
   });
 
-  it("positions the robot toast near the static prompt text while staying inside the viewport", () => {
-    const layout = computeRobotToastLayout(
+  it("positions the Wiener speech bubble near the static prompt text while staying inside the viewport", () => {
+    const layout = computeWienerSpeechLayout(
       { width: 390, height: 844 },
       { x: 195, y: 520, width: 358, height: 96 },
       true
@@ -191,7 +191,7 @@ describe("RobotCommentSystem", () => {
       ...playLayout.textPanel,
       y: movingTextY
     };
-    const toast = computeRobotToastLayout({ width, height }, movingTextPanel, true);
+    const toast = computeWienerSpeechLayout({ width, height }, movingTextPanel, true);
 
     expect(toast.panel.height).toBe(62);
     expect(toast.label.visible).toBe(true);
@@ -201,7 +201,7 @@ describe("RobotCommentSystem", () => {
   });
 
   it("moves below the text panel when there is no space above it", () => {
-    const layout = computeRobotToastLayout(
+    const layout = computeWienerSpeechLayout(
       { width: 390, height: 844 },
       { x: 195, y: 70, width: 358, height: 96 },
       true
@@ -222,7 +222,7 @@ describe("RobotCommentSystem", () => {
     const speech = computePetSpeechLayout({
       viewport: { width, height },
       textPanel: activeTextPanel,
-      petBounds: playLayout.assistantPanel,
+      petBounds: playLayout.petWienerSlot,
       feedback: computeFeedbackCardLayout(width, height, playLayout.contentPanel),
       resolveButton: playLayout.resolveButton,
       compact: playLayout.compact,
@@ -251,7 +251,7 @@ describe("RobotCommentSystem", () => {
     const speech = computePetSpeechLayout({
       viewport: { width, height },
       textPanel: reviewTextPanel,
-      petBounds: playLayout.assistantPanel,
+      petBounds: playLayout.petWienerSlot,
       feedback,
       resolveButton: playLayout.resolveButton,
       compact: playLayout.compact,
@@ -280,7 +280,7 @@ describe("RobotCommentSystem", () => {
     const speech = computePetSpeechLayout({
       viewport: { width, height },
       textPanel: reviewTextPanel,
-      petBounds: playLayout.assistantPanel,
+      petBounds: playLayout.petWienerSlot,
       feedback,
       resolveButton: playLayout.resolveButton,
       compact: playLayout.compact,
@@ -312,7 +312,7 @@ describe("RobotCommentSystem", () => {
     const speech = computePetSpeechLayout({
       viewport: { width, height },
       textPanel: reviewTextPanel,
-      petBounds: playLayout.assistantPanel,
+      petBounds: playLayout.petWienerSlot,
       feedback,
       resolveButton: playLayout.resolveButton,
       compact: playLayout.compact,

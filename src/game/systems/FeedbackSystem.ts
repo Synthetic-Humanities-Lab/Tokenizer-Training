@@ -1,7 +1,7 @@
 import type { RoundScoreResult } from "./ScoringSystem";
 import type { TokenFixture } from "./TokenizerSystem";
-import { displayTokenSegment } from "./SegmentationEvidenceSystem";
-import { OverseerLineSystem } from "./OverseerLineSystem";
+import { tokenSplitLine } from "./TokenDisplaySystem";
+import { WienerSpeechLineSystem } from "./WienerSpeechLineSystem";
 
 export interface FeedbackSummary {
   technical: string;
@@ -9,7 +9,7 @@ export interface FeedbackSummary {
   economy: string;
   economyTone: EconomyTone;
   audit: string;
-  overseer: string;
+  wienerSpeech: string;
 }
 
 export interface FeedbackContext {
@@ -23,7 +23,7 @@ const punctuationCategories = new Set(["punctuation", "internet_punctuation"]);
 const symbolicCategories = new Set(["code_symbols", "symbolic"]);
 
 export class FeedbackSystem {
-  constructor(private readonly overseerLines = new OverseerLineSystem()) {}
+  constructor(private readonly wienerSpeechLines = new WienerSpeechLineSystem()) {}
 
   summarize(fixture: TokenFixture, score: RoundScoreResult, context: FeedbackContext = {}): FeedbackSummary {
     return {
@@ -32,7 +32,7 @@ export class FeedbackSystem {
       economy: `Pay $${score.pay.toFixed(2)} - Cost $${score.companyCost.toFixed(2)} = Net ${this.formatSigned(score.net)}`,
       economyTone: this.economyTone(score.net),
       audit: this.auditLine(score, context),
-      overseer: this.pickOverseerLine(score, context)
+      wienerSpeech: this.pickWienerSpeechLine(score, context)
     };
   }
 
@@ -96,15 +96,14 @@ export class FeedbackSystem {
     return "Sequence entered in ragged form.";
   }
 
-  private pickOverseerLine(score: RoundScoreResult, context: FeedbackContext): string {
+  private pickWienerSpeechLine(score: RoundScoreResult, context: FeedbackContext): string {
     void context;
     const seed = score.correctCuts.length + score.missedCuts.length + score.falseCuts.length;
-    return this.overseerLines.pickForResolve(score, { seed });
+    return this.wienerSpeechLines.pickForResolve(score, { seed });
   }
 
   private tokenSplitLine(fixture: TokenFixture): string {
-    const segments = fixture.token_strings.map((token) => `<${displayTokenSegment(token)}>`);
-    return `Tokens ${fixture.token_count}: ${segments.join(" ")}`;
+    return tokenSplitLine(fixture.token_strings);
   }
 
   private auditLine(score: RoundScoreResult, context: FeedbackContext): string {

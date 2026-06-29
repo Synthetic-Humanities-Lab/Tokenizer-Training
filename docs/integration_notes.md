@@ -1,8 +1,8 @@
-# Overseer Line Schema Migration Notes
+# Wiener Speech Line Schema Notes
 
 ## Intent
 
-This migration deliberately breaks the old six-pool line schema and replaces it with a category-driven structure tied to scene, moment, delivery mode, and cooldown grouping.
+This migration deliberately breaks the old six-pool line schema and replaces it with a category-driven structure tied to scene, moment, delivery mode, and cooldown grouping. The selector feeds a single visible pet speech bubble; it is not a second UI panel.
 
 The old schema was:
 
@@ -20,7 +20,7 @@ That produced only nineteen total lines and depended on a single feedback-classi
 Recommended TypeScript shape:
 
 ```ts
-export interface OverseerLinesV2 {
+export interface WienerSpeechLinesV2 {
   schema_version: 2;
   persona: {
     id: string;
@@ -37,20 +37,20 @@ export interface OverseerLinesV2 {
       suppress_nonessential_barks_during_swipe: boolean;
     };
   };
-  categories: Record<string, OverseerCategory>;
+  categories: Record<string, WienerSpeechCategory>;
 }
 
-export interface OverseerCategory {
+export interface WienerSpeechCategory {
   scene: "menu" | "tutorial" | "play" | "economy" | "results" | "system";
-  delivery: "bubble" | "panel";
+  delivery: "bubble";
   target_length: "short" | "medium";
   cooldown_group: string;
   lines: string[];
 }
-Recommended new selector
-Create a new OverseerLineSystem responsible for:
+Recommended selector
+`WienerSpeechLineSystem` is responsible for:
 
-loading overseer_lines.json
+loading wiener_speech_lines.json
 selecting a category key from gameplay context
 avoiding immediate repetition using a category+line history window
 enforcing short lines for active play
@@ -62,11 +62,11 @@ and optionally:
 
 ts
 Copy
-pickForContext(context: OverseerContext): string
+pickForContext(context: WienerSpeechContext): string
 Required code changes
 FeedbackSystem.ts
 Remove the direct import assumptions for good, missed, falseCut, overcut, lowBalance, and bad.
-Keep classifyIssue() if useful for the technical line, but route overseer selection through OverseerLineSystem.
+Keep classifyIssue() if useful for the technical line, but route Wiener speech selection through WienerSpeechLineSystem.
 Map score outcomes to categories such as:
 play.resolve.perfect
 play.resolve.good
@@ -81,18 +81,18 @@ Replace activeTrainingLine() with category selection from:
 play.round_start.neutral
 play.round_start.low_balance
 play.round_start.dense_string
-Replace result-summary overseer copy with:
+Replace result-summary Wiener speech copy with:
 results.session_budget
 results.session_quit
 TutorialSystem.ts
 Keep the expanded ten-round tutorial route, but simplify text plumbing only when it does not disturb cadence.
-Replace the many inline popup fields with a smaller script surface:
+Keep the tutorial script surface named around speech and teaching copy:
 pause_line
 active_line
 resolve_good
 resolve_bad
 Drive these from a content object or copy deck rather than hardcoding every line in the system class.
-Keep byte/token-ID compatibility fields populated for now, but do not re-enable detached memo-card tutorial behavior.
+Keep byte/token-ID teaching fields populated for now, but do not re-enable detached memo-card tutorial behavior.
 TutorialCompleteContentSystem.ts
 Replace pass/fail summary strings with the new copy deck values.
 MenuContentSystem.ts

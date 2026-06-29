@@ -5,7 +5,7 @@ import {
   PLAYTEST_RUN_PREFIX,
   PRODUCT_SUMMARY_TITLE
 } from "./ProductIdentitySystem";
-import { OverseerLineSystem } from "./OverseerLineSystem";
+import { WienerSpeechLineSystem } from "./WienerSpeechLineSystem";
 import { sessionStartSummaryLine, type PlaySessionStartSource } from "./SessionStartSystem";
 
 export type SessionOutcome = "budget" | "quit";
@@ -106,10 +106,10 @@ export type SessionTransition =
   | { type: "results"; outcome: SessionOutcome };
 
 export class SessionFlowSystem {
-  constructor(private readonly overseerLines = new OverseerLineSystem()) {}
+  constructor(private readonly wienerSpeechLines = new WienerSpeechLineSystem()) {}
 
   activeTrainingLine(balance: number): string {
-    return this.overseerLines.pickForRoundStart({ balance }, { seed: Math.floor(balance) });
+    return this.wienerSpeechLines.pickForRoundStart({ balance }, { seed: Math.floor(balance) });
   }
 
   shouldSaveResult(input: ResultPersistenceInput): boolean {

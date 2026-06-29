@@ -13,6 +13,6 @@ describe("PlayScene Clear recovery", () => {
     expect(source).not.toContain("clearCutRecoveryLine");
     expect(source).toContain("private clearPlayerCuts(): void");
     expect(source).toContain("this.currentCuts = [];");
-    expect(source).not.toContain("this.setRobotComment(clearCutRecoveryLine");
+    expect(source).not.toContain("this.setWienerSpeech(clearCutRecoveryLine");
   });
 });

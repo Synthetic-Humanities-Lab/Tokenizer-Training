@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import linesJson from "../src/game/data/overseer_lines.json";
+import linesJson from "../src/game/data/wiener_speech_lines.json";
 import { FeedbackSystem } from "../src/game/systems/FeedbackSystem";
 import type { RoundScoreResult } from "../src/game/systems/ScoringSystem";
 import type { TokenFixture } from "../src/game/systems/TokenizerSystem";
@@ -165,27 +165,27 @@ describe("FeedbackSystem", () => {
     expect(new FeedbackSystem().summarize(
       fixture,
       scoreWith({ correctCuts: [1, 7], missedCuts: [], falseCuts: [] })
-    ).overseer).toBe(linesJson.categories["play.resolve.perfect"].lines[2]);
+    ).wienerSpeech).toBe(linesJson.categories["play.resolve.perfect"].lines[2]);
 
     expect(new FeedbackSystem().summarize(
       fixture,
       scoreWith({ correctCuts: [1], missedCuts: [7], falseCuts: [] })
-    ).overseer).toBe(linesJson.categories["play.resolve.missed"].lines[2]);
+    ).wienerSpeech).toBe(linesJson.categories["play.resolve.missed"].lines[2]);
 
     expect(new FeedbackSystem().summarize(
       fixture,
       scoreWith({ correctCuts: [1], missedCuts: [], falseCuts: [7] })
-    ).overseer).toBe(linesJson.categories["play.resolve.false_cut"].lines[2]);
+    ).wienerSpeech).toBe(linesJson.categories["play.resolve.false_cut"].lines[2]);
 
     expect(new FeedbackSystem().summarize(
       fixture,
       scoreWith({ correctCuts: [1], missedCuts: [7], falseCuts: [2, 3, 4] })
-    ).overseer).toBe(linesJson.categories["play.resolve.overcut"].lines[5]);
+    ).wienerSpeech).toBe(linesJson.categories["play.resolve.overcut"].lines[5]);
 
     expect(new FeedbackSystem().summarize(
       fixture,
       scoreWith({ correctCuts: [1], missedCuts: [7], falseCuts: [2] })
-    ).overseer).toBe(linesJson.categories["play.resolve.mixed"].lines[3]);
+    ).wienerSpeech).toBe(linesJson.categories["play.resolve.mixed"].lines[3]);
   });
 
   it("names dense string fragmentation across URL, filename, code, hashtag, and tokenizer strings", () => {

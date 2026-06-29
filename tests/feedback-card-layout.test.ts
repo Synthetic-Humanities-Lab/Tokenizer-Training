@@ -83,7 +83,7 @@ describe("computeFeedbackCardTextLayout", () => {
       economy: "Pay $0.00 - Cost $13.71 = Net -$13.71",
       economyTone: "loss",
       audit: "Boundary audit: OK 0 / Missed 5 / False 1 / Tokens 6 / Balance $26.29 / Cost drivers: missed, false, token load",
-      overseer: "Review queued."
+      wienerSpeech: "Review queued."
     });
     const text = computeFeedbackCardTextLayout(card);
 

@@ -4,7 +4,7 @@ import {
   type LayoutRect
 } from "./PlayLayoutSystem";
 
-export interface RobotToastLayout {
+export interface WienerSpeechLayout {
   panel: LayoutRect;
   label: { x: number; y: number; fontSize: number; visible: boolean };
   text: { x: number; y: number; wordWrapWidth: number; fontSize: number };
@@ -21,27 +21,27 @@ export interface PetSpeechLayoutInput {
   evidenceRect?: LayoutRect;
 }
 
-export interface RobotToastDurationOptions {
+export interface WienerSpeechDurationOptions {
   tutorialMode?: boolean;
   maxLength?: number;
 }
 
-export const ROBOT_TOAST_DEFAULT_MAX_LENGTH = 76;
-export const ROBOT_TOAST_COMPACT_MAX_LENGTH = 58;
+export const WIENER_SPEECH_DEFAULT_MAX_LENGTH = 76;
+export const WIENER_SPEECH_COMPACT_MAX_LENGTH = 58;
 export const REVIEW_SPEECH_CLEARANCE_PX = 14;
 export const COMPACT_REVIEW_SPEECH_CLEARANCE_PX = 8;
 const SHORT_PHONE_HEIGHT = 640;
 
-export function robotToastMaxLength(compact: boolean): number {
-  return compact ? ROBOT_TOAST_COMPACT_MAX_LENGTH : ROBOT_TOAST_DEFAULT_MAX_LENGTH;
+export function wienerSpeechMaxLength(compact: boolean): number {
+  return compact ? WIENER_SPEECH_COMPACT_MAX_LENGTH : WIENER_SPEECH_DEFAULT_MAX_LENGTH;
 }
 
-export function robotToastSourceText(value: string, compact: boolean): string {
+export function wienerSpeechSourceText(value: string, compact: boolean): string {
   const normalized = value.replace(/\s+/g, " ").trim();
-  const robotSource = normalized
+  const speakerSource = normalized
     .replace(/^ROBOT SUPERVISOR:\s*/i, "")
     .replace(/^WIENER:\s*/i, "");
-  const tutorialSource = robotSource
+  const tutorialSource = speakerSource
     .replace(/^TUTORIAL \d+\/\d+ - [^:]+:\s+/, "")
     .replace(/^TUTORIAL \d+\/\d+ - /, "");
   if (!compact) {
@@ -51,7 +51,7 @@ export function robotToastSourceText(value: string, compact: boolean): string {
   return tutorialSource.match(/^.+?[.!?](?:\s|$)/)?.[0]?.trim() ?? tutorialSource;
 }
 
-export function robotBriefLine(value: string, maxLength = ROBOT_TOAST_DEFAULT_MAX_LENGTH): string {
+export function wienerBriefLine(value: string, maxLength = WIENER_SPEECH_DEFAULT_MAX_LENGTH): string {
   const normalized = value.replace(/\s+/g, " ").trim();
   if (normalized.length <= maxLength) {
     return normalized;
@@ -72,8 +72,8 @@ export function robotBriefLine(value: string, maxLength = ROBOT_TOAST_DEFAULT_MA
   return `${clipped}...`;
 }
 
-export function robotToastDurationMs(value: string, options: RobotToastDurationOptions = {}): number {
-  const briefLength = robotBriefLine(value, options.maxLength).length;
+export function wienerSpeechDurationMs(value: string, options: WienerSpeechDurationOptions = {}): number {
+  const briefLength = wienerBriefLine(value, options.maxLength).length;
   const readingMs = 900 + briefLength * (options.tutorialMode ? 58 : 42);
   const minMs = options.tutorialMode ? 4800 : 3400;
   const maxMs = options.tutorialMode ? 6200 : 4800;
@@ -81,11 +81,11 @@ export function robotToastDurationMs(value: string, options: RobotToastDurationO
   return Math.round(Math.max(minMs, Math.min(maxMs, readingMs)));
 }
 
-export function computeRobotToastLayout(
+export function computeWienerSpeechLayout(
   viewport: { width: number; height: number },
   textPanel: LayoutRect,
   compact: boolean
-): RobotToastLayout {
+): WienerSpeechLayout {
   const width = Math.min(compact ? viewport.width - 32 : 520, Math.max(260, textPanel.width * 0.72));
   const defaultHeight = compact ? 62 : 58;
   const tightHeight = 38;
@@ -130,7 +130,7 @@ export function computeRobotToastLayout(
   };
 }
 
-export function computePetSpeechLayout(input: PetSpeechLayoutInput): RobotToastLayout {
+export function computePetSpeechLayout(input: PetSpeechLayoutInput): WienerSpeechLayout {
   const shortPhone = input.compact && input.viewport.height < SHORT_PHONE_HEIGHT;
   const shortLandscape = !input.compact && usesShortLandscapeReviewLayout(input.viewport);
   const reviewClearance = input.compact ? COMPACT_REVIEW_SPEECH_CLEARANCE_PX : REVIEW_SPEECH_CLEARANCE_PX;
@@ -327,7 +327,7 @@ function petSpeechLayout(input: {
   width: number;
   height: number;
   compact: boolean;
-}): RobotToastLayout {
+}): WienerSpeechLayout {
   return {
     panel: {
       x: input.x,

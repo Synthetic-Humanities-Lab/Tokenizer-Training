@@ -1,16 +1,42 @@
-export interface TutorialRound {
+export interface TutorialScript {
+  promptIntroLine: string;
+  activeInstructionLine: string;
+  teachingExplanations: {
+    mechanics: string;
+    byteRoute: string;
+    tokenIds: string;
+    workRule: string;
+    followup: string;
+  };
+  stageInstructionLines: {
+    mechanics: string;
+    byteRoute: string;
+    tokenIds: string;
+    workRule: string;
+    followup: string;
+  };
+  reviewExplanation: string;
+  reviewLine: string;
+  reviewReactions: {
+    pass: string;
+    mixed: string;
+    fail: string;
+  };
+}
+
+interface TutorialRoundRecord {
   fixtureId: string;
   exampleText: string;
   title: string;
   teachingPoint: string;
   explanation: string;
-  popupBody: string;
-  mechanicsPopupBody: string;
-  bytePopupBody: string;
-  tokenIdPopupBody: string;
-  rulePopupBody: string;
-  followupPopupBody: string;
-  resolvePopupBody: string;
+  promptIntroLine: string;
+  mechanicsExplanation: string;
+  byteRouteExplanation: string;
+  tokenIdExplanation: string;
+  workRuleExplanation: string;
+  followupExplanation: string;
+  reviewExplanation: string;
   activeLine: string;
   mechanicsLine: string;
   byteLine: string;
@@ -26,6 +52,18 @@ export interface TutorialRound {
   instructionWindowMs: number;
 }
 
+export interface TutorialRound {
+  fixtureId: string;
+  exampleText: string;
+  title: string;
+  teachingPoint: string;
+  explanation: string;
+  script: TutorialScript;
+  showSlotHints: boolean;
+  showTargetHints: boolean;
+  instructionWindowMs: number;
+}
+
 export interface TutorialReviewSpeechInput {
   correctCuts: number;
   missedCuts: number;
@@ -34,26 +72,26 @@ export interface TutorialReviewSpeechInput {
 
 export const TUTORIAL_ROUND_DURATION_MS = 32000;
 
-export const tutorialRounds: TutorialRound[] = [
+const tutorialRoundRecords: TutorialRoundRecord[] = [
   {
     fixtureId: "simple_001",
     exampleText: "the cat sat on the mat",
     title: "Slot guides",
     teachingPoint: "Learn legal cut positions before guessing token boundaries.",
     explanation: "Pale guides are legal slots. Orange targets show this worked route.",
-    popupBody:
+    promptIntroLine:
       "WIENER: Ordinary words are a courtesy layer. Pale guides show legal tokenizer slots. Orange targets show this worked route. Swipe them, then Resolve.",
-    mechanicsPopupBody:
+    mechanicsExplanation:
       "WIENER: Legal slots are the only places a token cut can land. Orange targets are examples for this first route.",
-    bytePopupBody:
+    byteRouteExplanation:
       "WIENER: Text becomes bytes, then token chunks. Your cuts predict chunk edges before the model receives token IDs.",
-    tokenIdPopupBody:
+    tokenIdExplanation:
       "WIENER: The token strip shows chunks and token IDs sent forward. Words are visible packaging, not binding policy.",
-    rulePopupBody:
+    workRuleExplanation:
       "WIENER: Work rule: cut learned tokenizer boundaries. Resolve submits staged token cuts; Clear removes them first.",
-    followupPopupBody:
+    followupExplanation:
       "WIENER: Common words split cleanly here. That is a courtesy example, not a promise from the tokenizer.",
-    resolvePopupBody:
+    reviewExplanation:
       "WIENER: Review marks the useful cuts. Common words split neatly here; the tokenizer has made no vow.",
     activeLine: "Swipe targets; pale guides mark slots; Resolve submits.",
     mechanicsLine: "Legal slots are possible token cuts. Orange targets are this worked route.",
@@ -75,19 +113,19 @@ export const tutorialRounds: TutorialRound[] = [
     title: "Review labels",
     teachingPoint: "Connect staged cuts to OK, MISS, FALSE, and the token strip.",
     explanation: "The review is evidence, not encouragement.",
-    popupBody:
+    promptIntroLine:
       "WIENER: This route teaches the review. OK means a useful token edge. MISS means a real edge was skipped. FALSE means an invented edge.",
-    mechanicsPopupBody:
+    mechanicsExplanation:
       "WIENER: Stage the orange token cuts, then Resolve. The review separates correct cuts, missed edges, and false cuts.",
-    bytePopupBody:
+    byteRouteExplanation:
       "WIENER: Byte chunks become token IDs after the boundary choices. The review shows where your visible cuts matched the chunk route.",
-    tokenIdPopupBody:
+    tokenIdExplanation:
       "WIENER: Token IDs are not displayed as praise. The strip shows what the model receives after tokenizer boundaries are fixed.",
-    rulePopupBody:
+    workRuleExplanation:
       "WIENER: Work rule: read OK, MISS, and FALSE as token audit labels. They are not mood stickers for the worker.",
-    followupPopupBody:
+    followupExplanation:
       "WIENER: The token strip is the receipt. If a word has a leading space, the strip keeps that chunk attached.",
-    resolvePopupBody:
+    reviewExplanation:
       "WIENER: Review labels are the evidence layer. OK, MISS, and FALSE explain the cost before opinion enters.",
     activeLine: "Swipe targets; Resolve shows OK, MISS, FALSE, and strip.",
     mechanicsLine: "Review labels compare staged token cuts with true chunk edges.",
@@ -109,19 +147,19 @@ export const tutorialRounds: TutorialRound[] = [
     title: "Clear before Resolve",
     teachingPoint: "Learn that staged cuts are reversible until review.",
     explanation: "Clear removes staged cuts. Resolve commits them to the audit.",
-    popupBody:
+    promptIntroLine:
       "WIENER: Cuts are staged until Resolve. Clear removes staged token cuts before they enter review. Use it before pretending certainty.",
-    mechanicsPopupBody:
+    mechanicsExplanation:
       "WIENER: Mechanics: swipe across legal slots to stage cuts. Clear wipes staged cuts; Resolve commits the remaining token guesses.",
-    bytePopupBody:
+    byteRouteExplanation:
       "WIENER: Bytes do not care about your hesitation. The tokenizer route stays fixed while you revise staged cuts.",
-    tokenIdPopupBody:
+    tokenIdExplanation:
       "WIENER: Token IDs are assigned after chunking. Clear changes only your staged prediction, not the tokenizer truth.",
-    rulePopupBody:
+    workRuleExplanation:
       "WIENER: Work rule: Clear is for correcting staged token cuts before Resolve. After review, the record is closed.",
-    followupPopupBody:
+    followupExplanation:
       "WIENER: Reversibility ends at Resolve. Token guesses remain editable only while they are staged cuts.",
-    resolvePopupBody:
+    reviewExplanation:
       "WIENER: The review only sees the cuts left on the strip. Clear is useful precisely because it leaves no testimony.",
     activeLine: "Stage cuts; Clear removes them before Resolve records.",
     mechanicsLine: "Swipe slots to stage cuts. Clear wipes them before review.",
@@ -144,19 +182,19 @@ export const tutorialRounds: TutorialRound[] = [
     title: "Spaces attach",
     teachingPoint: "A visible gap can belong to the token that follows it.",
     explanation: "Cut the boundary before the gap; do not add a second cut after it.",
-    popupBody:
+    promptIntroLine:
       "WIENER: The visible gap can belong to the next token chunk. This route has one target before the gap, not another cut after it.",
-    mechanicsPopupBody:
+    mechanicsExplanation:
       "WIENER: A leading-space token is one chunk. The displayed target is the decision point; a second cut after the gap invents structure.",
-    bytePopupBody:
+    byteRouteExplanation:
       "WIENER: A leading space is a byte pattern that can merge with the next word. Empty-looking text still has tokenizer structure.",
-    tokenIdPopupBody:
+    tokenIdExplanation:
       "WIENER: A token may begin with a space and still count as one token ID. The strip shows the chunk as a unit.",
-    rulePopupBody:
+    workRuleExplanation:
       "WIENER: Work rule: follow the chunk boundary. A visible gap is not permission to add a second token cut.",
-    followupPopupBody:
+    followupExplanation:
       "WIENER: The token strip can show a leading-space chunk as one unit. This is tokenizer policy, not etiquette.",
-    resolvePopupBody:
+    reviewExplanation:
       "WIENER: The leading-space chunk was logged as one unit. The visible gap belonged with the next token.",
     activeLine: "One target; cut before the gap, not after it.",
     mechanicsLine: "A leading-space token is one chunk, not two.",
@@ -178,19 +216,19 @@ export const tutorialRounds: TutorialRound[] = [
     title: "Words versus tokens",
     teachingPoint: "Separate readable words from tokenizer chunks.",
     explanation: "The strip shows chunks; leading spaces often ride with the next chunk.",
-    popupBody:
+    promptIntroLine:
       "WIENER: Orange answers are gone. Read the pale legal slots, then compare against the token strip. Words are packaging.",
-    mechanicsPopupBody:
+    mechanicsExplanation:
       "WIENER: Mechanics: a readable word can be a token chunk, part of one, or several. The tokenizer decides from learned patterns.",
-    bytePopupBody:
+    byteRouteExplanation:
       "WIENER: Byte patterns become chunks through merge history. Familiar word spacing can still produce leading-space tokens.",
-    tokenIdPopupBody:
+    tokenIdExplanation:
       "WIENER: Token IDs follow chunks, not your mental word count. The strip is a better witness than the sentence.",
-    rulePopupBody:
+    workRuleExplanation:
       "WIENER: Work rule: with targets removed, use pale legal slots and the prompt text to infer tokenizer chunk edges.",
-    followupPopupBody:
+    followupExplanation:
       "WIENER: Leading spaces often travel inside the following chunk. The token strip will show the attachment after review.",
-    resolvePopupBody:
+    reviewExplanation:
       "WIENER: The strip showed chunks, not words. Human readability remains a poor contract.",
     activeLine: "No orange answers; use pale guides and token strip.",
     mechanicsLine: "Readable words and token chunks are different systems.",
@@ -212,19 +250,19 @@ export const tutorialRounds: TutorialRound[] = [
     title: "Contractions",
     teachingPoint: "Apostrophes and final marks may split away from trusted words.",
     explanation: "Grammar is a bystander; merge history chooses the chunks.",
-    popupBody:
+    promptIntroLine:
       "WIENER: Contractions are not protected by grammar. Apostrophes, word pieces, and final punctuation follow tokenizer merge history.",
-    mechanicsPopupBody:
+    mechanicsExplanation:
       "WIENER: BPE-style tokenizers merge frequent byte patterns. Apostrophes and periods obey that route, not classroom grammar.",
-    bytePopupBody:
+    byteRouteExplanation:
       "WIENER: BPE rewards frequent byte pairs. Apostrophes and periods split when history made that route cheaper.",
-    tokenIdPopupBody:
+    tokenIdExplanation:
       "WIENER: Punctuation splits mean extra token IDs, not extra meaning. The model receives chunks where you expected one word.",
-    rulePopupBody:
+    workRuleExplanation:
       "WIENER: Work rule: pale slots are legal token cuts. Your staged marks are guesses against merge history.",
-    followupPopupBody:
+    followupExplanation:
       "WIENER: Punctuation can become its own token when the merge table made that cheaper. Small marks have departments.",
-    resolvePopupBody:
+    reviewExplanation:
       "WIENER: The apostrophe and period followed merge history, not classroom grammar.",
     activeLine: "Contractions split; watch apostrophe and final period.",
     mechanicsLine: "BPE merges frequent byte patterns. Grammar is advisory.",
@@ -246,19 +284,19 @@ export const tutorialRounds: TutorialRound[] = [
     title: "Punctuation clusters",
     teachingPoint: "Punctuation clusters can become their own chunks.",
     explanation: "Ellipses and question marks are small, but still billable.",
-    popupBody:
+    promptIntroLine:
       "WIENER: Punctuation clusters are not decoration to the tokenizer. Ellipses and question marks can become separate chunks.",
-    mechanicsPopupBody:
+    mechanicsExplanation:
       "WIENER: Mechanics: punctuation slots behave like token boundaries when merge history made a separate chunk cheaper.",
-    bytePopupBody:
+    byteRouteExplanation:
       "WIENER: Repeated punctuation has byte patterns. Those patterns can merge together or split away from nearby words.",
-    tokenIdPopupBody:
+    tokenIdExplanation:
       "WIENER: When punctuation becomes a chunk, it receives a token ID. Tiny marks still become model work.",
-    rulePopupBody:
+    workRuleExplanation:
       "WIENER: Work rule: inspect punctuation as possible token chunks. Do not let small marks pass as scenery.",
-    followupPopupBody:
+    followupExplanation:
       "WIENER: Punctuation clusters often look like expressive typing. The tokenizer reads cheaper chunk routes instead.",
-    resolvePopupBody:
+    reviewExplanation:
       "WIENER: The punctuation cluster did not stay decorative. The tokenizer gave it structure.",
     activeLine: "Punctuation splits; ellipses, question marks count.",
     mechanicsLine: "Punctuation slots can become true token boundaries.",
@@ -280,19 +318,19 @@ export const tutorialRounds: TutorialRound[] = [
     title: "Dense strings",
     teachingPoint: "URLs and code-like strings fracture quickly.",
     explanation: "Dots, slashes, and leftovers become billable fragments.",
-    popupBody:
+    promptIntroLine:
       "WIENER: A URL is not one object to the tokenizer. It is fragments, dots, slashes, awkward joins, and leftovers.",
-    mechanicsPopupBody:
+    mechanicsExplanation:
       "WIENER: Mechanics: dense strings mix repeated token chunks with rare joins. Separators are likely borders.",
-    bytePopupBody:
+    byteRouteExplanation:
       "WIENER: URL bytes fracture around dots, slashes, domain pieces, and suffixes before token chunks are logged.",
-    tokenIdPopupBody:
+    tokenIdExplanation:
       "WIENER: Dense strings can become compact runs of short token IDs. Each fragment still bills as model work.",
-    rulePopupBody:
+    workRuleExplanation:
       "WIENER: Work rule: cut token fragments, not the idea of a website. The URL is not one chunk.",
-    followupPopupBody:
+    followupExplanation:
       "WIENER: Dense strings punish confidence bought at sentence prices. Token chunks do the billing.",
-    resolvePopupBody:
+    reviewExplanation:
       "WIENER: The URL split into chunks. Infrastructure hid this until finance asked.",
     activeLine: "URLs fragment; dots and slashes can be boundaries.",
     mechanicsLine: "Dense strings mix common fragments with awkward joins.",
@@ -314,19 +352,19 @@ export const tutorialRounds: TutorialRound[] = [
     title: "Numbers and symbols",
     teachingPoint: "Currency and decimals can split into small chunks.",
     explanation: "Small marks can still become model work.",
-    popupBody:
+    promptIntroLine:
       "WIENER: Currency and decimals are compact, not simple. Dollar signs, number pieces, and decimal points can split.",
-    mechanicsPopupBody:
+    mechanicsExplanation:
       "WIENER: Mechanics: numeric text mixes symbols and digits. Token boundaries often appear where reading still feels continuous.",
-    bytePopupBody:
+    byteRouteExplanation:
       "WIENER: Symbols and decimal fragments may become separate token chunks, which is how small text becomes cost.",
-    tokenIdPopupBody:
+    tokenIdExplanation:
       "WIENER: More token IDs mean more model work. Correct chunk edges predict the bill before it reaches balance.",
-    rulePopupBody:
+    workRuleExplanation:
       "WIENER: Work rule: inspect currency and decimal marks as possible token chunks, not as harmless formatting.",
-    followupPopupBody:
+    followupExplanation:
       "WIENER: Technical note: dollars and decimals are small token clerks. Their chunks still bill.",
-    resolvePopupBody:
+    reviewExplanation:
       "WIENER: Currency and decimals were small, separate chunks. Compact text is not the same as cheap text.",
     activeLine: "Currency and decimals split; use the pale guides.",
     mechanicsLine: "Numeric text can split where reading feels continuous.",
@@ -348,19 +386,19 @@ export const tutorialRounds: TutorialRound[] = [
     title: "Economy and timer",
     teachingPoint: "Connect boundary accuracy to pay, cost, net, balance, and time.",
     explanation: "Pay minus company cost becomes net. Zero balance ends the shift.",
-    popupBody:
+    promptIntroLine:
       "WIENER: Final route. Correct token cuts earn pay. Missed boundaries and false cuts create company cost. The timer keeps working.",
-    mechanicsPopupBody:
+    mechanicsExplanation:
       "WIENER: Mechanics: token boundaries drive pay and company cost. Pay minus cost changes your remaining balance.",
-    bytePopupBody:
+    byteRouteExplanation:
       "WIENER: Even plain words become bytes, chunks, and token IDs. The economy only sees the boundary result.",
-    tokenIdPopupBody:
+    tokenIdExplanation:
       "WIENER: Token IDs are model work. Better boundary predictions keep the bill from eating the balance.",
-    rulePopupBody:
+    workRuleExplanation:
       "WIENER: Work rule: the timer is active. Resolve submits token cuts; expiry resolves hesitation.",
-    followupPopupBody:
+    followupExplanation:
       "WIENER: The tutorial ends after this token audit. Endless Training keeps the same rules and removes the courtesy route.",
-    resolvePopupBody:
+    reviewExplanation:
       "WIENER: Accounting is the lesson. Pay minus company cost becomes net, and net changes your balance.",
     activeLine: "Final route; correct cuts pay, mistakes create cost.",
     mechanicsLine: "Pay minus company cost becomes net. Net changes balance.",
@@ -378,9 +416,45 @@ export const tutorialRounds: TutorialRound[] = [
   }
 ];
 
+export const tutorialRounds: TutorialRound[] = tutorialRoundRecords.map((record) => ({
+  fixtureId: record.fixtureId,
+  exampleText: record.exampleText,
+  title: record.title,
+  teachingPoint: record.teachingPoint,
+  explanation: record.explanation,
+  script: {
+    promptIntroLine: record.promptIntroLine,
+    activeInstructionLine: record.activeLine,
+    teachingExplanations: {
+      mechanics: record.mechanicsExplanation,
+      byteRoute: record.byteRouteExplanation,
+      tokenIds: record.tokenIdExplanation,
+      workRule: record.workRuleExplanation,
+      followup: record.followupExplanation
+    },
+    stageInstructionLines: {
+      mechanics: record.mechanicsLine,
+      byteRoute: record.byteLine,
+      tokenIds: record.tokenIdLine,
+      workRule: record.ruleLine,
+      followup: record.followupLine
+    },
+    reviewExplanation: record.reviewExplanation,
+    reviewLine: record.resolveLine,
+    reviewReactions: {
+      pass: record.resolveGoodLine,
+      mixed: record.resolveMixedLine,
+      fail: record.resolveBadLine
+    }
+  },
+  showSlotHints: record.showSlotHints,
+  showTargetHints: record.showTargetHints,
+  instructionWindowMs: record.instructionWindowMs
+}));
+
 const TUTORIAL_COMPLETION_LINE = "Tutorial cleared. Endless Training opens with live cost exposure.";
 
-export function compactTutorialPopupTitle(title: string): string {
+export function compactTutorialSpeechTitle(title: string): string {
   return title.replace(/:\s+.+$/, "");
 }
 
@@ -411,7 +485,7 @@ export class TutorialSystem {
       return "TUTORIAL RECORD MISSING - Predict anyway. Wiener logged a defect.";
     }
 
-    return `TUTORIAL ${index + 1}/${this.count()} - ${round.activeLine}`;
+    return `TUTORIAL ${index + 1}/${this.count()} - ${round.script.activeInstructionLine}`;
   }
 
   introPromptFor(index: number): string {
@@ -423,7 +497,7 @@ export class TutorialSystem {
     return `TUTORIAL ${index + 1}/${this.count()} - ${round.title}: ${round.teachingPoint} ${round.explanation}`;
   }
 
-  introPopupFor(index: number): { title: string; body: string } {
+  introSpeechFor(index: number): { title: string; body: string } {
     const round = this.byIndex(index);
     if (!round) {
       return {
@@ -434,11 +508,11 @@ export class TutorialSystem {
 
     return {
       title: `WIENER - TUTORIAL ${index + 1}/${this.count()}: ${round.title}`,
-      body: round.popupBody
+      body: round.script.promptIntroLine
     };
   }
 
-  resolvePopupFor(index: number): { title: string; body: string } {
+  reviewExplanationFor(index: number): { title: string; body: string } {
     const round = this.byIndex(index);
     if (!round) {
       return {
@@ -449,11 +523,11 @@ export class TutorialSystem {
 
     return {
       title: `WIENER - REVIEW ${index + 1}/${this.count()}`,
-      body: round.resolvePopupBody
+      body: round.script.reviewExplanation
     };
   }
 
-  followupPopupFor(index: number): { title: string; body: string } {
+  followupExplanationFor(index: number): { title: string; body: string } {
     const round = this.byIndex(index);
     if (!round) {
       return {
@@ -464,11 +538,11 @@ export class TutorialSystem {
 
     return {
       title: `WIENER - TECH NOTE ${index + 1}/${this.count()}`,
-      body: round.followupPopupBody
+      body: round.script.teachingExplanations.followup
     };
   }
 
-  bytePopupFor(index: number): { title: string; body: string } {
+  byteRouteExplanationFor(index: number): { title: string; body: string } {
     const round = this.byIndex(index);
     if (!round) {
       return {
@@ -479,11 +553,11 @@ export class TutorialSystem {
 
     return {
       title: `WIENER - BYTE ROUTE ${index + 1}/${this.count()}`,
-      body: round.bytePopupBody
+      body: round.script.teachingExplanations.byteRoute
     };
   }
 
-  mechanicsPopupFor(index: number): { title: string; body: string } {
+  mechanicsExplanationFor(index: number): { title: string; body: string } {
     const round = this.byIndex(index);
     if (!round) {
       return {
@@ -494,11 +568,11 @@ export class TutorialSystem {
 
     return {
       title: `WIENER - MECHANICS ${index + 1}/${this.count()}`,
-      body: round.mechanicsPopupBody
+      body: round.script.teachingExplanations.mechanics
     };
   }
 
-  rulePopupFor(index: number): { title: string; body: string } {
+  workRuleExplanationFor(index: number): { title: string; body: string } {
     const round = this.byIndex(index);
     if (!round) {
       return {
@@ -509,11 +583,11 @@ export class TutorialSystem {
 
     return {
       title: `WIENER - WORK RULE ${index + 1}/${this.count()}`,
-      body: round.rulePopupBody
+      body: round.script.teachingExplanations.workRule
     };
   }
 
-  tokenIdPopupFor(index: number): { title: string; body: string } {
+  tokenIdExplanationFor(index: number): { title: string; body: string } {
     const round = this.byIndex(index);
     if (!round) {
       return {
@@ -524,31 +598,31 @@ export class TutorialSystem {
 
     return {
       title: `WIENER - TOKEN IDS ${index + 1}/${this.count()}`,
-      body: round.tokenIdPopupBody
+      body: round.script.teachingExplanations.tokenIds
     };
   }
 
-  introPopupWindowMs(): number {
+  introSpeechWindowMs(): number {
     return 4300;
   }
 
-  mechanicsPopupWindowMs(): number {
+  mechanicsSpeechWindowMs(): number {
     return 4600;
   }
 
-  bytePopupWindowMs(): number {
+  byteRouteSpeechWindowMs(): number {
     return 4300;
   }
 
-  tokenIdPopupWindowMs(): number {
+  tokenIdSpeechWindowMs(): number {
     return 4100;
   }
 
-  rulePopupWindowMs(): number {
+  workRuleSpeechWindowMs(): number {
     return 4300;
   }
 
-  followupPopupWindowMs(): number {
+  followupSpeechWindowMs(): number {
     return 4600;
   }
 
@@ -558,7 +632,7 @@ export class TutorialSystem {
       return "Mechanics note unavailable. Continue marking tokenizer chunk edges.";
     }
 
-    return `TUTORIAL ${index + 1}/${this.count()} - ${round.mechanicsLine}`;
+    return `TUTORIAL ${index + 1}/${this.count()} - ${round.script.stageInstructionLines.mechanics}`;
   }
 
   followupPromptFor(index: number): string {
@@ -567,7 +641,7 @@ export class TutorialSystem {
       return "Technical note unavailable. Continue predicting learned tokenizer chunks.";
     }
 
-    return `TUTORIAL ${index + 1}/${this.count()} - ${round.followupLine}`;
+    return `TUTORIAL ${index + 1}/${this.count()} - ${round.script.stageInstructionLines.followup}`;
   }
 
   bytePromptFor(index: number): string {
@@ -576,7 +650,7 @@ export class TutorialSystem {
       return "Byte-route note unavailable. Continue predicting learned tokenizer chunks.";
     }
 
-    return `TUTORIAL ${index + 1}/${this.count()} - ${round.byteLine}`;
+    return `TUTORIAL ${index + 1}/${this.count()} - ${round.script.stageInstructionLines.byteRoute}`;
   }
 
   tokenIdPromptFor(index: number): string {
@@ -585,7 +659,7 @@ export class TutorialSystem {
       return "Token-ID note unavailable. Continue predicting learned tokenizer chunks.";
     }
 
-    return `TUTORIAL ${index + 1}/${this.count()} - ${round.tokenIdLine}`;
+    return `TUTORIAL ${index + 1}/${this.count()} - ${round.script.stageInstructionLines.tokenIds}`;
   }
 
   rulePromptFor(index: number): string {
@@ -594,10 +668,10 @@ export class TutorialSystem {
       return "Work rule unavailable. Continue predicting learned tokenizer chunks.";
     }
 
-    return `TUTORIAL ${index + 1}/${this.count()} - ${round.ruleLine}`;
+    return `TUTORIAL ${index + 1}/${this.count()} - ${round.script.stageInstructionLines.workRule}`;
   }
 
-  reviewPopupWindowMs(reviewDelayMs: number): number {
+  reviewSpeechWindowMs(reviewDelayMs: number): number {
     return Math.min(5600, Math.max(0, reviewDelayMs - 450));
   }
 
@@ -610,12 +684,12 @@ export class TutorialSystem {
     const missedCuts = safeCutCount(input.missedCuts);
     const falseCuts = safeCutCount(input.falseCuts);
     if (missedCuts === 0 && falseCuts === 0) {
-      return formatTutorialReviewLine(round.resolveGoodLine, input);
+      return formatTutorialReviewLine(round.script.reviewReactions.pass, input);
     }
 
     const template = missedCuts > 0 && falseCuts > 0
-      ? round.resolveMixedLine
-      : round.resolveBadLine;
+      ? round.script.reviewReactions.mixed
+      : round.script.reviewReactions.fail;
     return formatTutorialReviewLine(template, input);
   }
 
@@ -626,10 +700,10 @@ export class TutorialSystem {
     }
 
     if (!this.isCompleteAfter(index + 1)) {
-      return round.resolveLine;
+      return round.script.reviewLine;
     }
 
-    return `${round.resolveLine} ${this.completionLine()}`;
+    return `${round.script.reviewLine} ${this.completionLine()}`;
   }
 }
 

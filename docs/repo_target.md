@@ -21,15 +21,16 @@ tokenizer-training/
         DifficultySystem.ts
         SwipeCutSystem.ts
         FeedbackSystem.ts
+        WienerSpeechSystem.ts
+        WienerSpeechLineSystem.ts
         AudioSystem.ts
         StorageSystem.ts
       ui/
         Hud.ts
-        OverseerPanel.ts
         FeedbackCard.ts
       data/
         fixtures.json
-        overseer_lines.json
+        wiener_speech_lines.json
     styles/
   scripts/
     generate-token-fixtures.ts

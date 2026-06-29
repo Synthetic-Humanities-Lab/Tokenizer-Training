@@ -42,8 +42,6 @@ export interface PlaySceneQaSnapshotInput {
   inputResponseBadgeRect?: GameQaRect;
   cutStatusText: string;
   cutStatusVisible?: boolean;
-  tokenStripText: string;
-  tokenStripVisible?: boolean;
   promptBackingVisible?: boolean;
   promptTextVisible?: boolean;
   promptAcquisitionActive?: boolean;
@@ -54,12 +52,8 @@ export interface PlaySceneQaSnapshotInput {
   fallingTextPieceCount?: number;
   textFontSize: number;
   cutStatusFontSize?: number;
-  tokenStripFontSize: number;
   textPanelRect: GameQaRect;
   textRect: GameQaRect;
-  segmentationEvidenceRect?: GameQaRect;
-  segmentationEvidenceRevealActive?: boolean;
-  segmentationEvidenceRevealProgress?: number | null;
   logoWienerRect: GameQaRect;
   petWienerRect: GameQaRect;
   petReactionActive?: boolean;
@@ -69,9 +63,7 @@ export interface PlaySceneQaSnapshotInput {
   petReactionPeakScaleX?: number | null;
   petReactionPeakScaleY?: number | null;
   cutStatusRect: GameQaRect;
-  tokenStripRect: GameQaRect;
   hudRect: GameQaRect;
-  overseerRect: GameQaRect;
   resolveButtonText?: string;
   resolveButtonActionable?: boolean;
   resolveButtonReady?: boolean;
@@ -81,13 +73,11 @@ export interface PlaySceneQaSnapshotInput {
   clearButtonActionable?: boolean;
   muteButtonText?: string;
   exitButtonText?: string;
-  overseerVisible?: boolean;
-  overseerText?: string;
-  overseerFontSize?: number;
-  overseerWordWrapWidth?: number;
   feedbackRect: GameQaRect;
   feedbackVisible: boolean;
   feedbackText?: string;
+  feedbackTokenSplitText?: string;
+  feedbackTokenSplitRect?: GameQaRect;
   tutorialReviewReady?: boolean;
   tutorialReviewDwellRemainingMs?: number | null;
   armedPreviewBoundary?: number | null;
@@ -151,10 +141,8 @@ export function playSceneQaSnapshot(input: PlaySceneQaSnapshotInput): GameQaSnap
     { id: "hud", rect: input.hudRect },
     { id: "brandMark", rect: input.layout.chrome, text: "WienerWorks" },
     { id: "logoWiener", rect: input.logoWienerRect },
-    ...(input.layout.sideBrandPanel ? [{ id: "brandPanel", rect: input.layout.brandPanel }] : []),
     { id: "playfield", rect: input.layout.playfield },
     { id: "petWiener", rect: input.petWienerRect },
-    ...(!input.layout.compact && input.layout.footerPanel.height > 0 ? [{ id: "footerPanel", rect: input.layout.footerPanel }] : []),
     { id: "timer", rect: centeredLeftRect(input.layout.timer) },
     { id: "textPanel", rect: input.textPanelRect },
     {
@@ -169,20 +157,6 @@ export function playSceneQaSnapshot(input: PlaySceneQaSnapshotInput): GameQaSnap
       text: input.cutStatusText,
       fontSize: input.cutStatusFontSize ?? 11,
       visible: input.cutStatusVisible ?? true
-    },
-    {
-      id: "tokenStrip",
-      rect: input.tokenStripRect,
-      text: input.tokenStripText,
-      fontSize: input.tokenStripFontSize,
-      visible: input.tokenStripVisible ?? input.tokenStripText.length > 0
-    },
-    {
-      id: "segmentationEvidence",
-      rect: input.segmentationEvidenceRect ?? input.tokenStripRect,
-      text: input.tokenStripText,
-      fontSize: input.tokenStripFontSize,
-      visible: false
     },
     ...(input.activeCutLabelRects ?? []).map((entry, index) => ({
       id: `activeCutLabel:${index}`,
@@ -245,22 +219,20 @@ export function playSceneQaSnapshot(input: PlaySceneQaSnapshotInput): GameQaSnap
     { id: "clearButton", rect: input.layout.clearButton, text: input.clearButtonText },
     { id: "muteButton", rect: input.layout.muteButton, text: input.muteButtonText },
     { id: "exitButton", rect: input.layout.exitButton, text: input.exitButtonText },
-    ...(input.overseerVisible
-      ? [{
-          id: "overseer",
-          rect: input.overseerRect,
-          visible: true,
-          text: input.overseerText ?? "",
-          fontSize: input.overseerFontSize,
-          wordWrapWidth: input.overseerWordWrapWidth
-        }]
-      : []),
     {
       id: "feedbackCard",
       rect: input.feedbackRect,
       visible: input.feedbackVisible,
       text: input.feedbackVisible ? input.feedbackText ?? "" : ""
-    }
+    },
+    ...(input.feedbackTokenSplitRect
+      ? [{
+          id: "feedbackTokenSplit",
+          rect: input.feedbackTokenSplitRect,
+          visible: input.feedbackVisible,
+          text: input.feedbackVisible ? input.feedbackTokenSplitText ?? "" : ""
+        }]
+      : [])
   ];
 
   if (input.armedPreviewRect) {
@@ -446,8 +418,6 @@ export function playSceneQaSnapshot(input: PlaySceneQaSnapshotInput): GameQaSnap
       promptAcquisitionActive: input.promptAcquisitionActive ?? false,
       promptAcquisitionProgress: normalizedNumber(input.promptAcquisitionProgress),
       fallingTextPieceCount: Math.max(0, Math.floor(input.fallingTextPieceCount ?? 0)),
-      segmentationEvidenceRevealActive: input.segmentationEvidenceRevealActive ?? false,
-      segmentationEvidenceRevealProgress: normalizedNumber(input.segmentationEvidenceRevealProgress),
       petReactionActive: input.petReactionActive ?? false,
       petReactionKind: input.petReactionKind ?? null,
       petReactionScaleX: normalizedNumber(input.petReactionScaleX),

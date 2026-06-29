@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import linesJson from "../src/game/data/overseer_lines.json";
+import linesJson from "../src/game/data/wiener_speech_lines.json";
 import { SessionFlowSystem } from "../src/game/systems/SessionFlowSystem";
 import { TutorialSystem } from "../src/game/systems/TutorialSystem";
 

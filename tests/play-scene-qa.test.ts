@@ -5,7 +5,6 @@ import { computePlayLayout, MIN_TOUCH_TARGET_SIZE } from "../src/game/systems/Pl
 import { playSceneQaSnapshot, type PlaySceneQaSnapshotInput } from "../src/game/systems/PlaySceneQaSystem";
 import { computeFeedbackCardLayout } from "../src/game/ui/FeedbackCard";
 import { computeHudLayout } from "../src/game/ui/Hud";
-import { computeOverseerPanelLayout } from "../src/game/ui/OverseerPanel";
 
 function element(elements: GameQaElement[], id: string): GameQaElement {
   const match = elements.find((candidate) => candidate.id === id);
@@ -50,7 +49,6 @@ describe("playSceneQaSnapshot", () => {
     const width = 390;
     const height = 844;
     const layout = computePlayLayout({ width, height });
-    const overseerLayout = computeOverseerPanelLayout(width, height, layout.overseerReservedRight);
     const input: PlaySceneQaSnapshotInput = {
       width,
       height,
@@ -125,13 +123,11 @@ describe("playSceneQaSnapshot", () => {
         touchAimLoupeMinClearancePx: 48
       },
       cutStatusText: "NO CUTS",
-      tokenStripText: "",
       textFontSize: 18,
       cutStatusFontSize: 12,
-      tokenStripFontSize: 14,
       textPanelRect: layout.textPanel,
       logoWienerRect: layout.logoWiener,
-      petWienerRect: layout.assistantPanel,
+      petWienerRect: layout.petWienerSlot,
       petReactionActive: true,
       petReactionKind: "cut",
       petReactionScaleX: 1.08,
@@ -150,14 +146,7 @@ describe("playSceneQaSnapshot", () => {
         width: 90,
         height: 16
       },
-      tokenStripRect: {
-        x: layout.textPanel.x,
-        y: layout.textPanel.y + 72,
-        width: 320,
-        height: 18
-      },
       hudRect: hudRect(width, layout.contentPanel),
-      overseerRect: overseerLayout.panel,
       resolveButtonText: "Resolve",
       resolveButtonActionable: true,
       resolveButtonReady: true,
@@ -165,10 +154,6 @@ describe("playSceneQaSnapshot", () => {
       clearButtonText: "Clear",
       muteButtonText: "Sound",
       exitButtonText: "Menu",
-      overseerVisible: false,
-      overseerText: "TUTORIAL 1/10: Learn legal cut positions before guessing token boundaries.",
-      overseerFontSize: overseerLayout.body.fontSize,
-      overseerWordWrapWidth: overseerLayout.body.wordWrapWidth,
       feedbackRect: computeFeedbackCardLayout(width, height, layout.contentPanel),
       feedbackVisible: false,
       armedPreviewBoundary: 3,
@@ -306,7 +291,7 @@ describe("playSceneQaSnapshot", () => {
     expect(element(snapshot.elements, "muteButton").text).toBe("Sound");
     expect(element(snapshot.elements, "exitButton").text).toBe("Menu");
     expect(element(snapshot.elements, "logoWiener").rect).toEqual(layout.logoWiener);
-    expect(element(snapshot.elements, "petWiener").rect).toEqual(layout.assistantPanel);
+    expect(element(snapshot.elements, "petWiener").rect).toEqual(layout.petWienerSlot);
     expect(element(snapshot.elements, "text").text).toBe("the cat sat on the mat");
     expect(element(snapshot.elements, "cutStatus").text).toBe("NO CUTS");
     expect(element(snapshot.elements, "cutStatus").fontSize).toBe(12);
@@ -718,7 +703,6 @@ describe("playSceneQaSnapshot", () => {
     const width = 1280;
     const height = 720;
     const layout = computePlayLayout({ width, height });
-    const overseerLayout = computeOverseerPanelLayout(width, height, layout.overseerReservedRight);
     const snapshot = playSceneQaSnapshot({
       width,
       height,
@@ -733,15 +717,13 @@ describe("playSceneQaSnapshot", () => {
       inputModality: "mouse",
       cutStatusText: "",
       cutStatusVisible: false,
-      tokenStripText: "open | ai | .com | /pricing",
       textFontSize: 36,
-      tokenStripFontSize: 14,
       textPanelRect: {
         ...layout.textPanel,
         y: layout.sentenceReviewY
       },
       logoWienerRect: layout.logoWiener,
-      petWienerRect: layout.assistantPanel,
+      petWienerRect: layout.petWienerSlot,
       textRect: {
         x: layout.textPanel.x,
         y: layout.sentenceReviewY,
@@ -754,25 +736,22 @@ describe("playSceneQaSnapshot", () => {
         width: 1,
         height: 1
       },
-      tokenStripRect: {
-        x: layout.textPanel.x,
-        y: layout.sentenceReviewY + 72,
-        width: 420,
-        height: 22
-      },
       hudRect: hudRect(width, layout.contentPanel),
-      overseerRect: overseerLayout.panel,
-      overseerVisible: false,
-      overseerText: "Meaning preserved. Margins damaged.",
-      overseerFontSize: overseerLayout.body.fontSize,
-      overseerWordWrapWidth: overseerLayout.body.wordWrapWidth,
       feedbackRect: computeFeedbackCardLayout(width, height, layout.contentPanel),
       feedbackVisible: true,
       feedbackText: [
         "False boundary inserted.",
+        "Tokens 5: <open> <ai> <.com> </pr> <icing>",
         "Pay $7.50 - Cost $4.75 = Net $2.75",
-        "Boundary audit: OK 2 / Missed 1 / False 1 / Tokens 4 / Balance $42.75 / Cost drivers: false"
+        "Boundary audit: OK 2 / Missed 1 / False 1 / Tokens 5 / Balance $42.75 / Cost drivers: false"
       ].join("\n"),
+      feedbackTokenSplitText: "Tokens 5: <open> <ai> <.com> </pr> <icing>",
+      feedbackTokenSplitRect: {
+        x: layout.textPanel.x,
+        y: computeFeedbackCardLayout(width, height, layout.contentPanel).y - 18,
+        width: 460,
+        height: 28
+      },
       promptTextVisible: false,
       fallingTextPieceCount: 3,
       resolvedCutLabelRects: [
@@ -866,7 +845,7 @@ describe("playSceneQaSnapshot", () => {
     expect(element(snapshot.elements, "cutStatus").visible).toBe(false);
     expect(element(snapshot.elements, "brandMark").text).toBe("WienerWorks");
     expect(element(snapshot.elements, "logoWiener").rect).toEqual(layout.logoWiener);
-    expect(element(snapshot.elements, "petWiener").rect).toEqual(layout.assistantPanel);
+    expect(element(snapshot.elements, "petWiener").rect).toEqual(layout.petWienerSlot);
     expect(snapshot.elements.some((entry) => entry.id === "brandPanel")).toBe(false);
     expect(snapshot.elements.some((entry) => entry.id === "assistantPanel")).toBe(false);
     expect(snapshot.elements.some((entry) => entry.id === "footerPanel")).toBe(false);
@@ -875,7 +854,8 @@ describe("playSceneQaSnapshot", () => {
     expect(element(snapshot.elements, "feedbackCard").visible).toBe(true);
     expect(element(snapshot.elements, "feedbackCard").text).toContain("Balance $42.75");
     expect(snapshot.elements.some((entry) => entry.id === "overseer")).toBe(false);
-    expect(element(snapshot.elements, "tokenStrip").text).toContain("/pricing");
+    expect(element(snapshot.elements, "feedbackTokenSplit").text).toContain("/pr");
+    expect(snapshot.elements.some((entry) => entry.id === "tokenStrip")).toBe(false);
     expect(element(snapshot.elements, "resolvedCutLabel:0").text).toBe("OK");
     expect(element(snapshot.elements, "resolvedCutLabel:1").text).toBe("MISS");
     expect(snapshot.elements.some((entry) => entry.id === "resolutionAuditLegend")).toBe(false);
@@ -925,12 +905,10 @@ describe("playSceneQaSnapshot", () => {
       legalSlotCount: 17,
       inputModality: "mouse",
       cutStatusText: "SEGMENTS STAGED: 2",
-      tokenStripText: "",
       textFontSize: 36,
-      tokenStripFontSize: 14,
       textPanelRect: layout.textPanel,
       logoWienerRect: layout.logoWiener,
-      petWienerRect: layout.assistantPanel,
+      petWienerRect: layout.petWienerSlot,
       textRect: {
         x: layout.textPanel.x,
         y: layout.textPanel.y,
@@ -943,15 +921,7 @@ describe("playSceneQaSnapshot", () => {
         width: 160,
         height: 16
       },
-      tokenStripRect: {
-        x: layout.textPanel.x,
-        y: layout.textPanel.y + 72,
-        width: 0,
-        height: 18
-      },
       hudRect: hudRect(width, layout.contentPanel),
-      overseerRect: computeOverseerPanelLayout(width, height, layout.overseerReservedRight).panel,
-      overseerVisible: false,
       feedbackRect: computeFeedbackCardLayout(width, height, layout.contentPanel),
       feedbackVisible: false,
       timerWarningActive: true,
@@ -988,19 +958,16 @@ describe("playSceneQaSnapshot", () => {
     expect(calmSnapshot.elements.some((entry) => entry.id === "timerPressureDeadlineGates")).toBe(false);
   });
 
-  it("does not report stale token-split evidence as visible when the evidence layer is hidden", () => {
+  it("does not report stale token-split evidence elements when feedback is hidden", () => {
     const width = 390;
     const height = 844;
     const snapshot = playSceneQaSnapshot({
       ...snapshotBaseInput(width, height),
-      tokenStripText: "TOKEN SPLIT - 6 TOKENS\n<the> < cat> < sat> < on> < the> < mat>",
-      tokenStripVisible: false
     });
 
-    expect(element(snapshot.elements, "tokenStrip").text).toContain("TOKEN SPLIT");
-    expect(element(snapshot.elements, "tokenStrip").text).not.toMatch(/actual tokenization/i);
-    expect(element(snapshot.elements, "tokenStrip").visible).toBe(false);
-    expect(element(snapshot.elements, "segmentationEvidence").visible).toBe(false);
+    expect(snapshot.elements.some((entry) => entry.id === "tokenStrip")).toBe(false);
+    expect(snapshot.elements.some((entry) => entry.id === "segmentationEvidence")).toBe(false);
+    expect(snapshot.elements.some((entry) => entry.id === "feedbackTokenSplit")).toBe(false);
   });
 
   it("exposes reason-specific no-cut input-feel metrics and visible aim guidance", () => {
@@ -1113,15 +1080,9 @@ describe("playSceneQaSnapshot", () => {
     });
   });
 
-  it("keeps the legacy segmentation-evidence QA element hidden because the feedback card owns visible review", () => {
+  it("exposes review token split through the feedback card only", () => {
     const width = 960;
     const height = 720;
-    const panelRect = {
-      x: 480,
-      y: 462,
-      width: 806,
-      height: 70
-    };
     const textRect = {
       x: 480,
       y: 462,
@@ -1131,21 +1092,16 @@ describe("playSceneQaSnapshot", () => {
     const snapshot = playSceneQaSnapshot({
       ...snapshotBaseInput(width, height),
       phase: "review",
-      tokenStripText: "TOKEN SPLIT - 3 TOKENS\n<open> <ai> <.com>",
-      tokenStripVisible: true,
-      tokenStripRect: textRect,
-      segmentationEvidenceRect: panelRect,
-      segmentationEvidenceRevealActive: true,
-      segmentationEvidenceRevealProgress: 0.35
+      feedbackVisible: true,
+      feedbackText: "Clean segmentation.\nTokens 3: <open> <ai> <.com>",
+      feedbackTokenSplitText: "Tokens 3: <open> <ai> <.com>",
+      feedbackTokenSplitRect: textRect
     });
 
-    expect(element(snapshot.elements, "tokenStrip").rect).toEqual(textRect);
-    expect(element(snapshot.elements, "segmentationEvidence").rect).toEqual(panelRect);
-    expect(element(snapshot.elements, "segmentationEvidence").visible).toBe(false);
-    expect(snapshot.state).toMatchObject({
-      segmentationEvidenceRevealActive: true,
-      segmentationEvidenceRevealProgress: 0.35
-    });
+    expect(snapshot.elements.some((entry) => entry.id === "tokenStrip")).toBe(false);
+    expect(snapshot.elements.some((entry) => entry.id === "segmentationEvidence")).toBe(false);
+    expect(element(snapshot.elements, "feedbackTokenSplit").rect).toEqual(textRect);
+    expect(element(snapshot.elements, "feedbackTokenSplit").text).toContain("<open>");
   });
 
   it("exposes transient text cut impact geometry when the prompt responds to a cut", () => {
@@ -1165,12 +1121,10 @@ describe("playSceneQaSnapshot", () => {
       legalSlotCount: 17,
       inputModality: "touch",
       cutStatusText: "STAGED: 1",
-      tokenStripText: "",
       textFontSize: 18,
-      tokenStripFontSize: 14,
       textPanelRect: layout.textPanel,
       logoWienerRect: layout.logoWiener,
-      petWienerRect: layout.assistantPanel,
+      petWienerRect: layout.petWienerSlot,
       textRect: {
         x: layout.textPanel.x,
         y: layout.textPanel.y,
@@ -1183,15 +1137,7 @@ describe("playSceneQaSnapshot", () => {
         width: 90,
         height: 16
       },
-      tokenStripRect: {
-        x: layout.textPanel.x,
-        y: layout.textPanel.y + 72,
-        width: 0,
-        height: 18
-      },
       hudRect: hudRect(width, layout.contentPanel),
-      overseerRect: computeOverseerPanelLayout(width, height, layout.overseerReservedRight).panel,
-      overseerVisible: false,
       feedbackRect: computeFeedbackCardLayout(width, height, layout.contentPanel),
       feedbackVisible: false,
       textCutImpactActive: true,
@@ -1236,12 +1182,10 @@ describe("playSceneQaSnapshot", () => {
       legalSlotCount: 17,
       inputModality: "touch",
       cutStatusText: "NO CUTS",
-      tokenStripText: "",
       textFontSize: 18,
-      tokenStripFontSize: 14,
       textPanelRect: layout.textPanel,
       logoWienerRect: layout.logoWiener,
-      petWienerRect: layout.assistantPanel,
+      petWienerRect: layout.petWienerSlot,
       textRect: {
         x: layout.textPanel.x,
         y: layout.textPanel.y,
@@ -1254,15 +1198,7 @@ describe("playSceneQaSnapshot", () => {
         width: 90,
         height: 16
       },
-      tokenStripRect: {
-        x: layout.textPanel.x,
-        y: layout.textPanel.y + 72,
-        width: 0,
-        height: 18
-      },
       hudRect: hudRect(width, layout.contentPanel),
-      overseerRect: computeOverseerPanelLayout(width, height, layout.overseerReservedRight).panel,
-      overseerVisible: false,
       feedbackRect: computeFeedbackCardLayout(width, height, layout.contentPanel),
       feedbackVisible: false,
       clearCutFeedbackActive: true,
@@ -1297,12 +1233,10 @@ describe("playSceneQaSnapshot", () => {
       legalSlotCount: 17,
       inputModality: "touch",
       cutStatusText: "STAGED: 3",
-      tokenStripText: "",
       textFontSize: 18,
-      tokenStripFontSize: 14,
       textPanelRect: layout.textPanel,
       logoWienerRect: layout.logoWiener,
-      petWienerRect: layout.assistantPanel,
+      petWienerRect: layout.petWienerSlot,
       textRect: {
         x: layout.textPanel.x,
         y: layout.textPanel.y,
@@ -1315,15 +1249,7 @@ describe("playSceneQaSnapshot", () => {
         width: 90,
         height: 16
       },
-      tokenStripRect: {
-        x: layout.textPanel.x,
-        y: layout.textPanel.y + 72,
-        width: 0,
-        height: 18
-      },
       hudRect: hudRect(width, layout.contentPanel),
-      overseerRect: computeOverseerPanelLayout(width, height, layout.overseerReservedRight).panel,
-      overseerVisible: false,
       feedbackRect: computeFeedbackCardLayout(width, height, layout.contentPanel),
       feedbackVisible: false,
       chainSwipeFeedbackActive: true,
@@ -1358,12 +1284,10 @@ describe("playSceneQaSnapshot", () => {
       legalSlotCount: 17,
       inputModality: "touch",
       cutStatusText: "NO CUTS",
-      tokenStripText: "",
       textFontSize: 18,
-      tokenStripFontSize: 14,
       textPanelRect: layout.textPanel,
       logoWienerRect: layout.logoWiener,
-      petWienerRect: layout.assistantPanel,
+      petWienerRect: layout.petWienerSlot,
       textRect: {
         x: layout.textPanel.x,
         y: layout.textPanel.y,
@@ -1376,15 +1300,7 @@ describe("playSceneQaSnapshot", () => {
         width: 90,
         height: 16
       },
-      tokenStripRect: {
-        x: layout.textPanel.x,
-        y: layout.textPanel.y + 72,
-        width: 0,
-        height: 18
-      },
       hudRect: hudRect(width, layout.contentPanel),
-      overseerRect: computeOverseerPanelLayout(width, height, layout.overseerReservedRight).panel,
-      overseerVisible: false,
       feedbackRect: computeFeedbackCardLayout(width, height, layout.contentPanel),
       feedbackVisible: false,
       noCutFeedbackActive: true,
@@ -1418,12 +1334,10 @@ function snapshotBaseInput(width: number, height: number): PlaySceneQaSnapshotIn
     legalSlotCount: 17,
     inputModality: "touch",
     cutStatusText: "NO CUTS",
-    tokenStripText: "",
     textFontSize: 18,
-    tokenStripFontSize: 14,
     textPanelRect: layout.textPanel,
     logoWienerRect: layout.logoWiener,
-    petWienerRect: layout.assistantPanel,
+    petWienerRect: layout.petWienerSlot,
     textRect: {
       x: layout.textPanel.x,
       y: layout.textPanel.y,
@@ -1436,15 +1350,7 @@ function snapshotBaseInput(width: number, height: number): PlaySceneQaSnapshotIn
       width: 90,
       height: 16
     },
-    tokenStripRect: {
-      x: layout.textPanel.x,
-      y: layout.textPanel.y + 72,
-      width: 0,
-      height: 18
-    },
     hudRect: hudRect(width, layout.contentPanel),
-    overseerRect: computeOverseerPanelLayout(width, height, layout.overseerReservedRight).panel,
-    overseerVisible: false,
     feedbackRect: computeFeedbackCardLayout(width, height, layout.contentPanel),
     feedbackVisible: false
   };

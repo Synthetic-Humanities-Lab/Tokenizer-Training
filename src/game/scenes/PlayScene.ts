@@ -67,7 +67,6 @@ import {
 } from "../systems/PlayLayoutSystem";
 import { playSceneQaSnapshot } from "../systems/PlaySceneQaSystem";
 import { playSceneQaControlsFromUrl, type PlaySceneQaControls } from "../systems/PlaySceneQaControlSystem";
-import { PRODUCT_NAME } from "../systems/ProductIdentitySystem";
 import {
   promptAcquisitionVisualState,
   type PromptAcquisitionVisualState
@@ -89,24 +88,15 @@ import {
 } from "../systems/ResolutionFeedbackSystem";
 import {
   computePetSpeechLayout,
-  robotBriefLine,
-  robotToastDurationMs,
-  robotToastMaxLength,
-  robotToastSourceText
-} from "../systems/RobotCommentSystem";
+  wienerBriefLine,
+  wienerSpeechDurationMs,
+  wienerSpeechMaxLength,
+  wienerSpeechSourceText
+} from "../systems/WienerSpeechSystem";
 import { ScoringSystem, type RoundScoreResult } from "../systems/ScoringSystem";
 import { sceneClockNow } from "../systems/SceneClockSystem";
 import { SentenceMotionSystem, type SentenceMotionState } from "../systems/SentenceMotionSystem";
 import { SessionFlowSystem, type SessionOutcome, type SessionRoundTrace } from "../systems/SessionFlowSystem";
-import {
-  segmentationEvidenceChipSpans,
-  segmentationEvidenceHeaderLineCount,
-  segmentationEvidenceLayout,
-  segmentationEvidenceRevealState,
-  segmentationEvidenceTokenRows,
-  segmentationEvidenceText,
-  type SegmentationEvidenceRevealState
-} from "../systems/SegmentationEvidenceSystem";
 import type { PlaySessionStartSource } from "../systems/SessionStartSystem";
 import {
   playableSlotHintVisualStyle,
@@ -151,9 +141,7 @@ import {
 } from "../systems/WienerReactionSystem";
 import { computeFeedbackCardLayout, FeedbackCard } from "../ui/FeedbackCard";
 import { computeHudLayout, Hud } from "../ui/Hud";
-import { computeOverseerPanelLayout, OverseerPanel } from "../ui/OverseerPanel";
 import { buttonVisual, drawDegradedBrowserSurface, uiFonts, uiPalette } from "../ui/VisualTheme";
-import type { WienerGlyphMood } from "../ui/WienerGlyph";
 import { addWienerImage, sizeWienerImage } from "../ui/WienerSprite";
 
 interface PlaySceneData {
@@ -164,11 +152,6 @@ interface PlaySceneData {
 interface ActiveCutLabel {
   boundary: number;
   label: Phaser.GameObjects.Text;
-}
-
-interface FooterMetricText {
-  label: Phaser.GameObjects.Text;
-  value: Phaser.GameObjects.Text;
 }
 
 interface NoCutPreviewSnapshot {
@@ -185,9 +168,7 @@ interface PendingReviewReveal {
   score: RoundScoreResult;
   summary: FeedbackSummary;
   resolutionLine: string;
-  evidenceAtMs: number;
   feedbackAtMs: number;
-  evidenceRevealed: boolean;
   feedbackRevealed: boolean;
 }
 
@@ -195,7 +176,6 @@ interface PlayQaSnapshotOptions {
   captureCanvas?: boolean;
 }
 
-type WienerMood = WienerGlyphMood;
 type RoundResolveTrigger = ResolutionCommitTrigger;
 
 const RECENT_FIXTURE_HISTORY_LIMIT = 4;
@@ -259,24 +239,12 @@ export class PlayScene extends Phaser.Scene {
     : {};
 
   private hud!: Hud;
-  private overseer!: OverseerPanel;
   private feedbackCard!: FeedbackCard;
   private background!: Phaser.GameObjects.Rectangle;
   private degradationGraphics!: Phaser.GameObjects.Graphics;
-  private brandPanel!: Phaser.GameObjects.Rectangle;
-  private brandPanelChrome!: Phaser.GameObjects.Graphics;
-  private brandGlyph!: Phaser.GameObjects.Graphics;
-  private brandCompanyText!: Phaser.GameObjects.Text;
-  private brandDivisionText!: Phaser.GameObjects.Text;
-  private brandProductText!: Phaser.GameObjects.Text;
-  private brandPremiseText!: Phaser.GameObjects.Text;
-  private brandLoopText!: Phaser.GameObjects.Text;
   private playfield!: Phaser.GameObjects.Rectangle;
   private segmentationLaneGraphics!: Phaser.GameObjects.Graphics;
   private timerPressureGraphics!: Phaser.GameObjects.Graphics;
-  private trainingFooterGraphics!: Phaser.GameObjects.Graphics;
-  private trainingFooterGlyph!: Phaser.GameObjects.Graphics;
-  private trainingFooterTexts: FooterMetricText[] = [];
   private textPanelShadow!: Phaser.GameObjects.Rectangle;
   private textPanel!: Phaser.GameObjects.Rectangle;
   private textPanelChrome!: Phaser.GameObjects.Graphics;
@@ -284,21 +252,12 @@ export class PlayScene extends Phaser.Scene {
   private promptAcquisitionGraphics!: Phaser.GameObjects.Graphics;
   private promptAcquisitionText!: Phaser.GameObjects.Text;
   private cutStatusText!: Phaser.GameObjects.Text;
-  private tokenEvidenceChrome!: Phaser.GameObjects.Graphics;
-  private tokenStripText!: Phaser.GameObjects.Text;
   private trailGraphics!: Phaser.GameObjects.Graphics;
   private timerTrack!: Phaser.GameObjects.Rectangle;
   private timerFill!: Phaser.GameObjects.Rectangle;
   private chromeBar!: Phaser.GameObjects.Rectangle;
   private chromeText!: Phaser.GameObjects.Text;
   private headerWienerLogo!: Phaser.GameObjects.Image;
-  private assistantPanel!: Phaser.GameObjects.Rectangle;
-  private assistantPanelChrome!: Phaser.GameObjects.Graphics;
-  private assistantHeaderText!: Phaser.GameObjects.Text;
-  private assistantNameText!: Phaser.GameObjects.Text;
-  private assistantNoteText!: Phaser.GameObjects.Text;
-  private assistantText!: Phaser.GameObjects.Text;
-  private assistantGlyph!: Phaser.GameObjects.Graphics;
   private petWiener!: Phaser.GameObjects.Image;
   private petReactionTween?: Phaser.Tweens.Tween;
   private petIdleTween?: Phaser.Tweens.Tween;
@@ -309,16 +268,10 @@ export class PlayScene extends Phaser.Scene {
   private petReactionKind: WienerReactionKind | null = null;
   private petReactionPeakScaleX = 1;
   private petReactionPeakScaleY = 1;
-  private robotToastPanel!: Phaser.GameObjects.Rectangle;
-  private robotToastChrome!: Phaser.GameObjects.Graphics;
-  private robotToastLabel!: Phaser.GameObjects.Text;
-  private robotToastText!: Phaser.GameObjects.Text;
-  private tutorialPopupPanel!: Phaser.GameObjects.Rectangle;
-  private tutorialPopupHeader!: Phaser.GameObjects.Rectangle;
-  private tutorialPopupChrome!: Phaser.GameObjects.Graphics;
-  private tutorialPopupTitle!: Phaser.GameObjects.Text;
-  private tutorialPopupBody!: Phaser.GameObjects.Text;
-  private tutorialPopupStamp!: Phaser.GameObjects.Text;
+  private wienerSpeechPanel!: Phaser.GameObjects.Rectangle;
+  private wienerSpeechChrome!: Phaser.GameObjects.Graphics;
+  private wienerSpeechLabel!: Phaser.GameObjects.Text;
+  private wienerSpeechText!: Phaser.GameObjects.Text;
   private resolveButton!: Phaser.GameObjects.Rectangle;
   private resolveLabel!: Phaser.GameObjects.Text;
   private resolvePointerDownCanAdvanceReview = true;
@@ -385,10 +338,8 @@ export class PlayScene extends Phaser.Scene {
   private touchAimLoupePointerClearancePx: number | null = null;
   private touchAimLoupeOcclusionSafe = false;
   private touchAimLoupePlacement: TouchAimLoupePlacement = "hidden";
-  private tokenEvidenceRect?: GameQaRect;
   private promptAcquisitionStartedAt?: number;
   private promptAcquisitionRect?: GameQaRect;
-  private segmentationEvidenceRevealStartedAt?: number;
   private timerPressureRect?: GameQaRect;
   private timerPressureDeadlineRect?: GameQaRect;
   private gestureTouchedCutBand = false;
@@ -407,11 +358,8 @@ export class PlayScene extends Phaser.Scene {
   private tutorialRuleTimer?: Phaser.Time.TimerEvent;
   private tutorialFollowupTimer?: Phaser.Time.TimerEvent;
   private tutorialReviewPanelTimer?: Phaser.Time.TimerEvent;
-  private robotToastTimer?: Phaser.Time.TimerEvent;
-  private tutorialPopupTimer?: Phaser.Time.TimerEvent;
-  private tutorialPopupFullTitle = "";
-  private tutorialPopupFullBody = "";
-  private robotToastSticky = false;
+  private wienerSpeechTimer?: Phaser.Time.TimerEvent;
+  private wienerSpeechSticky = false;
   private feedbackAdvanceTimer?: Phaser.Time.TimerEvent;
   private resolutionRevealTimers: Phaser.Time.TimerEvent[] = [];
   private reviewRevealTimers: Phaser.Time.TimerEvent[] = [];
@@ -492,63 +440,10 @@ export class PlayScene extends Phaser.Scene {
 
     this.background = this.add.rectangle(0, 0, this.scale.width, this.scale.height, uiPalette.shell).setOrigin(0);
     this.degradationGraphics = this.add.graphics().setDepth(1);
-    this.brandPanel = this.add.rectangle(0, 0, 0, 0, uiPalette.panelLight, 0.94).setDepth(18);
-    this.brandPanel.setStrokeStyle(1, uiPalette.stroke, 0.92);
-    this.brandPanelChrome = this.add.graphics().setDepth(19);
-    this.brandGlyph = this.add.graphics().setDepth(20);
-    this.brandCompanyText = this.add.text(0, 0, "WienerWorks", {
-      fontFamily: uiFonts.display,
-      fontSize: "30px",
-      color: uiPalette.text
-    }).setDepth(20);
-    this.brandDivisionText = this.add.text(0, 0, "Human Segmentation Division", {
-      fontFamily: uiFonts.body,
-      fontSize: "11px",
-      color: "#d65a2b",
-      lineSpacing: 1,
-      wordWrap: { width: 180 }
-    }).setDepth(20);
-    this.brandProductText = this.add.text(0, 0, PRODUCT_NAME, {
-      fontFamily: uiFonts.body,
-      fontSize: "12px",
-      color: uiPalette.text,
-      lineSpacing: 1,
-      wordWrap: { width: 180 }
-    }).setDepth(20);
-    this.brandPremiseText = this.add.text(0, 0, "", {
-      fontFamily: uiFonts.body,
-      fontSize: "14px",
-      color: uiPalette.textMuted,
-      lineSpacing: 5,
-      wordWrap: { width: 220 }
-    }).setDepth(20);
-    this.brandLoopText = this.add.text(0, 0, "", {
-      fontFamily: uiFonts.mono,
-      fontSize: "10px",
-      color: uiPalette.textMuted,
-      lineSpacing: 8,
-      wordWrap: { width: 220 }
-    }).setDepth(20);
     this.playfield = this.add.rectangle(0, 0, 0, 0, uiPalette.panelTint, 0.42).setOrigin(0.5).setDepth(2);
     this.playfield.setStrokeStyle(1, uiPalette.stroke, 0.72);
     this.segmentationLaneGraphics = this.add.graphics().setDepth(3.2);
     this.timerPressureGraphics = this.add.graphics().setDepth(7.2);
-    this.trainingFooterGraphics = this.add.graphics().setDepth(18);
-    this.trainingFooterGlyph = this.add.graphics().setDepth(19);
-    this.trainingFooterTexts = Array.from({ length: 5 }, () => ({
-      label: this.add.text(0, 0, "", {
-        fontFamily: uiFonts.mono,
-        fontSize: "10px",
-        color: uiPalette.textFaint
-      }).setDepth(19),
-      value: this.add.text(0, 0, "", {
-        fontFamily: uiFonts.body,
-        fontSize: "12px",
-        color: uiPalette.text,
-        lineSpacing: 2,
-        wordWrap: { width: 120 }
-      }).setDepth(19)
-    }));
     this.chromeBar = this.add.rectangle(0, 0, 0, 34, uiPalette.panelLight, 0.92).setOrigin(0.5).setDepth(18);
     this.chromeBar.setStrokeStyle(1, uiPalette.stroke, 0.86);
     this.chromeText = this.add.text(0, 0, "WienerWorks", {
@@ -596,15 +491,6 @@ export class PlayScene extends Phaser.Scene {
       backgroundColor: "#f4eddf",
       align: "center"
     }).setOrigin(0.5).setDepth(13).setVisible(false);
-    this.tokenEvidenceChrome = this.add.graphics().setDepth(7.8).setVisible(false);
-    this.tokenStripText = this.add.text(0, 0, "", {
-      fontFamily: uiFonts.mono,
-      fontSize: "18px",
-      color: uiPalette.text,
-      align: "center",
-      lineSpacing: 6,
-      wordWrap: { width: 860 }
-    }).setOrigin(0.5).setDepth(8).setVisible(false);
     this.trailGraphics = this.add.graphics().setDepth(14);
     this.activeCutGraphics = this.add.graphics().setDepth(12);
     this.resolveCommitGraphics = this.add.graphics().setDepth(7.35).setVisible(false);
@@ -628,70 +514,21 @@ export class PlayScene extends Phaser.Scene {
     this.targetHintGraphics = this.add.graphics().setDepth(9);
     this.timerTrack = this.add.rectangle(0, 0, 0, 8, uiPalette.coldGlass, 0.64).setOrigin(0, 0.5).setDepth(16);
     this.timerFill = this.add.rectangle(0, 0, 0, 8, uiPalette.amber).setOrigin(0, 0.5).setDepth(17);
-    this.assistantPanel = this.add.rectangle(0, 0, 180, 118, uiPalette.panelLight, 0.94).setStrokeStyle(1, uiPalette.stroke, 0.9).setDepth(18);
-    this.assistantPanelChrome = this.add.graphics().setDepth(19);
-    this.assistantGlyph = this.add.graphics().setDepth(20);
     this.petWiener = addWienerImage(this, { x: 0, y: 0, height: 82, depth: 31 });
-    this.assistantHeaderText = this.add.text(0, 0, "SUPERVISOR", {
-      fontFamily: uiFonts.mono,
-      fontSize: "10px",
-      color: uiPalette.textFaint
-    }).setDepth(20);
-    this.assistantNameText = this.add.text(0, 0, "Wiener", {
-      fontFamily: uiFonts.body,
-      fontSize: "14px",
-      color: uiPalette.text
-    }).setDepth(20);
-    this.assistantNoteText = this.add.text(0, 0, "Human route assigned.", {
-      fontFamily: uiFonts.body,
-      fontSize: "12px",
-      color: uiPalette.textMuted,
-      lineSpacing: 3,
-      wordWrap: { width: 128 }
-    }).setDepth(20);
-    this.assistantText = this.add.text(0, 0, "TRUST LEVEL: LOW", {
-      fontFamily: uiFonts.mono,
-      fontSize: "11px",
-      color: uiPalette.textMuted,
-      align: "left",
-      lineSpacing: 4,
-      wordWrap: { width: 210 }
-    }).setDepth(20);
-    this.robotToastPanel = this.add.rectangle(0, 0, 0, 0, uiPalette.panelLight, 0.97).setStrokeStyle(1, uiPalette.strokeDark, 0.74).setDepth(32);
-    this.robotToastChrome = this.add.graphics().setDepth(32.5);
-    this.robotToastLabel = this.add.text(0, 0, "WIENER", {
+    this.wienerSpeechPanel = this.add.rectangle(0, 0, 0, 0, uiPalette.panelLight, 0.97).setStrokeStyle(1, uiPalette.strokeDark, 0.74).setDepth(32);
+    this.wienerSpeechChrome = this.add.graphics().setDepth(32.5);
+    this.wienerSpeechLabel = this.add.text(0, 0, "WIENER", {
       fontFamily: uiFonts.mono,
       fontSize: "9px",
       color: uiPalette.textFaint
     }).setDepth(33);
-    this.robotToastText = this.add.text(0, 0, "", {
+    this.wienerSpeechText = this.add.text(0, 0, "", {
       fontFamily: uiFonts.body,
       fontSize: "13px",
       color: uiPalette.text,
       wordWrap: { width: 360 }
     }).setDepth(33);
-    this.hideRobotToast();
-    this.tutorialPopupPanel = this.add.rectangle(0, 0, 0, 0, uiPalette.panelLight, 0.98).setStrokeStyle(1, uiPalette.strokeDark, 1).setDepth(34);
-    this.tutorialPopupHeader = this.add.rectangle(0, 0, 0, 24, uiPalette.panelTint, 0.96).setDepth(35);
-    this.tutorialPopupChrome = this.add.graphics().setDepth(35.5);
-    this.tutorialPopupTitle = this.add.text(0, 0, "", {
-      fontFamily: uiFonts.mono,
-      fontSize: "11px",
-      color: uiPalette.textMuted
-    }).setDepth(36);
-    this.tutorialPopupBody = this.add.text(0, 0, "", {
-      fontFamily: uiFonts.body,
-      fontSize: "14px",
-      color: uiPalette.text,
-      wordWrap: { width: 420 }
-    }).setDepth(36);
-    this.tutorialPopupStamp = this.add.text(0, 0, "audit note / margin preserved", {
-      fontFamily: uiFonts.mono,
-      fontSize: "10px",
-      color: uiPalette.textFaint
-    }).setDepth(36);
-    this.hideTutorialPopup();
-
+    this.hideWienerSpeech();
     this.resolveButton = this.add.rectangle(0, 0, 180, 40, buttonVisual.fill, buttonVisual.fillAlpha).setStrokeStyle(1, buttonVisual.stroke).setDepth(22);
     this.resolveLabel = this.add.text(0, 0, "Resolve", {
       fontFamily: uiFonts.body,
@@ -741,7 +578,6 @@ export class PlayScene extends Phaser.Scene {
     this.exitButton.on("pointerup", () => this.exitToMenu());
 
     this.hud = new Hud(this);
-    this.overseer = new OverseerPanel(this);
     this.feedbackCard = new FeedbackCard(this);
 
     this.input.on("pointerdown", this.handlePointer, this);
@@ -771,7 +607,6 @@ export class PlayScene extends Phaser.Scene {
 
     if (this.resolving) {
       this.updatePendingReviewReveal();
-      this.updateSegmentationEvidenceReveal();
       this.updateTutorialReviewReady();
       return;
     }
@@ -876,16 +711,9 @@ export class PlayScene extends Phaser.Scene {
     this.tutorialRuleTimer?.remove(false);
     this.tutorialFollowupTimer?.remove(false);
     this.tutorialReviewPanelTimer?.remove(false);
-    this.hideTutorialPopup();
     this.feedbackAdvanceTimer?.remove(false);
     this.clearReviewRevealTimers();
     this.feedbackCard.hide();
-    this.tokenStripText.setVisible(false);
-    this.tokenStripText.setText("");
-    this.clearSegmentationEvidenceReveal();
-    this.tokenEvidenceChrome.clear();
-    this.tokenEvidenceChrome.setVisible(false);
-    this.tokenEvidenceRect = undefined;
     this.textObject.setVisible(true);
     this.cutStatusPulseStartedAt = undefined;
     this.lastCutStatusCount = 0;
@@ -932,7 +760,7 @@ export class PlayScene extends Phaser.Scene {
     this.updateHud(now);
     this.updateTimerVisual(now);
     const activeLine = this.tutorialMode ? this.tutorialPrompt() : this.sessionFlow.activeTrainingLine(this.balance);
-    this.setRobotComment(activeLine, { sticky: true });
+    this.setWienerSpeech(activeLine, { sticky: true });
     if (this.focusPauseRequested) {
       this.pauseActiveRoundForFocusLoss();
     }
@@ -1112,8 +940,6 @@ export class PlayScene extends Phaser.Scene {
       this.renderCutStatus();
       this.updateResolveButtonState();
       this.updateClearButtonState();
-      this.refreshAssistantArtifact();
-      this.refreshTrainingFooter();
       this.writePlayQaSnapshot();
     }
     if (result.addedCuts.length > 0) {
@@ -1250,8 +1076,7 @@ export class PlayScene extends Phaser.Scene {
     this.tutorialTokenIdTimer?.remove(false);
     this.tutorialRuleTimer?.remove(false);
     this.tutorialFollowupTimer?.remove(false);
-    this.hideTutorialPopup();
-    this.hideRobotToast();
+    this.hideWienerSpeech();
     this.clearReviewRevealTimers();
     const timeRemainingRatio =
       this.activeRoundDurationMs <= 0 ? 0 : this.remainingTimeMs(now) / this.activeRoundDurationMs;
@@ -1274,8 +1099,6 @@ export class PlayScene extends Phaser.Scene {
     this.lastCost = score.companyCost;
     this.balance += score.net;
     this.startHudImpact(score.net, now);
-    this.refreshAssistantArtifact();
-    this.refreshTrainingFooter();
     this.recordRoundTrace(this.currentFixture, score);
     this.updateHud(now);
     this.updateTimerVisual(now);
@@ -1311,7 +1134,7 @@ export class PlayScene extends Phaser.Scene {
       missedCuts: score.missedCuts,
       falseCuts: score.falseCuts
     });
-    const resolutionLine = this.tutorialMode ? this.tutorialReviewSpeechFor(this.round - 1, score) : summary.overseer;
+    const resolutionLine = this.tutorialMode ? this.tutorialReviewSpeechFor(this.round - 1, score) : summary.wienerSpeech;
     const reviewSequence = reviewPanelSequence({
       tutorialMode: this.tutorialMode,
       compact: this.compactLayout,
@@ -1322,8 +1145,7 @@ export class PlayScene extends Phaser.Scene {
 
     this.feedbackAdvanceTimer?.remove(false);
     this.tutorialReviewPanelTimer?.remove(false);
-    this.hideTutorialPopup();
-    this.hideRobotToast();
+    this.hideWienerSpeech();
     const reviewFixture = this.currentFixture;
     const reviewStartedAt = this.baseNowMs();
     const pendingReviewReveal: PendingReviewReveal = {
@@ -1331,15 +1153,10 @@ export class PlayScene extends Phaser.Scene {
       score,
       summary,
       resolutionLine,
-      evidenceAtMs: reviewStartedAt + reviewSequence.evidenceDelayMs,
       feedbackAtMs: reviewStartedAt + Math.max(reviewSequence.feedbackDelayMs, reviewSequence.speechDelayMs),
-      evidenceRevealed: false,
       feedbackRevealed: false
     };
     this.pendingReviewReveal = pendingReviewReveal;
-    this.scheduleReviewReveal(reviewSequence.evidenceDelayMs, () => {
-      this.revealReviewEvidence(pendingReviewReveal);
-    });
     this.scheduleReviewReveal(Math.max(reviewSequence.feedbackDelayMs, reviewSequence.speechDelayMs), () => {
       this.revealReviewFeedback(pendingReviewReveal);
     });
@@ -2069,23 +1886,9 @@ export class PlayScene extends Phaser.Scene {
     }
 
     const now = this.baseNowMs();
-    if (!pending.evidenceRevealed && now >= pending.evidenceAtMs) {
-      this.revealReviewEvidence(pending);
-    }
-
     if (!pending.feedbackRevealed && now >= pending.feedbackAtMs) {
       this.revealReviewFeedback(pending);
     }
-  }
-
-  private revealReviewEvidence(pending: PendingReviewReveal): void {
-    if (pending.evidenceRevealed || !this.isStillReviewingFixture(pending.fixture)) {
-      return;
-    }
-
-    pending.evidenceRevealed = true;
-    this.showTokenStrip(pending.fixture, pending.score);
-    this.writePlayQaSnapshot();
   }
 
   private revealReviewFeedback(pending: PendingReviewReveal): void {
@@ -2093,16 +1896,12 @@ export class PlayScene extends Phaser.Scene {
       return;
     }
 
-    if (!pending.evidenceRevealed) {
-      this.revealReviewEvidence(pending);
-    }
-
     pending.feedbackRevealed = true;
     this.feedbackCard.show(pending.summary);
     if (this.tutorialMode) {
       this.scheduleTutorialReviewReady();
     }
-    this.setRobotComment(pending.resolutionLine, {
+    this.setWienerSpeech(pending.resolutionLine, {
       sticky: this.tutorialMode,
       maxLength: this.tutorialMode ? this.tutorialReviewSpeechMaxLength() : undefined
     });
@@ -2625,7 +2424,6 @@ export class PlayScene extends Phaser.Scene {
 
     this.background.setSize(width, height);
     this.drawDegradedSurface(width, height, layout);
-    this.layoutBrandPanel(layout);
     this.chromeBar.setVisible(false);
     const showHeaderBrand = shouldShowPlayHeaderBrand(layout);
     this.headerWienerLogo.setVisible(showHeaderBrand);
@@ -2638,14 +2436,12 @@ export class PlayScene extends Phaser.Scene {
     this.playfield.setPosition(layout.playfield.x, layout.playfield.y);
     this.playfield.setSize(layout.playfield.width, layout.playfield.height);
     this.drawSegmentationLane(layout);
-    this.layoutTrainingFooter(layout);
     this.textPanelShadow.setSize(layout.textPanel.width, layout.textPanel.height);
     this.textPanel.setSize(layout.textPanel.width, layout.textPanel.height);
     this.textPanelShadow.setVisible(false);
     this.textPanel.setVisible(false);
     this.textPanelChrome.clear();
     this.textObject.setStyle({ fontSize: `${fontSize}px` });
-    this.tokenStripText.setWordWrapWidth(layout.textPanel.width - (layout.compact ? 30 : 64));
     this.timerTrack.setPosition(layout.timer.x, layout.timer.y);
     this.timerTrack.setSize(layout.timer.width, layout.timer.height);
     this.timerFill.setPosition(layout.timer.x, layout.timer.y);
@@ -2660,13 +2456,9 @@ export class PlayScene extends Phaser.Scene {
     this.muteButton.setPosition(layout.muteButton.x, layout.muteButton.y);
     this.muteButton.setSize(layout.muteButton.width, layout.muteButton.height);
     this.muteLabel.setPosition(this.muteButton.x, this.muteButton.y);
-    this.layoutAssistantArtifact(layout);
     this.layoutPetWiener(layout);
-    this.layoutTutorialPopup();
-    this.layoutRobotToast();
+    this.layoutWienerSpeech();
     this.hud.layout(width, layout.contentPanel);
-    this.overseer.setVisible(false);
-    this.overseer.layout(width, height, layout.overseerReservedRight);
     this.feedbackCard.layout(width, height, layout.contentPanel);
     const now = this.nowMs();
     this.updateTimerVisual(now);
@@ -2677,84 +2469,6 @@ export class PlayScene extends Phaser.Scene {
     }
 
     this.renderPlayerCuts();
-  }
-
-  private layoutTrainingFooter(layout: ReturnType<typeof computePlayLayout>): void {
-    const visible = !layout.compact && layout.footerPanel.height > 0;
-    this.trainingFooterGraphics.setVisible(visible);
-    this.trainingFooterGlyph.setVisible(visible);
-    this.trainingFooterGlyph.clear();
-    this.trainingFooterTexts.forEach((entry) => {
-      entry.label.setVisible(visible);
-      entry.value.setVisible(visible);
-    });
-    this.trainingFooterGraphics.clear();
-
-    if (!visible) {
-      return;
-    }
-
-    const panel = layout.footerPanel;
-    const left = panel.x - panel.width / 2;
-    const top = panel.y - panel.height / 2;
-    const right = left + panel.width;
-    const columnWidth = panel.width / this.trainingFooterTexts.length;
-
-    this.trainingFooterGraphics.fillStyle(uiPalette.panelLight, 0.92);
-    this.trainingFooterGraphics.fillRoundedRect(left, top, panel.width, panel.height, 6);
-    this.trainingFooterGraphics.lineStyle(1, uiPalette.stroke, 0.82);
-    this.trainingFooterGraphics.strokeRoundedRect(left, top, panel.width, panel.height, 6);
-    this.trainingFooterGraphics.fillStyle(uiPalette.panelTint, 0.32);
-    this.trainingFooterGraphics.fillRect(left + 1, top + 1, panel.width - 2, 14);
-    this.trainingFooterGraphics.lineStyle(1, uiPalette.stroke, 0.52);
-    for (let index = 1; index < this.trainingFooterTexts.length; index += 1) {
-      const x = left + columnWidth * index;
-      this.trainingFooterGraphics.lineBetween(x, top + 10, x, top + panel.height - 10);
-    }
-    this.trainingFooterGraphics.fillStyle(uiPalette.oxidizedGreen, 0.45);
-    this.trainingFooterGraphics.fillCircle(right - 20, top + panel.height - 16, 5);
-    this.trainingFooterGraphics.fillCircle(right - 34, top + panel.height - 16, 5);
-
-    this.refreshTrainingFooter();
-    this.trainingFooterTexts.forEach((entry, index) => {
-      const cellLeft = left + index * columnWidth;
-      const isTipCell = index === this.trainingFooterTexts.length - 1;
-      const textX = cellLeft + (isTipCell ? 66 : 14);
-      entry.label.setPosition(textX, top + 13);
-      entry.value.setPosition(textX, top + 33);
-      entry.value.setWordWrapWidth(Math.max(72, columnWidth - (isTipCell ? 78 : 28)));
-    });
-  }
-
-  private refreshTrainingFooter(): void {
-    if (!this.trainingFooterTexts.length) {
-      return;
-    }
-
-    const nextPay = this.currentFixture
-      ? Math.max(0, this.currentFixture.boundary_positions.length * 0.15).toFixed(2)
-      : "0.00";
-    const accuracy = this.totalPossible === 0 ? 0 : this.totalCorrect / this.totalPossible;
-    const rank = this.rankSystem.calculate({
-      rounds: Math.max(0, this.round - 1),
-      accuracy,
-      totalPay: this.totalPay,
-      totalCost: this.totalCost,
-      balance: Math.max(0, this.balance)
-    });
-    const values = [
-      ["NEXT PAYOUT", `$${nextPay}\nif exact`],
-      ["PENALTIES", "-$0.10 miss\n-$0.08 false"],
-      ["ECONOMY", "You earn less\nthan you save."],
-      ["RANK", `${rank.rank}\n${rank.rankScore.toFixed(0)} pts`],
-      ["TIP", this.currentCuts.length > 0 ? "Resolve only\nwhen committed." : "Not every\nspace is a cut."]
-    ];
-
-    this.trainingFooterTexts.forEach((entry, index) => {
-      const [label, value] = values[index] ?? ["", ""];
-      entry.label.setText(label);
-      entry.value.setText(value);
-    });
   }
 
   private tutorialCompletePerformance(): TutorialCompletePerformance {
@@ -2887,9 +2601,7 @@ export class PlayScene extends Phaser.Scene {
     this.drawTextPanelChrome();
     this.textObject.setPosition(panelX, y);
     this.cutStatusText.setPosition(panelX, y + 39);
-    this.layoutSegmentationEvidence();
-    this.layoutRobotToast();
-    this.layoutTutorialPopup();
+    this.layoutWienerSpeech();
 
     if (!this.resolving) {
       this.renderSlotHints();
@@ -2917,71 +2629,6 @@ export class PlayScene extends Phaser.Scene {
       this.degradationGraphics.lineStyle(1, uiPalette.stroke, 0.52);
       this.degradationGraphics.strokeRoundedRect(left, top, content.width, content.height, 6);
     }
-  }
-
-  private layoutBrandPanel(layout: ReturnType<typeof computePlayLayout>): void {
-    const visible = layout.sideBrandPanel;
-    this.brandPanel.setVisible(visible);
-    this.brandPanelChrome.setVisible(visible);
-    this.brandGlyph.setVisible(visible);
-    this.brandCompanyText.setVisible(visible);
-    this.brandDivisionText.setVisible(visible);
-    this.brandProductText.setVisible(visible);
-    this.brandPremiseText.setVisible(visible);
-    this.brandLoopText.setVisible(visible);
-    this.brandPanelChrome.clear();
-    this.brandGlyph.clear();
-
-    if (!visible) {
-      return;
-    }
-
-    const panel = layout.brandPanel;
-    const left = panel.x - panel.width / 2;
-    const top = panel.y - panel.height / 2;
-    const right = left + panel.width;
-    const bodyWidth = panel.width - 32;
-
-    this.brandPanel.setPosition(panel.x, panel.y);
-    this.brandPanel.setSize(panel.width, panel.height);
-    this.brandPanelChrome.fillStyle(uiPalette.panelTint, 0.58);
-    this.brandPanelChrome.fillRect(left + 1, top + 1, panel.width - 2, 36);
-    this.brandPanelChrome.lineStyle(1, uiPalette.stroke, 0.72);
-    this.brandPanelChrome.lineBetween(left + 14, top + 168, right - 14, top + 168);
-    this.brandPanelChrome.lineBetween(left + 14, top + 326, right - 14, top + 326);
-    this.brandPanelChrome.lineBetween(left + 14, top + 430, right - 14, top + 430);
-    this.brandPanelChrome.fillStyle(uiPalette.amber, 0.5);
-    this.brandPanelChrome.fillRect(left + 1, top + 1, 4, panel.height - 2);
-    this.brandPanelChrome.fillStyle(uiPalette.oxidizedGreen, 0.54);
-    this.brandPanelChrome.fillCircle(right - 30, top + 452, 5);
-    this.brandPanelChrome.fillCircle(right - 16, top + 452, 5);
-
-    this.brandCompanyText.setPosition(left + 88, top + 42);
-    this.brandDivisionText.setPosition(left + 90, top + 86);
-    this.brandProductText.setPosition(left + 90, top + 120);
-    this.brandPremiseText.setText(
-      [
-        "Inference margin exceeded route tolerance.",
-        "Human segmentation assigned.",
-        "Predict token boundaries.",
-        "Accuracy extends the shift."
-      ].join("\n")
-    );
-    this.brandPremiseText.setPosition(left + 18, top + 190);
-    this.brandPremiseText.setWordWrapWidth(bodyWidth);
-    this.brandLoopText.setText(
-      [
-      "THE LOOP",
-      "Text scrolls in   ->   You slice",
-      "System audits    ->   You survive",
-      "",
-      "HELP: DISABLED",
-      "MODEL ROUTE: HUMAN",
-      "BALANCE WINDOW: OPEN"
-      ].join("\n")
-    );
-    this.brandLoopText.setPosition(left + 18, top + 352);
-    this.brandLoopText.setWordWrapWidth(bodyWidth);
   }
 
   private drawSegmentationLane(layout: ReturnType<typeof computePlayLayout>): void {
@@ -3089,50 +2736,49 @@ export class PlayScene extends Phaser.Scene {
     };
   }
 
-  private setRobotComment(value: string, options: { showToast?: boolean; sticky?: boolean; maxLength?: number } = {}): void {
-    this.overseer.setText(value);
+  private setWienerSpeech(value: string, options: { showToast?: boolean; sticky?: boolean; maxLength?: number } = {}): void {
     if (options.showToast ?? true) {
-      this.showRobotToast(value, {
+      this.showWienerSpeech(value, {
         sticky: options.sticky ?? false,
         maxLength: options.maxLength
       });
       return;
     }
 
-    this.hideRobotToast();
+    this.hideWienerSpeech();
   }
 
-  private showRobotToast(value: string, options: { sticky?: boolean; maxLength?: number } = {}): void {
-    this.robotToastTimer?.remove(false);
-    this.robotToastSticky = options.sticky ?? false;
-    const maxLength = options.maxLength ?? robotToastMaxLength(this.compactLayout);
-    const sourceText = robotToastSourceText(value, this.robotToastSticky ? false : this.compactLayout);
-    this.robotToastText.setText(robotBriefLine(sourceText, maxLength));
-    this.robotToastPanel.setVisible(true);
-    this.robotToastLabel.setVisible(true);
-    this.robotToastText.setVisible(true);
-    this.layoutRobotToast();
-    this.robotToastPanel.setAlpha(0.96);
-    this.robotToastText.setAlpha(1);
-    if (!this.robotToastSticky) {
-      const durationMs = robotToastDurationMs(sourceText, { tutorialMode: this.tutorialMode, maxLength });
-      this.robotToastTimer = this.time.delayedCall(durationMs, () => this.hideRobotToast());
+  private showWienerSpeech(value: string, options: { sticky?: boolean; maxLength?: number } = {}): void {
+    this.wienerSpeechTimer?.remove(false);
+    this.wienerSpeechSticky = options.sticky ?? false;
+    const maxLength = options.maxLength ?? wienerSpeechMaxLength(this.compactLayout);
+    const sourceText = wienerSpeechSourceText(value, this.wienerSpeechSticky ? false : this.compactLayout);
+    this.wienerSpeechText.setText(wienerBriefLine(sourceText, maxLength));
+    this.wienerSpeechPanel.setVisible(true);
+    this.wienerSpeechLabel.setVisible(true);
+    this.wienerSpeechText.setVisible(true);
+    this.layoutWienerSpeech();
+    this.wienerSpeechPanel.setAlpha(0.96);
+    this.wienerSpeechText.setAlpha(1);
+    if (!this.wienerSpeechSticky) {
+      const durationMs = wienerSpeechDurationMs(sourceText, { tutorialMode: this.tutorialMode, maxLength });
+      this.wienerSpeechTimer = this.time.delayedCall(durationMs, () => this.hideWienerSpeech());
     }
     this.writePlayQaSnapshot();
   }
 
-  private hideRobotToast(): void {
-    this.robotToastTimer?.remove(false);
-    this.robotToastSticky = false;
-    this.robotToastPanel?.setVisible(false);
-    this.robotToastLabel?.setVisible(false);
-    this.robotToastText?.setVisible(false);
-    this.robotToastChrome?.clear();
+  private hideWienerSpeech(): void {
+    this.wienerSpeechTimer?.remove(false);
+    this.wienerSpeechSticky = false;
+    this.wienerSpeechPanel?.setVisible(false);
+    this.wienerSpeechLabel?.setVisible(false);
+    this.wienerSpeechText?.setVisible(false);
+    this.wienerSpeechChrome?.clear();
     this.writePlayQaSnapshot();
   }
 
-  private layoutRobotToast(): void {
-    if (!this.robotToastPanel?.visible || !this.robotToastText) {
+  private layoutWienerSpeech(): void {
+    if (!this.wienerSpeechPanel?.visible || !this.wienerSpeechText) {
       return;
     }
 
@@ -3141,7 +2787,7 @@ export class PlayScene extends Phaser.Scene {
       this.feedbackCard.layoutState() ?? computeFeedbackCardLayout(this.scale.width, this.scale.height, layout.contentPanel);
     const petBounds = this.petWiener.getBounds();
     const petRect = this.qaRectFromBounds(petBounds);
-    const reviewSpeech = this.robotToastSticky && this.tutorialMode && this.resolving;
+    const reviewSpeech = this.wienerSpeechSticky && this.tutorialMode && this.resolving;
     const speechLayout = computePetSpeechLayout({
       viewport: { width: this.scale.width, height: this.scale.height },
       textPanel: this.qaRectFromBounds(this.textPanel.getBounds()),
@@ -3149,13 +2795,12 @@ export class PlayScene extends Phaser.Scene {
       feedback: feedbackLayout,
       resolveButton: layout.resolveButton,
       compact: this.compactLayout,
-      reviewSpeech,
-      evidenceRect: this.tokenEvidenceRect
+      reviewSpeech
     });
     const { x, y, width, height } = speechLayout.panel;
 
-    this.robotToastPanel.setPosition(x, y);
-    this.robotToastPanel.setSize(width, height);
+    this.wienerSpeechPanel.setPosition(x, y);
+    this.wienerSpeechPanel.setSize(width, height);
     this.drawPetSpeechChrome({
       panel: { x, y, width, height },
       mouth: {
@@ -3163,10 +2808,10 @@ export class PlayScene extends Phaser.Scene {
         y: petBounds.top + petBounds.height * 0.45
       }
     });
-    this.robotToastLabel.setVisible(false);
-    this.robotToastText.setPosition(speechLayout.text.x, speechLayout.text.y);
-    this.robotToastText.setStyle({ fontSize: `${speechLayout.text.fontSize}px` });
-    this.robotToastText.setWordWrapWidth(speechLayout.text.wordWrapWidth);
+    this.wienerSpeechLabel.setVisible(false);
+    this.wienerSpeechText.setPosition(speechLayout.text.x, speechLayout.text.y);
+    this.wienerSpeechText.setStyle({ fontSize: `${speechLayout.text.fontSize}px` });
+    this.wienerSpeechText.setWordWrapWidth(speechLayout.text.wordWrapWidth);
   }
 
   private drawPetSpeechChrome(layout: {
@@ -3180,55 +2825,15 @@ export class PlayScene extends Phaser.Scene {
     const bottom = top + panel.height;
     const tailStartX = Math.max(left + 28, Math.min(right - 28, right - 38));
 
-    this.robotToastChrome.clear();
-    this.robotToastChrome.fillStyle(uiPalette.panelLight, 0.98);
-    this.robotToastChrome.fillRoundedRect(left, top, panel.width, panel.height, 8);
-    this.robotToastChrome.lineStyle(1, uiPalette.strokeDark, 0.66);
-    this.robotToastChrome.strokeRoundedRect(left, top, panel.width, panel.height, 8);
-    this.robotToastChrome.fillStyle(uiPalette.panelLight, 0.98);
-    this.robotToastChrome.fillTriangle(tailStartX, bottom - 3, tailStartX + 26, bottom - 6, layout.mouth.x, layout.mouth.y);
-    this.robotToastChrome.lineStyle(1, uiPalette.strokeDark, 0.5);
-    this.robotToastChrome.lineBetween(tailStartX + 8, bottom - 3, layout.mouth.x, layout.mouth.y);
-  }
-
-  private showTutorialPopup(
-    copy: { title: string; body: string },
-    durationMs: number | null = 5200,
-    options: { mirrorToast?: boolean } = {}
-  ): void {
-    this.tutorialPopupTimer?.remove(false);
-    this.tutorialPopupFullTitle = copy.title;
-    this.tutorialPopupFullBody = copy.body;
-    this.tutorialPopupPanel?.setVisible(false);
-    this.tutorialPopupHeader?.setVisible(false);
-    this.tutorialPopupTitle?.setVisible(false);
-    this.tutorialPopupBody?.setVisible(false);
-    this.tutorialPopupStamp?.setVisible(false);
-    this.tutorialPopupChrome?.clear();
-    if (options.mirrorToast ?? true) {
-      this.showRobotToast(copy.body, { maxLength: this.tutorialReviewSpeechMaxLength() });
-    }
-    if (durationMs !== null) {
-      this.tutorialPopupTimer = this.time.delayedCall(durationMs, () => this.hideTutorialPopup());
-    }
-    this.writePlayQaSnapshot();
-  }
-
-  private hideTutorialPopup(): void {
-    this.tutorialPopupTimer?.remove(false);
-    this.tutorialPopupFullTitle = "";
-    this.tutorialPopupFullBody = "";
-    this.tutorialPopupPanel?.setVisible(false);
-    this.tutorialPopupHeader?.setVisible(false);
-    this.tutorialPopupTitle?.setVisible(false);
-    this.tutorialPopupBody?.setVisible(false);
-    this.tutorialPopupStamp?.setVisible(false);
-    this.tutorialPopupChrome?.clear();
-    this.writePlayQaSnapshot();
-  }
-
-  private layoutTutorialPopup(): void {
-    this.tutorialPopupChrome?.clear();
+    this.wienerSpeechChrome.clear();
+    this.wienerSpeechChrome.fillStyle(uiPalette.panelLight, 0.98);
+    this.wienerSpeechChrome.fillRoundedRect(left, top, panel.width, panel.height, 8);
+    this.wienerSpeechChrome.lineStyle(1, uiPalette.strokeDark, 0.66);
+    this.wienerSpeechChrome.strokeRoundedRect(left, top, panel.width, panel.height, 8);
+    this.wienerSpeechChrome.fillStyle(uiPalette.panelLight, 0.98);
+    this.wienerSpeechChrome.fillTriangle(tailStartX, bottom - 3, tailStartX + 26, bottom - 6, layout.mouth.x, layout.mouth.y);
+    this.wienerSpeechChrome.lineStyle(1, uiPalette.strokeDark, 0.5);
+    this.wienerSpeechChrome.lineBetween(tailStartX + 8, bottom - 3, layout.mouth.x, layout.mouth.y);
   }
 
   private computeRestingSentenceY(): number {
@@ -3238,94 +2843,6 @@ export class PlayScene extends Phaser.Scene {
 
   private drawTextPanelChrome(): void {
     this.textPanelChrome.clear();
-  }
-
-  private layoutSegmentationEvidence(): void {
-    if (!this.tokenStripText.visible || !this.tokenStripText.text) {
-      this.tokenEvidenceChrome?.clear();
-      this.tokenEvidenceChrome?.setVisible(false);
-      this.tokenEvidenceRect = undefined;
-      return;
-    }
-
-    const layout = segmentationEvidenceLayout({
-      viewport: { width: this.scale.width, height: this.scale.height },
-      textPanel: this.qaRectFromBounds(this.textPanel.getBounds()),
-      compact: this.compactLayout,
-      lineCount: this.tokenStripText.text.split("\n").length
-    });
-
-    this.tokenEvidenceRect = layout.panel;
-    const reveal = this.currentSegmentationEvidenceRevealState();
-    this.tokenEvidenceChrome.setVisible(true);
-    this.drawSegmentationEvidenceChrome(layout.panel, this.tokenStripText.text, layout.text, reveal);
-    this.tokenStripText.setPosition(layout.text.x, layout.text.y);
-    this.tokenStripText.setWordWrapWidth(layout.text.wordWrapWidth);
-    this.tokenStripText.setStyle({
-      fontSize: `${layout.text.fontSize}px`,
-      color: uiPalette.text
-    });
-    this.tokenStripText.setAlpha(reveal.textAlpha);
-    this.tokenStripText.setPadding(
-      layout.text.paddingX,
-      layout.text.paddingY,
-      layout.text.paddingX,
-      layout.text.paddingY
-    );
-  }
-
-  private drawSegmentationEvidenceChrome(
-    panel: GameQaRect,
-    evidenceText: string,
-    textLayout: ReturnType<typeof segmentationEvidenceLayout>["text"],
-    reveal: SegmentationEvidenceRevealState
-  ): void {
-    const left = panel.x - panel.width / 2;
-    const top = panel.y - panel.height / 2;
-    const right = left + panel.width;
-    const rows = segmentationEvidenceTokenRows(evidenceText);
-    const chipSpans = segmentationEvidenceChipSpans(evidenceText);
-    const headerLineCount = segmentationEvidenceHeaderLineCount(evidenceText);
-    const denseEvidence = this.compactLayout || usesShortLandscapeReviewLayout({
-      width: this.scale.width,
-      height: this.scale.height
-    });
-    const lineHeight = textLayout.fontSize + (denseEvidence ? 5 : 7);
-    const charWidth = textLayout.fontSize * (denseEvidence ? 0.62 : 0.58);
-    const rowStartY = top + (denseEvidence ? 43 : 47) + Math.max(0, headerLineCount - 1) * lineHeight;
-
-    this.tokenEvidenceChrome.clear();
-    this.tokenEvidenceChrome.fillStyle(uiPalette.panelLight, reveal.panelAlpha);
-    this.tokenEvidenceChrome.fillRoundedRect(left, top, panel.width, panel.height, 5);
-    this.tokenEvidenceChrome.fillStyle(uiPalette.panelTint, 0.52 + reveal.accentAlpha * 0.18);
-    this.tokenEvidenceChrome.fillRoundedRect(left + 3, top + 3, panel.width - 6, 15, 4);
-    this.tokenEvidenceChrome.fillStyle(uiPalette.amber, 0.78 + reveal.accentAlpha * 0.16);
-    this.tokenEvidenceChrome.fillRect(left + 3, top + 3, Math.min(118, panel.width * 0.28) * reveal.topRuleWidthScale, 4);
-    if (reveal.active) {
-      this.tokenEvidenceChrome.fillStyle(uiPalette.amberLight, reveal.accentAlpha);
-      this.tokenEvidenceChrome.fillRoundedRect(left + 4, top + 19, panel.width - 8, panel.height - 23, 4);
-    }
-    this.tokenEvidenceChrome.lineStyle(1, uiPalette.strokeDark, 0.7);
-    this.tokenEvidenceChrome.strokeRoundedRect(left, top, panel.width, panel.height, 5);
-    this.tokenEvidenceChrome.lineStyle(1, uiPalette.stroke, 0.38);
-    this.tokenEvidenceChrome.lineBetween(left + 12, top + 30, right - 12, top + 30);
-
-    for (const span of chipSpans) {
-      const row = rows[span.rowIndex] ?? "";
-      const rowWidth = row.length * charWidth;
-      const rowLeft = panel.x - rowWidth / 2;
-      const chipX = rowLeft + span.start * charWidth - 4;
-      const chipY = rowStartY + span.rowIndex * lineHeight - textLayout.fontSize / 2 - 4;
-      const chipWidth = span.length * charWidth + 8;
-      const chipHeight = textLayout.fontSize + 10;
-      this.tokenEvidenceChrome.fillStyle(
-        span.leadingSpace ? uiPalette.amberLight : uiPalette.coldGlass,
-        (span.leadingSpace ? 0.42 : 0.58) + reveal.chipBoostAlpha
-      );
-      this.tokenEvidenceChrome.fillRoundedRect(chipX, chipY, chipWidth, chipHeight, 4);
-      this.tokenEvidenceChrome.lineStyle(1.25, span.leadingSpace ? uiPalette.amber : uiPalette.strokeDark, span.leadingSpace ? 0.62 : 0.42);
-      this.tokenEvidenceChrome.strokeRoundedRect(chipX, chipY, chipWidth, chipHeight, 4);
-    }
   }
 
   private renderSlotHints(): void {
@@ -3594,10 +3111,8 @@ export class PlayScene extends Phaser.Scene {
     const height = this.scale.height;
     const layout = computePlayLayout({ width, height });
     const hudLayout = computeHudLayout(width, layout.contentPanel);
-    const overseerLayout = computeOverseerPanelLayout(width, height, layout.overseerReservedRight);
     const feedbackLayout = this.feedbackCard.layoutState() ?? computeFeedbackCardLayout(width, height, layout.contentPanel);
     const textBounds = this.textObject.getBounds();
-    const overseerQa = this.overseer.qaState();
     const feedbackQa = this.feedbackCard.qaState();
     const motionQa = this.motionQaState();
     const useRendererCapture = this.shouldUseRendererQaCapture();
@@ -3607,7 +3122,6 @@ export class PlayScene extends Phaser.Scene {
     const timerPressure = this.currentTimerPressureState(this.nowMs());
     const inputFeel = this.inputFeelMetrics.snapshot(this.baseNowMs());
     const hudProgress = this.hudProgressState();
-    const tokenStripRect = this.tokenEvidenceRect ?? this.qaRectFromBounds(this.tokenStripText.getBounds());
     const tutorialReviewDwellRemainingMs = this.tutorialReviewReadyAtMs === null
       ? null
       : Math.max(0, this.tutorialReviewReadyAtMs - this.baseNowMs());
@@ -3654,8 +3168,6 @@ export class PlayScene extends Phaser.Scene {
       inputResponseBadgeRect: this.inputResponseBadgeText.visible ? this.inputResponseBadgeRect : undefined,
       cutStatusText: this.cutStatusText.text,
       cutStatusVisible: this.cutStatusText.visible && !this.resolving,
-      tokenStripText: this.tokenStripText.text,
-      tokenStripVisible: this.tokenStripText.visible,
       promptBackingVisible: this.textPanel.visible || this.textPanelShadow.visible,
       promptTextVisible: this.textObject.visible,
       promptAcquisitionActive: promptAcquisitionState.active,
@@ -3666,12 +3178,8 @@ export class PlayScene extends Phaser.Scene {
       fallingTextPieceCount: this.fallingTextPieces.length,
       textFontSize: this.gameTextFontSize(this.textObject),
       cutStatusFontSize: this.gameTextFontSize(this.cutStatusText),
-      tokenStripFontSize: this.gameTextFontSize(this.tokenStripText),
       textPanelRect: this.qaRectFromBounds(this.textPanel.getBounds()),
       textRect: this.qaRectFromBounds(textBounds),
-      segmentationEvidenceRect: this.tokenEvidenceRect,
-      segmentationEvidenceRevealActive: this.currentSegmentationEvidenceRevealState().active,
-      segmentationEvidenceRevealProgress: this.currentSegmentationEvidenceRevealState().progress,
       logoWienerRect: this.qaRectFromBounds(this.headerWienerLogo.getBounds()),
       petWienerRect: this.qaRectFromBounds(this.petWiener.getBounds()),
       petReactionActive: this.petReactionTween !== undefined,
@@ -3681,14 +3189,12 @@ export class PlayScene extends Phaser.Scene {
       petReactionPeakScaleX: this.petReactionPeakScaleX,
       petReactionPeakScaleY: this.petReactionPeakScaleY,
       cutStatusRect: this.cutStatusBadgeRect ?? this.qaRectFromBounds(this.cutStatusText.getBounds()),
-      tokenStripRect,
       hudRect: {
         x: hudLayout.background.x,
         y: hudLayout.background.y + hudLayout.background.height / 2,
         width: hudLayout.background.width,
         height: hudLayout.background.height
       },
-      overseerRect: overseerLayout.panel,
       resolveButtonText: this.resolveLabel?.text,
       resolveButtonActionable: this.resolveButtonActionable(),
       resolveButtonReady: !this.resolving && this.currentCuts.length > 0,
@@ -3700,13 +3206,11 @@ export class PlayScene extends Phaser.Scene {
       clearButtonActionable: this.clearButtonActionable(),
       muteButtonText: this.muteLabel?.text,
       exitButtonText: this.exitLabel?.text,
-      overseerVisible: this.overseer.isVisible(),
-      overseerText: overseerQa.text,
-      overseerFontSize: overseerQa.fontSize,
-      overseerWordWrapWidth: overseerQa.wordWrapWidth,
       feedbackRect: feedbackLayout,
       feedbackVisible: this.feedbackCard.isVisible(),
       feedbackText: feedbackQa.text,
+      feedbackTokenSplitText: feedbackQa.tokenSplit,
+      feedbackTokenSplitRect: feedbackQa.tokenSplitRect,
       tutorialReviewReady: this.tutorialReviewCanAdvance(),
       tutorialReviewDwellRemainingMs,
       armedPreviewBoundary: this.armedPreviewBoundary,
@@ -3740,9 +3244,9 @@ export class PlayScene extends Phaser.Scene {
       timerWarningIntensity: timerPressure.warningIntensity,
       timerPressureRect: this.timerPressureRect,
       timerPressureDeadlineRect: this.timerPressureDeadlineRect,
-      petSpeechText: this.robotToastPanel.visible ? this.robotToastText.text : undefined,
-      petSpeechFontSize: this.robotToastPanel.visible ? this.gameTextFontSize(this.robotToastText) : undefined,
-      petSpeechRect: this.robotToastPanel.visible ? this.qaRectFromBounds(this.robotToastPanel.getBounds()) : undefined,
+      petSpeechText: this.wienerSpeechPanel.visible ? this.wienerSpeechText.text : undefined,
+      petSpeechFontSize: this.wienerSpeechPanel.visible ? this.gameTextFontSize(this.wienerSpeechText) : undefined,
+      petSpeechRect: this.wienerSpeechPanel.visible ? this.qaRectFromBounds(this.wienerSpeechPanel.getBounds()) : undefined,
       textCutImpactActive: this.textCutImpactGhost?.active ?? false,
       textCutImpactRect: this.textCutImpactGhost?.active ? this.qaRectFromBounds(this.textCutImpactGhost.getBounds()) : undefined,
       resolveCommitBeatActive: this.resolveCommitGraphics?.visible ?? false,
@@ -3930,7 +3434,7 @@ export class PlayScene extends Phaser.Scene {
       snapshot.state?.clearCutFeedbackActive,
       snapshot.state?.resolveCommitBeatActive,
       snapshot.state?.hudImpactDeltaText,
-      this.robotToastPanel.visible ? this.robotToastText.text : ""
+      this.wienerSpeechPanel.visible ? this.wienerSpeechText.text : ""
     ].join("|");
   }
 
@@ -4159,117 +3663,26 @@ export class PlayScene extends Phaser.Scene {
     this.petWiener?.setY(this.petWienerBaseY);
   }
 
-  private drawAssistantGlyph(): void {
-    this.assistantGlyph.clear();
-  }
-
   private layoutPetWiener(layout: ReturnType<typeof computePlayLayout>): void {
-    let petY = layout.assistantPanel.y;
+    let petY = layout.petWienerSlot.y;
     if (this.resolving && !layout.compact) {
-      const petHeight = layout.assistantPanel.height;
+      const petHeight = layout.petWienerSlot.height;
       const feedback = computeFeedbackCardLayout(this.scale.width, this.scale.height, layout.contentPanel);
       const feedbackTop = feedback.y - feedback.height / 2;
-      const evidenceTop = this.tokenEvidenceRect
-        ? this.tokenEvidenceRect.y - this.tokenEvidenceRect.height / 2
-        : Number.POSITIVE_INFINITY;
       const playfieldTop = layout.playfield.y - layout.playfield.height / 2;
       const minY = playfieldTop + petHeight / 2 + 18;
-      const maxY = Math.min(
-        feedbackTop - 10 - petHeight / 2,
-        evidenceTop - 12 - petHeight / 2
-      );
+      const maxY = feedbackTop - 10 - petHeight / 2;
       petY = Math.max(minY, Math.min(petY, maxY));
     }
 
     this.petWiener.setVisible(true);
-    this.petWienerBaseX = layout.assistantPanel.x;
+    this.petWienerBaseX = layout.petWienerSlot.x;
     this.petWienerBaseY = petY;
-    this.petWiener.setPosition(layout.assistantPanel.x, petY);
-    sizeWienerImage(this.petWiener, layout.assistantPanel.height);
+    this.petWiener.setPosition(layout.petWienerSlot.x, petY);
+    sizeWienerImage(this.petWiener, layout.petWienerSlot.height);
     this.petWienerBaseScaleX = this.petWiener.scaleX;
     this.petWienerBaseScaleY = this.petWiener.scaleY;
     this.restartPetIdleBob();
-  }
-
-  private layoutAssistantArtifact(layout: ReturnType<typeof computePlayLayout>): void {
-    const visible = layout.sideAssistant;
-    this.assistantPanel.setVisible(visible);
-    this.assistantPanelChrome.setVisible(visible);
-    this.assistantHeaderText.setVisible(visible);
-    this.assistantNameText.setVisible(visible);
-    this.assistantNoteText.setVisible(visible);
-    this.assistantText.setVisible(visible);
-    this.assistantGlyph.setVisible(visible);
-    this.assistantGlyph.clear();
-    this.assistantPanelChrome.clear();
-
-    if (!visible) {
-      return;
-    }
-
-    this.assistantPanel.setPosition(layout.assistantPanel.x, layout.assistantPanel.y);
-    this.assistantPanel.setSize(layout.assistantPanel.width, layout.assistantPanel.height);
-    this.drawAssistantPanelChrome(layout);
-    this.assistantHeaderText.setPosition(layout.assistantText.x, layout.assistantText.y + 4);
-    this.assistantNameText.setPosition(layout.assistantText.x + 98, layout.assistantText.y + 58);
-    this.assistantNoteText.setPosition(layout.assistantText.x + 98, layout.assistantText.y + 80);
-    this.assistantNoteText.setWordWrapWidth(layout.assistantPanel.width - 132);
-    this.assistantText.setPosition(layout.assistantText.x, layout.assistantText.y + 186);
-    this.assistantText.setWordWrapWidth(layout.assistantPanel.width - 30);
-    this.refreshAssistantArtifact();
-  }
-
-  private refreshAssistantArtifact(): void {
-    if (!this.assistantPanel?.visible) {
-      return;
-    }
-
-    const mood = this.wienerMood();
-    this.assistantNoteText.setText(this.assistantNoteForMood(mood));
-    this.assistantText.setText(this.assistantPanelText());
-    this.drawAssistantGlyph();
-  }
-
-  private assistantPanelText(): string {
-    const accuracy = this.totalPossible <= 0 ? 100 : Math.round((this.totalCorrect / this.totalPossible) * 100);
-    const payRate = this.round <= 1 ? 0.15 : Math.max(0, this.totalPay / Math.max(1, this.round - 1));
-
-    return [
-      "TRUST LEVEL: LOW",
-      "",
-      "ACCURACY",
-      `${accuracy}%`,
-      "PAY RATE",
-      `$${payRate.toFixed(2)} / round`,
-      "",
-      "SUPERVISOR NOTES",
-      this.balance <= 10 ? "Finance is circling." : "Accuracy extends the shift.",
-      this.tutorialMode ? "Training route active." : "Token boundaries drive the bill."
-    ].join("\n");
-  }
-
-  private assistantNoteForMood(mood: WienerMood): string {
-    if (mood === "alarm") {
-      return "Finance is circling.";
-    }
-
-    if (mood === "disappointed") {
-      return "Very peaceful. Very wrong.";
-    }
-
-    if (mood === "snark") {
-      return "The ledger has opinions.";
-    }
-
-    if (mood === "teaching") {
-      return "Boundary evidence first.";
-    }
-
-    if (mood === "idle") {
-      return "Payroll is waiting.";
-    }
-
-    return "Human segmentation assigned.";
   }
 
   private activeCutPulseKindsForQa(): ActiveCutPulseKind[] {
@@ -4278,112 +3691,11 @@ export class PlayScene extends Phaser.Scene {
       .map(([, pulse]) => pulse.kind);
   }
 
-  private drawAssistantPanelChrome(layout: ReturnType<typeof computePlayLayout>): void {
-    const panel = layout.assistantPanel;
-    const left = panel.x - panel.width / 2;
-    const top = panel.y - panel.height / 2;
-    const right = left + panel.width;
-    const bottom = top + panel.height;
-
-    this.assistantPanelChrome.clear();
-    this.assistantPanelChrome.fillStyle(uiPalette.panelTint, 0.7);
-    this.assistantPanelChrome.fillRect(left + 1, top + 1, panel.width - 2, 34);
-    this.assistantPanelChrome.lineStyle(1, uiPalette.stroke, 0.8);
-    this.assistantPanelChrome.lineBetween(left + 12, top + 35, right - 12, top + 35);
-    this.assistantPanelChrome.lineBetween(left + 12, top + 174, right - 12, top + 174);
-    this.assistantPanelChrome.lineBetween(left + 12, top + 296, right - 12, top + 296);
-    this.assistantPanelChrome.lineBetween(left + 12, bottom - 92, right - 12, bottom - 92);
-    this.assistantPanelChrome.fillStyle(uiPalette.strokeDark, 0.2);
-    this.assistantPanelChrome.fillRect(left + 106, top + 136, panel.width - 126, 4);
-    this.assistantPanelChrome.fillStyle(uiPalette.strokeDark, 0.62);
-    this.assistantPanelChrome.fillRect(left + 106, top + 136, Math.max(26, panel.width - 172), 4);
-    this.assistantPanelChrome.fillStyle(uiPalette.oxidizedGreen, 0.68);
-    this.assistantPanelChrome.fillCircle(right - 32, bottom - 42, 5);
-    this.assistantPanelChrome.fillCircle(right - 18, bottom - 42, 5);
-  }
-
-  private wienerMood(): WienerMood {
-    if (this.balance <= 10) {
-      return "alarm";
-    }
-
-    if (this.resolving && this.lastCost > this.lastPay) {
-      return "disappointed";
-    }
-
-    if (this.currentCuts.length >= 6) {
-      return "snark";
-    }
-
-    if (this.tutorialMode) {
-      return "teaching";
-    }
-
-    if (!this.currentFixture) {
-      return "idle";
-    }
-
-    return "neutral";
-  }
-
   private moveSentenceToReviewPosition(): void {
     const layout = computePlayLayout({ width: this.scale.width, height: this.scale.height });
     this.sentenceMotion = undefined;
     this.layoutPetWiener(layout);
     this.setSentenceY(layout.sentenceReviewY);
-  }
-
-  private showTokenStrip(fixture: TokenFixture, score?: RoundScoreResult): void {
-    const draftLayout = segmentationEvidenceLayout({
-      viewport: { width: this.scale.width, height: this.scale.height },
-      textPanel: this.qaRectFromBounds(this.textPanel.getBounds()),
-      compact: this.compactLayout,
-      lineCount: 2
-    });
-    this.tokenStripText.setText(segmentationEvidenceText(fixture.token_strings, {
-      compact: this.compactLayout,
-      maxCharsPerRow: draftLayout.maxCharsPerRow,
-      submittedCutCount: this.currentCuts.length,
-      truthBoundaryCount: fixture.boundary_positions.length,
-      correctCutCount: score?.correctCuts.length,
-      missedCutCount: score?.missedCuts.length,
-      falseCutCount: score?.falseCuts.length
-    }));
-    this.tokenStripText.setVisible(false);
-    this.tokenStripText.setAlpha(1);
-    this.segmentationEvidenceRevealStartedAt = undefined;
-    this.tokenEvidenceChrome?.clear();
-    this.tokenEvidenceChrome?.setVisible(false);
-    this.tokenEvidenceRect = undefined;
-    if (this.resolving) {
-      this.layoutPetWiener(computePlayLayout({ width: this.scale.width, height: this.scale.height }));
-      this.layoutRobotToast();
-    }
-  }
-
-  private updateSegmentationEvidenceReveal(): void {
-    if (this.segmentationEvidenceRevealStartedAt === undefined || !this.tokenStripText.visible) {
-      return;
-    }
-
-    const reveal = this.currentSegmentationEvidenceRevealState();
-    this.layoutSegmentationEvidence();
-    if (!reveal.active) {
-      this.segmentationEvidenceRevealStartedAt = undefined;
-    }
-  }
-
-  private currentSegmentationEvidenceRevealState(): SegmentationEvidenceRevealState {
-    return segmentationEvidenceRevealState({
-      elapsedMs: this.segmentationEvidenceRevealStartedAt === undefined
-        ? null
-        : this.baseNowMs() - this.segmentationEvidenceRevealStartedAt
-    });
-  }
-
-  private clearSegmentationEvidenceReveal(): void {
-    this.segmentationEvidenceRevealStartedAt = undefined;
-    this.tokenStripText?.setAlpha(1);
   }
 
   private toggleMute(): void {
@@ -4521,8 +3833,6 @@ export class PlayScene extends Phaser.Scene {
     this.renderCutStatus();
     this.updateResolveButtonState();
     this.updateClearButtonState();
-    this.refreshAssistantArtifact();
-    this.refreshTrainingFooter();
     this.writePlayQaSnapshot();
     if (clearedCutCount > 0) {
       this.audio.play("clear");
@@ -4542,8 +3852,7 @@ export class PlayScene extends Phaser.Scene {
     this.tutorialRuleTimer?.remove(false);
     this.tutorialFollowupTimer?.remove(false);
     this.tutorialReviewPanelTimer?.remove(false);
-    this.robotToastTimer?.remove(false);
-    this.tutorialPopupTimer?.remove(false);
+    this.wienerSpeechTimer?.remove(false);
     this.feedbackAdvanceTimer?.remove(false);
     this.clearReviewRevealTimers();
     this.clearResolutionRevealTimers();
@@ -4596,8 +3905,7 @@ export class PlayScene extends Phaser.Scene {
     this.tutorialTokenIdTimer?.remove(false);
     this.tutorialRuleTimer?.remove(false);
     this.tutorialFollowupTimer?.remove(false);
-    this.robotToastTimer?.remove(false);
-    this.tutorialPopupTimer?.remove(false);
+    this.wienerSpeechTimer?.remove(false);
     this.feedbackAdvanceTimer?.remove(false);
     this.clearReviewRevealTimers();
     this.clearResolutionRevealTimers();

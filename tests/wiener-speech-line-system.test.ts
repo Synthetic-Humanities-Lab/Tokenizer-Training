@@ -1,13 +1,13 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import linesJson from "../src/game/data/overseer_lines.json";
+import linesJson from "../src/game/data/wiener_speech_lines.json";
 import {
-  OVERSEER_EMERGENCY_LINE,
-  OverseerLineSystem,
-  validateOverseerLinesV2,
-  type OverseerLinesV2
-} from "../src/game/systems/OverseerLineSystem";
+  WIENER_SPEECH_EMERGENCY_LINE,
+  WienerSpeechLineSystem,
+  validateWienerSpeechLinesV2,
+  type WienerSpeechLinesV2
+} from "../src/game/systems/WienerSpeechLineSystem";
 import type { RoundScoreResult } from "../src/game/systems/ScoringSystem";
 
 function scoreWith(overrides: Partial<RoundScoreResult> = {}): RoundScoreResult {
@@ -24,7 +24,7 @@ function scoreWith(overrides: Partial<RoundScoreResult> = {}): RoundScoreResult 
   };
 }
 
-function minimalSchema(categories: OverseerLinesV2["categories"]): OverseerLinesV2 {
+function minimalSchema(categories: WienerSpeechLinesV2["categories"]): WienerSpeechLinesV2 {
   return {
     schema_version: 2,
     persona: {
@@ -46,7 +46,7 @@ function minimalSchema(categories: OverseerLinesV2["categories"]): OverseerLines
   };
 }
 
-function category(lines: string[]): OverseerLinesV2["categories"][string] {
+function category(lines: string[]): WienerSpeechLinesV2["categories"][string] {
   return {
     scene: "play",
     delivery: "bubble",
@@ -56,7 +56,7 @@ function category(lines: string[]): OverseerLinesV2["categories"][string] {
   };
 }
 
-describe("OverseerLineSystem", () => {
+describe("WienerSpeechLineSystem", () => {
   it("keeps FeedbackSystem off the old six-pool JSON contract", () => {
     const source = readFileSync(
       fileURLToPath(new URL("../src/game/systems/FeedbackSystem.ts", import.meta.url)),
@@ -72,7 +72,7 @@ describe("OverseerLineSystem", () => {
   });
 
   it("validates the runtime v2 category schema", () => {
-    const schema = validateOverseerLinesV2(linesJson);
+    const schema = validateWienerSpeechLinesV2(linesJson);
 
     expect(schema.schema_version).toBe(2);
     expect(schema.categories["play.resolve.missed"].lines.length).toBeGreaterThan(0);
@@ -85,7 +85,7 @@ describe("OverseerLineSystem", () => {
   });
 
   it("selects category lines deterministically by seed", () => {
-    const system = new OverseerLineSystem();
+    const system = new WienerSpeechLineSystem();
     const first = system.pick("play.resolve.missed", { seed: 0, remember: false });
     const second = system.pick("play.resolve.missed", { seed: 1, remember: false });
 
@@ -101,14 +101,14 @@ describe("OverseerLineSystem", () => {
       "play.resolve.good": category(["Only known line."])
     });
 
-    expect(new OverseerLineSystem(withRecordMissing).pick("missing.category", { remember: false }))
+    expect(new WienerSpeechLineSystem(withRecordMissing).pick("missing.category", { remember: false }))
       .toBe("Record missing fallback.");
-    expect(new OverseerLineSystem(withoutRecordMissing).pick("missing.category", { remember: false }))
-      .toBe(OVERSEER_EMERGENCY_LINE);
+    expect(new WienerSpeechLineSystem(withoutRecordMissing).pick("missing.category", { remember: false }))
+      .toBe(WIENER_SPEECH_EMERGENCY_LINE);
   });
 
   it("avoids immediate line repetition when alternatives exist", () => {
-    const system = new OverseerLineSystem(minimalSchema({
+    const system = new WienerSpeechLineSystem(minimalSchema({
       "play.resolve.good": category(["A", "B"])
     }));
 
@@ -118,7 +118,7 @@ describe("OverseerLineSystem", () => {
   });
 
   it("maps legacy aliases to v2 categories", () => {
-    const system = new OverseerLineSystem();
+    const system = new WienerSpeechLineSystem();
 
     expect(system.pickLegacy("good", { seed: 0, remember: false }))
       .toBe(linesJson.categories["play.resolve.perfect"].lines[0]);
@@ -135,7 +135,7 @@ describe("OverseerLineSystem", () => {
   });
 
   it("classifies resolve and round-start contexts without mutating gameplay inputs", () => {
-    const system = new OverseerLineSystem();
+    const system = new WienerSpeechLineSystem();
 
     expect(system.categoryForResolve(scoreWith())).toBe("play.resolve.perfect");
     expect(system.categoryForResolve(scoreWith({ missedCuts: [7] }))).toBe("play.resolve.missed");
@@ -167,7 +167,7 @@ describe("OverseerLineSystem", () => {
   });
 
   it("rejects empty categories before runtime selection", () => {
-    expect(() => validateOverseerLinesV2(minimalSchema({
+    expect(() => validateWienerSpeechLinesV2(minimalSchema({
       "play.resolve.good": category([])
     }))).toThrow(/at least one line/);
   });

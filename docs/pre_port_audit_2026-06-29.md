@@ -61,66 +61,49 @@ This should stay fixed before mobile packaging because page title, WebView acces
 
 Recommended action: preserve the compatibility readers while deleting unrelated stale UI systems in later cleanup passes.
 
-### 2. PlayScene Owns Too Many Dead or Hidden UI Systems
+### 2. Hidden PlayScene UI Surfaces Removed
 
-`PlayScene.ts` still constructs and updates legacy surfaces that current layout flags hide:
+PlayScene no longer constructs hidden side brand, side assistant, footer, overseer, detached tutorial popup, or separate token-strip review surfaces.
 
-- side brand panel: `brandPanel`, `layoutBrandPanel`
-- side assistant panel: `assistantPanel`, `layoutAssistantArtifact`, `assistantPanelText`
-- footer panel: `trainingFooterGraphics`, `refreshTrainingFooter`
-- overseer panel: `OverseerPanel`, `computeOverseerPanelLayout`
-- tutorial popup shell: `tutorialPopup*`, `showTutorialPopup`, `layoutTutorialPopup`
+The current visible play contract is:
 
-`PlayLayoutSystem.ts` now hardcodes `sideAssistant = false`, `sideBrandPanel = false`, and `footerHeight = 0`. The runtime still pays the complexity cost for these hidden paths.
+- HUD
+- playfield and static prompt lane
+- one pet Wiener and one header logo Wiener
+- one Wiener speech bubble
+- feedback card
+- bottom controls
+- cut and token review evidence inside the feedback card
 
-Recommended action: delete hidden side/footer/assistant/tutorial-popup surfaces in stages. Keep only the visible HUD, playfield, pet Wiener, pet speech bubble, feedback card, controls, token/cut evidence, and QA geometry needed for those surfaces.
+Recommended action: keep future mobile work inside this smaller surface set. Reintroduce a second text panel only if it has a separate product job and a tested geometry contract.
 
-### 3. Speech System Is Conceptually Right but Poorly Named
+### 3. Speech System Naming Cleaned Up
 
-The current visible behavior is one pet Wiener speech bubble, but the implementation still uses robot/overseer names:
+The current visible behavior is one pet Wiener speech bubble. The runtime path is now named around that behavior:
 
-- `RobotCommentSystem.ts`
-- `robotToastPanel`, `robotToastText`, `setRobotComment`, `showRobotToast`
-- `FeedbackSummary.overseer`
-- `OverseerLineSystem`
-- `src/game/data/overseer_lines.json`
+- `WienerSpeechSystem.ts`
+- `wienerSpeechPanel`, `wienerSpeechText`, `setWienerSpeech`
+- `FeedbackSummary.wienerSpeech`
+- `WienerSpeechLineSystem`
+- `src/game/data/wiener_speech_lines.json`
 
-Some of this is only naming debt, but naming matters here because bugs have repeatedly come from two or more supposed speech sources competing onscreen.
+`WienerSpeechLineSystem` remains a content selector only. It does not imply a second UI panel.
 
-Recommended action: rename the live system to `PetSpeechSystem` or `WienerSpeechSystem`, rename runtime fields from `robotToast*` to `petSpeech*`, and decide whether `OverseerLineSystem` remains as a content selector only. If it remains, it should not imply a second UI panel.
+### 4. Tutorial Copy No Longer Uses Popup-Shaped Names
 
-### 4. Tutorial Copy Still Carries the Old Popup Timeline
-
-`TutorialSystem.ts` has ten rounds, and each round still carries many popup-specific fields:
-
-- `popupBody`
-- `mechanicsPopupBody`
-- `bytePopupBody`
-- `tokenIdPopupBody`
-- `rulePopupBody`
-- `followupPopupBody`
-- `resolvePopupBody`
-- matching line fields
-
-The current product direction is not separate memo-card/tutorial popup behavior; instruction should come from the pet Wiener and review pause. The code has already made `showTutorialPopup` hide the popup and mirror body copy into Wiener speech, which means the old data shape is misleading.
-
-Recommended action: collapse tutorial content into a smaller script surface:
+`TutorialSystem.ts` still owns the ten-round route, but popup-shaped names have been removed. The current naming distinguishes:
 
 - prompt intro line
 - active instruction line
-- optional teaching explanation
+- teaching explanations
 - review explanation
-- pass/mixed/fail reaction
+- pass/mixed/fail review reactions
 
-Keep the existing tutorial facts, but remove popup-oriented field names after tests are updated.
+Instruction now comes from the pet Wiener speech bubble and the review pause. Detached memo-card/tutorial popup behavior should stay out of this pass.
 
-### 5. Review Evidence Exists in Two Places
+### 5. Review Evidence Has One Visible Owner
 
-The visible feedback card now includes token split text through `FeedbackSystem.tokenSplitLine()`, and the old `tokenStripText` / `SegmentationEvidenceSystem` path still exists for staged review evidence and QA.
-
-This has produced exactly the visual confusion the user reported: one card explains cost and another area explains tokenization. The code currently works, but the ownership is not clear.
-
-Recommended action: pick one canonical review-evidence component. Prefer folding the visible token split into `FeedbackCard` and keeping any separate `tokenStripText` only as a hidden QA/transition implementation detail, or deleting it entirely after QA exposes feedback-card token split geometry.
+Review token evidence now belongs to the feedback card through `FeedbackSystem.tokenSplitLine()` and `FeedbackCard.qaState()`. The old `tokenStripText` / `SegmentationEvidenceSystem` path has been removed so token evidence and cost feedback no longer compete in two visible places.
 
 ### 6. Fixture/Input Model Is Valuable and Should Not Be Rewritten
 
@@ -134,21 +117,21 @@ The fixture validator and input model are doing important work:
 
 Recommended action: preserve these systems during cleanup. For mobile work, add real-device/simulator tests around them rather than replacing them.
 
-### 7. Tests Are Green but Some Tests Preserve Stale Concepts
+### 7. Tests Now Assert the Current Visible Contract
 
-Examples:
+Updated coverage now asserts the current visible surface contract:
 
-- `tests/tutorial-popup-layout.test.ts` still validates popup layout.
-- `tests/overseer-panel.test.ts` still validates the hidden overseer panel.
-- `tests/robot-comment.test.ts` validates a robot-named system that is actually pet speech.
-- `tests/browser-qa-evidence.test.ts` and older docs repeatedly encode stale popup/overseer/moving-text screenshots.
-- Product-name expectations have been updated to `Tokenizer Training`; the remaining stale concepts are mostly hidden surfaces, robot/overseer naming, tutorial-popup terminology, and historical screenshot evidence.
+- removed layout tests for deleted popup and overseer panel systems;
+- renamed pet speech tests around `WienerSpeechSystem`;
+- moved review token split expectations to the feedback-card QA surface;
+- kept negative QA assertions that deleted surfaces are absent;
+- added `docs/current_surface_contract.md` as the current browser-QA contract.
 
-Recommended action: update tests by contract, not by deleting coverage. Replace hidden-surface tests with assertions that only the intended UI surface exists and that pet speech, feedback, touch targets, and review evidence remain non-overlapping.
+Recommended action: keep future tests contract-based. Historical browser-QA screenshots can remain as evidence of prior defects, but they should not define current UI requirements.
 
 ### 8. Docs and Artifacts Are Stale Enough to Mislead Future Work
 
-Several docs describe earlier builds with moving text, overseer panels, robot popups, side assistant panels, or older QA IDs. The docs are useful historical evidence, but they should not be treated as current requirements.
+Several older docs describe earlier builds with moving text, overseer panels, robot popups, side assistant panels, or older QA IDs. The docs are useful historical evidence, but they should not be treated as current requirements.
 
 Addressed since the original audit:
 
@@ -157,6 +140,8 @@ Addressed since the original audit:
 - The local readiness audit now requires `docs/playtest_operations.md`.
 - Product-facing copy now uses `Tokenizer Training`; legacy `tokenization-training.*`, `manual-tokenization-training.*`, and `mtt-*` support remains compatibility-only.
 - `.gitignore` excludes dependency/build/archive artifacts.
+- `docs/current_surface_contract.md` names the authoritative current surfaces.
+- `tests/browser-qa-evidence.test.ts` now checks the current contract docs instead of preserving old screenshot requirements.
 
 Artifact/noise candidates:
 
@@ -168,24 +153,22 @@ Artifact/noise candidates:
 
 Recommended action: keep the README and `docs/playtest_operations.md` as the current entry points, then split older browser-QA/history docs into `current/` versus `archive/` or add a current-state index that names authoritative docs. Do not let old screenshot docs define current UI contracts.
 
-## Deletion Candidates
+## Cleanup Result
 
-Do not delete all of these at once. Delete in small passes with tests after each pass.
+Completed in this pass:
 
-High-confidence candidates after type/test migration:
+- deleted detached tutorial popup layout code;
+- deleted the hidden overseer panel UI;
+- removed side brand, side assistant, and footer ownership from `PlayScene.ts`;
+- renamed robot/comment and overseer-line runtime paths to Wiener speech naming;
+- removed the separate token strip / segmentation evidence rendering path;
+- moved review token split QA to `feedbackTokenSplit`.
 
-- drawn `drawWienerGlyph` implementation in `src/game/ui/WienerGlyph.ts`; keep or move only the mood type if still needed.
-- `TutorialPopupLayoutSystem.ts` and `tutorialPopup*` scene fields if no visible tutorial popup is reintroduced.
-- `OverseerPanel.ts` and `computeOverseerPanelLayout` if the bottom/side overseer panel remains permanently removed.
-- side brand panel construction/layout in `PlayScene.ts`.
-- side assistant panel construction/layout in `PlayScene.ts`.
-- training footer construction/layout in `PlayScene.ts`.
+Remaining candidates:
 
-Conditional candidates:
-
-- `OverseerLineSystem.ts` and `src/game/data/overseer_lines.json`: keep if used as randomized Wiener line source; rename if kept.
-- `tokenStripText` / `SegmentationEvidenceSystem`: keep only if it remains the canonical review evidence, otherwise fold into feedback-card QA.
-- `TutorialScene.ts`: it only redirects to `PlayScene`; can be removed if all launch paths go through `BootScene` or direct `PlayScene`.
+- drawn `drawWienerGlyph` implementation in `src/game/ui/WienerGlyph.ts`, if no current menu or test path still needs it.
+- `TutorialScene.ts`: it only redirects to `PlayScene`; remove only if all launch paths go through `BootScene` or direct `PlayScene`.
+- historical browser-QA files can be moved under an archive folder in a docs-only pass.
 
 Do not delete:
 
@@ -199,14 +182,11 @@ Do not delete:
 
 1. Complete: restore a real Git working tree and push it to GitHub.
 2. Complete: product rename in constants, `index.html`, visible copy, tests, copied summaries, and current docs.
-3. Next: extract/rename the pet speech path:
-   - `RobotCommentSystem` -> pet/Wiener speech naming;
-   - `robotToast*` -> `petSpeech*`;
-   - remove the hidden overseer UI panel if no longer visible.
-4. Delete hidden side/footer/assistant PlayScene surfaces, one group per commit/pass.
-5. Collapse tutorial content fields away from popup terminology.
-6. Decide the single review evidence owner and remove the redundant visible/hidden token strip confusion.
-7. Update QA snapshots/tests to assert current surfaces only.
+3. Complete: renamed the pet speech path and kept `WienerSpeechLineSystem` as a content selector only.
+4. Complete: deleted hidden side/footer/assistant/overseer/tutorial-popup PlayScene surfaces.
+5. Complete: renamed tutorial content away from popup terminology.
+6. Complete: made the feedback card the single review evidence owner.
+7. Complete: updated QA snapshots/tests to assert current surfaces only.
 8. Run `npm run generate:fixtures`, `npm run test`, and `npm run build`.
 9. Only then start mobile wrapper work with XcodeBuildMCP.
 
@@ -218,10 +198,4 @@ Start a new chat for the mobile app port after cleanup. The mobile port will nee
 
 ## Immediate Next Step
 
-The most useful first code pass is not the mobile port. It is a small cleanup PR/pass:
-
-1. Keep the `Tokenizer Training` identity checkpoint stable while deleting stale UI surfaces.
-2. Rename robot/toast internals to pet speech without changing behavior.
-3. Delete the hidden tutorial popup UI objects if tests confirm they never render.
-
-That gets the game closer to a single coherent surface before touch-specific packaging.
+Validate the cleanup pass, then run a fresh browser smoke at desktop, portrait phone, and small-phone viewports. Mobile wrapper work should start only after those checks are green and the local Xcode simulator tooling is available.

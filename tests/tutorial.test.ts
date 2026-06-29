@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import fixturesJson from "../src/game/data/fixtures.json";
 import { SwipeCutSystem } from "../src/game/systems/SwipeCutSystem";
 import {
-  compactTutorialPopupTitle,
+  compactTutorialSpeechTitle,
   TUTORIAL_ROUND_DURATION_MS,
   TutorialSystem
 } from "../src/game/systems/TutorialSystem";
@@ -40,53 +40,53 @@ describe("TutorialSystem", () => {
       expect(round.fixtureId.length).toBeGreaterThan(0);
       expect(round.exampleText.length).toBeGreaterThan(3);
       expect(round.explanation.length).toBeGreaterThan(24);
-      expect(round.popupBody).toContain("WIENER");
-      expect(round.popupBody.length).toBeGreaterThan(80);
-      expect(round.mechanicsPopupBody).toContain("WIENER");
-      expect(round.mechanicsPopupBody.length).toBeGreaterThan(80);
-      expect(round.mechanicsPopupBody.length).toBeLessThanOrEqual(190);
-      expect(round.mechanicsPopupBody).toMatch(/\b(token|tokens|tokenizer|BPE|byte|chunk|chunks|merge)\b/i);
-      expect(round.bytePopupBody).toContain("WIENER");
-      expect(round.bytePopupBody.length).toBeGreaterThan(80);
-      expect(round.bytePopupBody.length).toBeLessThanOrEqual(190);
-      expect(round.bytePopupBody).toMatch(/\b(UTF-8|byte|bytes|BPE|merge|token|tokens|chunk|chunks)\b/i);
-      expect(round.tokenIdPopupBody).toContain("WIENER");
-      expect(round.tokenIdPopupBody.length).toBeGreaterThan(80);
-      expect(round.tokenIdPopupBody.length).toBeLessThanOrEqual(190);
-      expect(round.tokenIdPopupBody).toMatch(/\b(token ID|token IDs|ID|IDs|integer|integers|model|billable)\b/i);
-      expect(round.rulePopupBody).toContain("WIENER");
-      expect(round.rulePopupBody.length).toBeGreaterThan(80);
-      expect(round.rulePopupBody.length).toBeLessThanOrEqual(180);
-      expect(round.rulePopupBody).toMatch(/\b(token|tokens|tokenizer|BPE|byte|chunk|chunks|merge)\b/i);
-      expect(round.followupPopupBody).toContain("WIENER");
-      expect(round.followupPopupBody.length).toBeGreaterThan(80);
-      expect(round.followupPopupBody.length).toBeLessThanOrEqual(180);
-      expect(round.followupPopupBody).toMatch(/\b(token|tokens|tokenizer|BPE|byte|chunk|chunks)\b/i);
-      expect(round.resolvePopupBody.length).toBeGreaterThan(60);
+      expect(round.script.promptIntroLine).toContain("WIENER");
+      expect(round.script.promptIntroLine.length).toBeGreaterThan(80);
+      expect(round.script.teachingExplanations.mechanics).toContain("WIENER");
+      expect(round.script.teachingExplanations.mechanics.length).toBeGreaterThan(80);
+      expect(round.script.teachingExplanations.mechanics.length).toBeLessThanOrEqual(190);
+      expect(round.script.teachingExplanations.mechanics).toMatch(/\b(token|tokens|tokenizer|BPE|byte|chunk|chunks|merge)\b/i);
+      expect(round.script.teachingExplanations.byteRoute).toContain("WIENER");
+      expect(round.script.teachingExplanations.byteRoute.length).toBeGreaterThan(80);
+      expect(round.script.teachingExplanations.byteRoute.length).toBeLessThanOrEqual(190);
+      expect(round.script.teachingExplanations.byteRoute).toMatch(/\b(UTF-8|byte|bytes|BPE|merge|token|tokens|chunk|chunks)\b/i);
+      expect(round.script.teachingExplanations.tokenIds).toContain("WIENER");
+      expect(round.script.teachingExplanations.tokenIds.length).toBeGreaterThan(80);
+      expect(round.script.teachingExplanations.tokenIds.length).toBeLessThanOrEqual(190);
+      expect(round.script.teachingExplanations.tokenIds).toMatch(/\b(token ID|token IDs|ID|IDs|integer|integers|model|billable)\b/i);
+      expect(round.script.teachingExplanations.workRule).toContain("WIENER");
+      expect(round.script.teachingExplanations.workRule.length).toBeGreaterThan(80);
+      expect(round.script.teachingExplanations.workRule.length).toBeLessThanOrEqual(180);
+      expect(round.script.teachingExplanations.workRule).toMatch(/\b(token|tokens|tokenizer|BPE|byte|chunk|chunks|merge)\b/i);
+      expect(round.script.teachingExplanations.followup).toContain("WIENER");
+      expect(round.script.teachingExplanations.followup.length).toBeGreaterThan(80);
+      expect(round.script.teachingExplanations.followup.length).toBeLessThanOrEqual(180);
+      expect(round.script.teachingExplanations.followup).toMatch(/\b(token|tokens|tokenizer|BPE|byte|chunk|chunks)\b/i);
+      expect(round.script.reviewExplanation.length).toBeGreaterThan(60);
       expect(round.teachingPoint.length).toBeGreaterThan(12);
-      expect(round.activeLine.length).toBeGreaterThan(24);
-      expect(round.activeLine.length).toBeLessThanOrEqual(92);
-      expect(round.mechanicsLine.length).toBeGreaterThan(24);
-      expect(round.mechanicsLine.length).toBeLessThanOrEqual(92);
-      expect(round.byteLine.length).toBeGreaterThan(24);
-      expect(round.byteLine.length).toBeLessThanOrEqual(92);
-      expect(round.tokenIdLine.length).toBeGreaterThan(24);
-      expect(round.tokenIdLine.length).toBeLessThanOrEqual(92);
-      expect(round.tokenIdLine).toMatch(/\b(ID|IDs|token|tokens|bill|billable|model)\b/i);
-      expect(round.ruleLine.length).toBeGreaterThan(24);
-      expect(round.ruleLine.length).toBeLessThanOrEqual(92);
-      expect(round.followupLine.length).toBeGreaterThan(24);
-      expect(round.followupLine.length).toBeLessThanOrEqual(92);
-      expect(round.resolveLine.length).toBeGreaterThan(12);
-      expect(round.resolveGoodLine.length).toBeGreaterThan(24);
-      expect(round.resolveMixedLine.length).toBeGreaterThan(24);
-      expect(round.resolveBadLine.length).toBeGreaterThan(24);
+      expect(round.script.activeInstructionLine.length).toBeGreaterThan(24);
+      expect(round.script.activeInstructionLine.length).toBeLessThanOrEqual(92);
+      expect(round.script.stageInstructionLines.mechanics.length).toBeGreaterThan(24);
+      expect(round.script.stageInstructionLines.mechanics.length).toBeLessThanOrEqual(92);
+      expect(round.script.stageInstructionLines.byteRoute.length).toBeGreaterThan(24);
+      expect(round.script.stageInstructionLines.byteRoute.length).toBeLessThanOrEqual(92);
+      expect(round.script.stageInstructionLines.tokenIds.length).toBeGreaterThan(24);
+      expect(round.script.stageInstructionLines.tokenIds.length).toBeLessThanOrEqual(92);
+      expect(round.script.stageInstructionLines.tokenIds).toMatch(/\b(ID|IDs|token|tokens|bill|billable|model)\b/i);
+      expect(round.script.stageInstructionLines.workRule.length).toBeGreaterThan(24);
+      expect(round.script.stageInstructionLines.workRule.length).toBeLessThanOrEqual(92);
+      expect(round.script.stageInstructionLines.followup.length).toBeGreaterThan(24);
+      expect(round.script.stageInstructionLines.followup.length).toBeLessThanOrEqual(92);
+      expect(round.script.reviewLine.length).toBeGreaterThan(12);
+      expect(round.script.reviewReactions.pass.length).toBeGreaterThan(24);
+      expect(round.script.reviewReactions.mixed.length).toBeGreaterThan(24);
+      expect(round.script.reviewReactions.fail.length).toBeGreaterThan(24);
       expect(typeof round.showTargetHints).toBe("boolean");
       expect(round.instructionWindowMs).toBeGreaterThan(4000);
     }
   });
 
-  it("keeps active tutorial prompts short enough for the overseer panel", () => {
+  it("keeps active tutorial prompts short enough for the Wiener speech bubble", () => {
     const tutorial = new TutorialSystem();
 
     tutorial.all().forEach((_, index) => {
@@ -126,39 +126,39 @@ describe("TutorialSystem", () => {
     });
   });
 
-  it("builds robot popup instructions for tutorial windows", () => {
+  it("builds Wiener speech instructions for tutorial windows", () => {
     const tutorial = new TutorialSystem();
 
     tutorial.all().forEach((round, index) => {
-      const intro = tutorial.introPopupFor(index);
-      const mechanics = tutorial.mechanicsPopupFor(index);
-      const byte = tutorial.bytePopupFor(index);
-      const tokenIds = tutorial.tokenIdPopupFor(index);
-      const rule = tutorial.rulePopupFor(index);
-      const followup = tutorial.followupPopupFor(index);
-      const review = tutorial.resolvePopupFor(index);
+      const intro = tutorial.introSpeechFor(index);
+      const mechanics = tutorial.mechanicsExplanationFor(index);
+      const byte = tutorial.byteRouteExplanationFor(index);
+      const tokenIds = tutorial.tokenIdExplanationFor(index);
+      const rule = tutorial.workRuleExplanationFor(index);
+      const followup = tutorial.followupExplanationFor(index);
+      const review = tutorial.reviewExplanationFor(index);
 
       expect(intro.title).toContain(`TUTORIAL ${index + 1}/${tutorial.count()}`);
       expect(intro.title).toContain(round.title);
-      expect(intro.body).toBe(round.popupBody);
+      expect(intro.body).toBe(round.script.promptIntroLine);
       expect(intro.body).toContain("WIENER");
       expect(mechanics.title).toContain(`MECHANICS ${index + 1}/${tutorial.count()}`);
-      expect(mechanics.body).toBe(round.mechanicsPopupBody);
+      expect(mechanics.body).toBe(round.script.teachingExplanations.mechanics);
       expect(mechanics.body).toContain("WIENER");
       expect(byte.title).toContain(`BYTE ROUTE ${index + 1}/${tutorial.count()}`);
-      expect(byte.body).toBe(round.bytePopupBody);
+      expect(byte.body).toBe(round.script.teachingExplanations.byteRoute);
       expect(byte.body).toContain("WIENER");
       expect(tokenIds.title).toContain(`TOKEN IDS ${index + 1}/${tutorial.count()}`);
-      expect(tokenIds.body).toBe(round.tokenIdPopupBody);
+      expect(tokenIds.body).toBe(round.script.teachingExplanations.tokenIds);
       expect(tokenIds.body).toContain("WIENER");
       expect(rule.title).toContain(`WORK RULE ${index + 1}/${tutorial.count()}`);
-      expect(rule.body).toBe(round.rulePopupBody);
+      expect(rule.body).toBe(round.script.teachingExplanations.workRule);
       expect(rule.body).toContain("WIENER");
       expect(followup.title).toContain(`TECH NOTE ${index + 1}/${tutorial.count()}`);
-      expect(followup.body).toBe(round.followupPopupBody);
+      expect(followup.body).toBe(round.script.teachingExplanations.followup);
       expect(followup.body).toContain("WIENER");
       expect(review.title).toContain(`REVIEW ${index + 1}/${tutorial.count()}`);
-      expect(review.body).toBe(round.resolvePopupBody);
+      expect(review.body).toBe(round.script.reviewExplanation);
     });
   });
 
@@ -204,23 +204,23 @@ describe("TutorialSystem", () => {
   it("keeps live tutorial speech aligned with visible UI language", () => {
     const tutorial = new TutorialSystem();
     const publicTutorialCopy = tutorial.all().flatMap((round, index) => [
-      round.popupBody,
-      round.mechanicsPopupBody,
-      round.bytePopupBody,
-      round.tokenIdPopupBody,
-      round.rulePopupBody,
-      round.followupPopupBody,
-      round.resolvePopupBody,
-      round.activeLine,
-      round.mechanicsLine,
-      round.byteLine,
-      round.tokenIdLine,
-      round.ruleLine,
-      round.followupLine,
-      round.resolveLine,
+      round.script.promptIntroLine,
+      round.script.teachingExplanations.mechanics,
+      round.script.teachingExplanations.byteRoute,
+      round.script.teachingExplanations.tokenIds,
+      round.script.teachingExplanations.workRule,
+      round.script.teachingExplanations.followup,
+      round.script.reviewExplanation,
+      round.script.activeInstructionLine,
+      round.script.stageInstructionLines.mechanics,
+      round.script.stageInstructionLines.byteRoute,
+      round.script.stageInstructionLines.tokenIds,
+      round.script.stageInstructionLines.workRule,
+      round.script.stageInstructionLines.followup,
+      round.script.reviewLine,
       tutorial.activePromptFor(index),
       tutorial.introPromptFor(index),
-      tutorial.resolvePopupFor(index).body,
+      tutorial.reviewExplanationFor(index).body,
       tutorial.reviewSpeechFor(index, { correctCuts: 1, missedCuts: 2, falseCuts: 0 }),
       tutorial.reviewSpeechFor(index, { correctCuts: 1, missedCuts: 0, falseCuts: 2 }),
       tutorial.reviewSpeechFor(index, { correctCuts: 1, missedCuts: 1, falseCuts: 1 })
@@ -234,58 +234,58 @@ describe("TutorialSystem", () => {
     }
   });
 
-  it("uses short staged tutorial popups for tokenization mechanics", () => {
+  it("uses short staged tutorial speech lines for tokenization mechanics", () => {
     const tutorial = new TutorialSystem();
 
     expect(TUTORIAL_ROUND_DURATION_MS).toBe(32000);
-    expect(tutorial.introPopupWindowMs()).toBe(4300);
-    expect(tutorial.mechanicsPopupWindowMs()).toBe(4600);
-    expect(tutorial.bytePopupWindowMs()).toBe(4300);
-    expect(tutorial.tokenIdPopupWindowMs()).toBe(4100);
-    expect(tutorial.rulePopupWindowMs()).toBe(4300);
-    expect(tutorial.followupPopupWindowMs()).toBe(4600);
+    expect(tutorial.introSpeechWindowMs()).toBe(4300);
+    expect(tutorial.mechanicsSpeechWindowMs()).toBe(4600);
+    expect(tutorial.byteRouteSpeechWindowMs()).toBe(4300);
+    expect(tutorial.tokenIdSpeechWindowMs()).toBe(4100);
+    expect(tutorial.workRuleSpeechWindowMs()).toBe(4300);
+    expect(tutorial.followupSpeechWindowMs()).toBe(4600);
     tutorial.all().forEach((round, index) => {
-      const mechanics = tutorial.mechanicsPopupFor(index);
-      const byte = tutorial.bytePopupFor(index);
-      const tokenIds = tutorial.tokenIdPopupFor(index);
-      const rule = tutorial.rulePopupFor(index);
-      const popup = tutorial.followupPopupFor(index);
+      const mechanics = tutorial.mechanicsExplanationFor(index);
+      const byte = tutorial.byteRouteExplanationFor(index);
+      const tokenIds = tutorial.tokenIdExplanationFor(index);
+      const rule = tutorial.workRuleExplanationFor(index);
+      const followup = tutorial.followupExplanationFor(index);
 
       expect(mechanics.title).toBe(`WIENER - MECHANICS ${index + 1}/${tutorial.count()}`);
-      expect(mechanics.body).toBe(round.mechanicsPopupBody);
+      expect(mechanics.body).toBe(round.script.teachingExplanations.mechanics);
       expect(mechanics.body).toMatch(/\b(token|tokens|tokenizer|BPE|byte|chunk|chunks|merge)\b/i);
       expect(byte.title).toBe(`WIENER - BYTE ROUTE ${index + 1}/${tutorial.count()}`);
-      expect(byte.body).toBe(round.bytePopupBody);
+      expect(byte.body).toBe(round.script.teachingExplanations.byteRoute);
       expect(byte.body).toMatch(/\b(UTF-8|byte|bytes|BPE|merge|token|tokens|chunk|chunks)\b/i);
       expect(tokenIds.title).toBe(`WIENER - TOKEN IDS ${index + 1}/${tutorial.count()}`);
-      expect(tokenIds.body).toBe(round.tokenIdPopupBody);
+      expect(tokenIds.body).toBe(round.script.teachingExplanations.tokenIds);
       expect(tokenIds.body).toMatch(/\b(token ID|token IDs|ID|IDs|integer|integers|model|billable)\b/i);
       expect(rule.title).toBe(`WIENER - WORK RULE ${index + 1}/${tutorial.count()}`);
-      expect(rule.body).toBe(round.rulePopupBody);
+      expect(rule.body).toBe(round.script.teachingExplanations.workRule);
       expect(rule.body).toMatch(/\b(token|tokens|tokenizer|BPE|byte|chunk|chunks|merge)\b/i);
-      expect(popup.title).toBe(`WIENER - TECH NOTE ${index + 1}/${tutorial.count()}`);
-      expect(popup.body).toBe(round.followupPopupBody);
-      expect(popup.body).toMatch(/\b(token|tokens|tokenizer|BPE|byte|chunk|chunks)\b/i);
+      expect(followup.title).toBe(`WIENER - TECH NOTE ${index + 1}/${tutorial.count()}`);
+      expect(followup.body).toBe(round.script.teachingExplanations.followup);
+      expect(followup.body).toMatch(/\b(token|tokens|tokenizer|BPE|byte|chunk|chunks)\b/i);
     });
   });
 
-  it("keeps compact popup titles short without mutating full tutorial titles", () => {
+  it("keeps compact speech titles short without mutating full tutorial titles", () => {
     const tutorial = new TutorialSystem();
-    const fullTitle = tutorial.introPopupFor(5).title;
+    const fullTitle = tutorial.introSpeechFor(5).title;
 
     expect(fullTitle).toBe("WIENER - TUTORIAL 6/10: Contractions");
-    expect(compactTutorialPopupTitle(fullTitle)).toBe("WIENER - TUTORIAL 6/10");
-    expect(compactTutorialPopupTitle(tutorial.resolvePopupFor(5).title)).toBe(
+    expect(compactTutorialSpeechTitle(fullTitle)).toBe("WIENER - TUTORIAL 6/10");
+    expect(compactTutorialSpeechTitle(tutorial.reviewExplanationFor(5).title)).toBe(
       "WIENER - REVIEW 6/10"
     );
   });
 
-  it("keeps tutorial review popups inside the review window", () => {
+  it("keeps tutorial review speech inside the review window", () => {
     const tutorial = new TutorialSystem();
 
-    expect(tutorial.reviewPopupWindowMs(4200)).toBe(3750);
-    expect(tutorial.reviewPopupWindowMs(7600)).toBe(5600);
-    expect(tutorial.reviewPopupWindowMs(0)).toBe(0);
+    expect(tutorial.reviewSpeechWindowMs(4200)).toBe(3750);
+    expect(tutorial.reviewSpeechWindowMs(7600)).toBe(5600);
+    expect(tutorial.reviewSpeechWindowMs(0)).toBe(0);
   });
 
   it("keeps later tutorial prompts actionable after target hints are removed", () => {
@@ -364,6 +364,6 @@ describe("TutorialSystem", () => {
     const economyRound = new TutorialSystem().all().at(-1)!;
 
     expect(economyRound.explanation).toContain("Zero balance ends the shift");
-    expect(economyRound.resolveLine).toContain("net changes balance");
+    expect(economyRound.script.reviewLine).toContain("net changes balance");
   });
 });
