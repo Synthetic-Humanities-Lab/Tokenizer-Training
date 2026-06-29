@@ -88,7 +88,7 @@ export function renderPlaytestLinks(options: PlaytestLinkRenderOptions): string 
   });
 
   return [
-    "Tokenization Training playtest links",
+    "Tokenizer Training playtest links",
     "",
     "Start same-network touch-device testing with a strict playtest port:",
     `  ${playtestLanServerCommand(options.port)}`,

@@ -1,4 +1,4 @@
-# Tokenization Training Playtest Rollup
+# Tokenizer Training Playtest Rollup
 
 Use this after five completed tester sessions. Do not use it to smooth over
 contradictory evidence: failed, missing, or ambiguous notes should stay visible.

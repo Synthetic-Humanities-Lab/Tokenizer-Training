@@ -70,7 +70,7 @@ export function renderPlaytestStatusReport(report: PlaytestStatusReport): string
   const nextSessionLine = nextSessionStatusLine(report);
   const nextCommands = nextPlaytestStatusCommandLines(report);
   const lines = [
-    "Tokenization Training playtest session status",
+    "Tokenizer Training playtest session status",
     `Completed notes: ${report.completeCount}/${report.statuses.length}`,
     `Completed real mobile/touch notes: ${report.mobileCount}`,
     `Mobile metadata notes: ${report.mobileMetadataCount}`,

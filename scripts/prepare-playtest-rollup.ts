@@ -33,7 +33,7 @@ export function preparePlaytestRollup(options: PlaytestRollupSetupOptions): Prep
 export function renderPreparedPlaytestRollup(rollup: PreparedPlaytestRollup): string {
   const status = rollup.created ? "created" : "kept";
   return [
-    "Tokenization Training playtest rollup file",
+    "Tokenizer Training playtest rollup file",
     "",
     `  ${status}: ${rollup.file}`
   ].join("\n");

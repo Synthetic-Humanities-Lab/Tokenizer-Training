@@ -47,7 +47,7 @@ describe("playtest visual QA link generation", () => {
       port: "5180"
     });
 
-    expect(rendered).toContain("Tokenization Training internal visual QA links");
+    expect(rendered).toContain("Tokenizer Training internal visual QA links");
     expect(rendered).toContain("npm run playtest:qa-links -- --port <printed-port>");
     expect(rendered).toContain("Do not use these URLs for tester sessions or real mobile evidence.");
     expect(rendered).toContain("qaViewport fixes the internal Phaser canvas size.");

@@ -33,7 +33,7 @@ describe("playtest server doctor", () => {
   it("renders strict serve commands when the playtest port is available", () => {
     const rendered = renderPlaytestServerDoctor(report());
 
-    expect(rendered).toContain("Tokenization Training playtest server doctor");
+    expect(rendered).toContain("Tokenizer Training playtest server doctor");
     expect(rendered).toContain("Strict same-machine bind: PASS");
     expect(rendered).toContain("Strict LAN bind: PASS");
     expect(rendered).toContain("LAN host candidates: 192.168.1.20");

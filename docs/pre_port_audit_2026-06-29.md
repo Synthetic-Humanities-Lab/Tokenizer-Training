@@ -1,8 +1,8 @@
-# Tokenization Training Pre-Port Audit - 2026-06-29
+# Tokenizer Training Pre-Port Audit - 2026-06-29
 
 ## Scope
 
-This audit is a pre-port cleanup pass for the current Phaser/Vite Tokenization Training context pack. It focuses on redundant systems, stale visual/copy paths, mobile-touch readiness, and deletion candidates before any mobile app wrapper work.
+This audit is a pre-port cleanup pass for the current Phaser/Vite Tokenizer Training context pack. It focuses on redundant systems, stale visual/copy paths, mobile-touch readiness, and deletion candidates before any mobile app wrapper work.
 
 The working directory is not a Git checkout. `git status --short` fails at both the workspace root and `manual_tokenization_codex_context_pack/` with `fatal: not a git repository`. Treat this folder as a context pack until it is moved back into a real repository.
 
@@ -38,26 +38,26 @@ Conclusion: the plugin is callable, but local simulator tooling is not ready. Mo
   - `TouchAimLoupeSystem.ts`
   - `InputFeelMetricsSystem.ts`
   - `HapticFeedbackSystem.ts`
-- Runtime identity is partially renamed:
-  - `package.json` is `tokenization-training`.
-  - storage keys, QA ids, summary filenames, and run id prefixes mostly use `tokenization-training` / `tt`.
-  - `ProductIdentitySystem.ts`, `index.html`, and several tests still say `Manual Tokenization Training`.
+- Runtime identity is now centralized:
+  - `package.json` is `tokenizer-training`.
+  - canonical storage keys, QA ids, summary filenames, and run id prefixes use `tokenizer-training` / `tt`.
+  - compatibility readers/mirrors remain for `tokenization-training.*`, `manual-tokenization-training.*`, and legacy `mtt-*` run ids.
 
 ## Main Findings
 
-### 1. Product Rename Is Incomplete
+### 1. Product Rename Checkpoint
 
-`src/game/systems/ProductIdentitySystem.ts` still exports:
+`src/game/systems/ProductIdentitySystem.ts` now exports:
 
 ```ts
-export const PRODUCT_NAME = "Manual Tokenization Training";
+export const PRODUCT_NAME = "Tokenizer Training";
 ```
 
-`index.html` still has the old `<title>` and ARIA label. Several tests still expect the old product title and copied-summary heading.
+`index.html`, package metadata, visible menu/results copy, generated summaries, and current QA/storage IDs now use `Tokenizer Training`.
 
-This should be fixed before mobile packaging because page title, WebView accessibility label, QA ids, copied summaries, and wrapper metadata should not disagree.
+This should stay fixed before mobile packaging because page title, WebView accessibility label, QA ids, copied summaries, and wrapper metadata should not disagree.
 
-Recommended action: complete the rename in one focused pass. Keep compatibility readers for legacy `manual-tokenization-training.*` storage keys and legacy `mtt-*` run ids, but make all visible/public forward paths say `Tokenization Training`.
+Recommended action: preserve the compatibility readers while deleting unrelated stale UI systems in later cleanup passes.
 
 ### 2. PlayScene Owns Too Many Dead or Hidden UI Systems
 
@@ -210,7 +210,7 @@ Start a new chat for the mobile app port after cleanup. The mobile port will nee
 
 The most useful first code pass is not the mobile port. It is a small cleanup PR/pass:
 
-1. Finish `Manual Tokenization Training` -> `Tokenization Training`.
+1. Keep the `Tokenizer Training` identity checkpoint stable while deleting stale UI surfaces.
 2. Rename robot/toast internals to pet speech without changing behavior.
 3. Delete the hidden tutorial popup UI objects if tests confirm they never render.
 

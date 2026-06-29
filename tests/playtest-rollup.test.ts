@@ -76,7 +76,7 @@ describe("playtest rollup template", () => {
     expect(protocol).toContain("verdicts without evidence text");
     expect(protocol).toContain("generic pass evidence");
     expect(protocol).toContain("generic principle");
-    expect(protocol).toContain("game-generated `mtt-...` run ID shape");
+    expect(protocol).toContain("game-generated `tt-...` run ID shape");
     expect(protocol).toContain("criterion-specific");
     expect(protocol).toContain("observed behavior");
     expect(protocol).toContain("One-word evidence cells");
@@ -107,7 +107,7 @@ describe("playtest rollup template", () => {
     expect(readme).toContain("verdict lacks evidence text");
     expect(readme).toContain("criterion-specific observed behavior");
     expect(readme).toContain("continued play interest and intentional degraded visual style");
-    expect(readme).toContain("game-generated `mtt-...`");
+    expect(readme).toContain("game-generated `tt-...`");
     expect(readme).toContain("mobile gate has no real");
     expect(readme).toContain("phone/tablet session with touch, pen, or mixed input");
     expect(readme).toContain("docs/playtest_facilitator_card.md");
@@ -128,7 +128,7 @@ describe("playtest rollup template", () => {
     expect(sessionTemplate).toContain("docs/playtest_facilitator_card.md");
     expect(sessionTemplate).toContain("table-side no-coaching script");
     expect(sessionTemplate).toContain("The evaluator rejects blank fields and template-placeholder");
-    expect(sessionTemplate).toContain("game-generated `mtt-...` format");
+    expect(sessionTemplate).toContain("game-generated `tt-...` format");
     expect(sessionTemplate).toContain("The evaluator rejects blank answers and bare");
     expect(sessionTemplate).toContain("The evaluator rejects blank pass cells, blank evidence cells");
     expect(sessionTemplate).toContain("mobile readability notes that");

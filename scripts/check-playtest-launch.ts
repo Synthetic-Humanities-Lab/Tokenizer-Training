@@ -125,7 +125,7 @@ export async function probePlaytestLaunch(
 
 export function renderPlaytestLaunchCheck(report: PlaytestLaunchCheckReport): string {
   const lines = [
-    "Tokenization Training launch check",
+    "Tokenizer Training launch check",
     "",
     "Recommended tester launch:",
     `  ${report.recommended.url}`,

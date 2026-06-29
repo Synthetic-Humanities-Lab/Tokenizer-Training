@@ -43,7 +43,7 @@ export function preparePlaytestNotes(options: PlaytestNoteSetupOptions): Prepare
 
 export function renderPreparedPlaytestNotes(notes: PreparedPlaytestNote[]): string {
   return [
-    "Tokenization Training playtest note files",
+    "Tokenizer Training playtest note files",
     "",
     ...notes.map((note) => {
       const status = note.created ? "created" : "kept";

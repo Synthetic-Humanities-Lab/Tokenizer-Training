@@ -1,10 +1,10 @@
-# Tokenization Training Design Spec
+# Tokenizer Training Design Spec
 
 ## Overview
 
-Visible hierarchy: Tokenization Training as the product, WienerWorks as the company, Human Segmentation Division as the internal department  
-Genre: Educational arcade microgame  
-Target: Browser-first mobile game  
+Visible hierarchy: Tokenizer Training as the product, WienerWorks as the company, Human Segmentation Division as the internal department
+Genre: Educational arcade microgame
+Target: Browser-first mobile game
 Primary reference: Fruit Ninja meets WarioWare, filtered through polished AI-product bureaucracy.
 
 The player slices text where token boundaries will occur. The system reveals real tokenization, scores the player, applies wage/cost consequences, and moves immediately to the next round.

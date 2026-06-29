@@ -1,15 +1,22 @@
 import {
   LEGACY_QA_CANVAS_CAPTURE_ID,
   LEGACY_QA_SNAPSHOT_ID,
+  PREVIOUS_QA_CANVAS_CAPTURE_ID,
+  PREVIOUS_QA_SNAPSHOT_ID,
+  QA_CANVAS_CAPTURE_IDS,
   QA_CANVAS_CAPTURE_ID,
-  QA_SNAPSHOT_ID
+  QA_SNAPSHOT_ID,
+  QA_SNAPSHOT_IDS
 } from "./ProductIdentitySystem";
 
 export const GAME_QA_SNAPSHOT_ID = QA_SNAPSHOT_ID;
+export const PREVIOUS_GAME_QA_SNAPSHOT_ID = PREVIOUS_QA_SNAPSHOT_ID;
 export const LEGACY_GAME_QA_SNAPSHOT_ID = LEGACY_QA_SNAPSHOT_ID;
 export const GAME_QA_CANVAS_CAPTURE_ID = QA_CANVAS_CAPTURE_ID;
+export const PREVIOUS_GAME_QA_CANVAS_CAPTURE_ID = PREVIOUS_QA_CANVAS_CAPTURE_ID;
 export const LEGACY_GAME_QA_CANVAS_CAPTURE_ID = LEGACY_QA_CANVAS_CAPTURE_ID;
 export const GAME_QA_CANVAS_CAPTURE_CHUNKS_ID = `${GAME_QA_CANVAS_CAPTURE_ID}-chunks`;
+export const PREVIOUS_GAME_QA_CANVAS_CAPTURE_CHUNKS_ID = `${PREVIOUS_GAME_QA_CANVAS_CAPTURE_ID}-chunks`;
 export const LEGACY_GAME_QA_CANVAS_CAPTURE_CHUNKS_ID = `${LEGACY_GAME_QA_CANVAS_CAPTURE_ID}-chunks`;
 export const GAME_QA_CANVAS_CAPTURE_CHUNK_SIZE = 60_000;
 
@@ -17,9 +24,26 @@ export function gameQaCanvasCaptureChunkId(index: number): string {
   return `${GAME_QA_CANVAS_CAPTURE_ID}-chunk-${index}`;
 }
 
+export function previousGameQaCanvasCaptureChunkId(index: number): string {
+  return `${PREVIOUS_GAME_QA_CANVAS_CAPTURE_ID}-chunk-${index}`;
+}
+
 export function legacyGameQaCanvasCaptureChunkId(index: number): string {
   return `${LEGACY_GAME_QA_CANVAS_CAPTURE_ID}-chunk-${index}`;
 }
+
+const GAME_QA_SNAPSHOT_IDS = [...QA_SNAPSHOT_IDS];
+const GAME_QA_CANVAS_CAPTURE_IDS = [...QA_CANVAS_CAPTURE_IDS];
+const GAME_QA_CANVAS_CAPTURE_CHUNKS_IDS = [
+  GAME_QA_CANVAS_CAPTURE_CHUNKS_ID,
+  PREVIOUS_GAME_QA_CANVAS_CAPTURE_CHUNKS_ID,
+  LEGACY_GAME_QA_CANVAS_CAPTURE_CHUNKS_ID
+];
+const GAME_QA_CANVAS_CAPTURE_CHUNK_ID_FACTORIES = [
+  gameQaCanvasCaptureChunkId,
+  previousGameQaCanvasCaptureChunkId,
+  legacyGameQaCanvasCaptureChunkId
+];
 
 export interface GameQaRect {
   x: number;
@@ -110,7 +134,7 @@ export function writeGameQaSnapshot(
 
   const projectedSnapshot = snapshotWithInteractionProjection(snapshot, documentRef);
 
-  for (const id of [GAME_QA_SNAPSHOT_ID, LEGACY_GAME_QA_SNAPSHOT_ID]) {
+  for (const id of GAME_QA_SNAPSHOT_IDS) {
     qaScriptNode(documentRef, id, "application/json").textContent = JSON.stringify(projectedSnapshot);
   }
 
@@ -177,8 +201,7 @@ export function clearGameQaSnapshot(options: { documentRef?: Document; enabled?:
     return;
   }
 
-  documentRef?.getElementById(GAME_QA_SNAPSHOT_ID)?.remove();
-  documentRef?.getElementById(LEGACY_GAME_QA_SNAPSHOT_ID)?.remove();
+  GAME_QA_SNAPSHOT_IDS.forEach((id) => documentRef?.getElementById(id)?.remove());
   clearGameQaCanvasCapture(documentRef);
 }
 
@@ -273,7 +296,7 @@ function writeGameQaCanvasCaptureRecord(
   snapshot: GameQaSnapshot,
   documentRef: Document
 ): void {
-  for (const id of [GAME_QA_CANVAS_CAPTURE_ID, LEGACY_GAME_QA_CANVAS_CAPTURE_ID]) {
+  for (const id of GAME_QA_CANVAS_CAPTURE_IDS) {
     qaScriptNode(documentRef, id, "application/json").textContent = JSON.stringify(capture);
   }
   writeGameQaCanvasCaptureChunks(snapshot, capture, documentRef);
@@ -332,7 +355,7 @@ function writeGameQaCanvasCaptureChunks(
     dataUrlHash
   };
 
-  for (const chunkIdFor of [gameQaCanvasCaptureChunkId, legacyGameQaCanvasCaptureChunkId]) {
+  for (const chunkIdFor of GAME_QA_CANVAS_CAPTURE_CHUNK_ID_FACTORIES) {
     chunks.forEach((chunk, index) => {
       const chunkNode = qaScriptNode(documentRef, chunkIdFor(index), "text/plain");
       chunkNode.setAttribute("data-capture-id", captureId);
@@ -348,7 +371,7 @@ function writeGameQaCanvasCaptureChunks(
     }
   }
 
-  for (const manifestId of [GAME_QA_CANVAS_CAPTURE_CHUNKS_ID, LEGACY_GAME_QA_CANVAS_CAPTURE_CHUNKS_ID]) {
+  for (const manifestId of GAME_QA_CANVAS_CAPTURE_CHUNKS_IDS) {
     const manifestNode = qaScriptNode(documentRef, manifestId, "application/json");
     manifestNode.setAttribute("data-capture-id", captureId);
     manifestNode.textContent = JSON.stringify(manifest);
@@ -357,20 +380,19 @@ function writeGameQaCanvasCaptureChunks(
 
 function clearGameQaCanvasCapture(documentRef?: Document): void {
   const chunkCount = existingChunkCount(documentRef);
-  documentRef?.getElementById(GAME_QA_CANVAS_CAPTURE_ID)?.remove();
-  documentRef?.getElementById(LEGACY_GAME_QA_CANVAS_CAPTURE_ID)?.remove();
-  documentRef?.getElementById(GAME_QA_CANVAS_CAPTURE_CHUNKS_ID)?.remove();
-  documentRef?.getElementById(LEGACY_GAME_QA_CANVAS_CAPTURE_CHUNKS_ID)?.remove();
+  GAME_QA_CANVAS_CAPTURE_IDS.forEach((id) => documentRef?.getElementById(id)?.remove());
+  GAME_QA_CANVAS_CAPTURE_CHUNKS_IDS.forEach((id) => documentRef?.getElementById(id)?.remove());
   for (let index = 0; index < chunkCount; index += 1) {
-    documentRef?.getElementById(gameQaCanvasCaptureChunkId(index))?.remove();
-    documentRef?.getElementById(legacyGameQaCanvasCaptureChunkId(index))?.remove();
+    GAME_QA_CANVAS_CAPTURE_CHUNK_ID_FACTORIES.forEach((chunkIdFor) => {
+      documentRef?.getElementById(chunkIdFor(index))?.remove();
+    });
   }
 }
 
 function existingChunkCount(documentRef?: Document): number {
-  const manifestNode =
-    documentRef?.getElementById(GAME_QA_CANVAS_CAPTURE_CHUNKS_ID) ??
-    documentRef?.getElementById(LEGACY_GAME_QA_CANVAS_CAPTURE_CHUNKS_ID);
+  const manifestNode = GAME_QA_CANVAS_CAPTURE_CHUNKS_IDS.map((id) => documentRef?.getElementById(id)).find(
+    (node) => node
+  );
   if (!manifestNode?.textContent) {
     return 0;
   }

@@ -89,7 +89,7 @@ export function renderPlaytestServerDoctor(report: PlaytestServerDoctorReport): 
     port: commandPort
   });
   const lines = [
-    "Tokenization Training playtest server doctor",
+    "Tokenizer Training playtest server doctor",
     "",
     `Port: ${report.options.port}`,
     `Strict same-machine bind: ${renderProbe(report.localProbe)}`,

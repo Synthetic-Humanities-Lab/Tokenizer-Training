@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document is engine-agnostic direction for any performer, TTS stack, or synthetic-voice pipeline used for WIENER in *Manual Tokenization Training*.
+This document is engine-agnostic direction for any performer, TTS stack, or synthetic-voice pipeline used for WIENER in *Tokenizer Training*.
 
 The goal is not imitation of a pre-existing narrator. The goal is a dry, highly legible, faintly entertaining supervisory machine persona that sounds like an obsolete 2026 AI browser still trying to behave like a premium product in 2040.
 

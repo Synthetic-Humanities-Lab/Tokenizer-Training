@@ -1,10 +1,10 @@
-# Tokenization Training
+# Tokenizer Training
 
-Tokenization Training is a browser-first mobile arcade game about tokenization from WienerWorks' Human Segmentation Division.
+Tokenizer Training is a browser-first mobile arcade game about tokenization from WienerWorks' Human Segmentation Division.
 
 The visible hierarchy is:
 
-1. Tokenization Training as the product/training surface.
+1. Tokenizer Training as the product/training surface.
 2. WienerWorks as the company mark.
 3. Human Segmentation Division as the internal department.
 

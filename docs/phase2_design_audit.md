@@ -126,7 +126,7 @@ Current playtest artifacts:
   passes on the exact host
 - post-server launch verification through `npm run playtest:launch-check`,
   which fetches the selected reset-safe launch URL, checks the
-  `Tokenization Training` title and `game-root` shell, probes
+  `Tokenizer Training` title and `game-root` shell, probes
   same-machine candidates before stale LAN candidates when no explicit host is
   provided, diagnoses failed explicit LAN checks with a same-machine same-port
   probe that points operators toward trusted-network, exact Network-URL-host,
@@ -158,7 +158,7 @@ Current playtest artifacts:
 - tutorial-complete handoff into Endless Training
 - dev-only browser QA snapshots for MenuScene first-action state, PlayScene active/review state, ResultsScene evidence state, and the tutorial-complete handoff at desktop and portrait mobile viewports; see `docs/browser_qa_2026-06-06.md` for the latest route/state snapshot pass and screenshot limitation
 - first-user responsive surface sweep tests covering menu, play active/review, tutorial review popup and feedback, tutorial-complete handoff, and results from `320x568` small phone through `768x1024` tablet portrait
-- dev-only app-authored Phaser canvas capture through `tokenization-training-canvas-qa`, producing persistent PNGs in `docs/browser_qa/` for desktop menu, tutorial active/review, tutorial-complete, protocol-results, and portrait tutorial active/review states
+- dev-only app-authored Phaser canvas capture through `tokenizer-training-canvas-qa`, producing persistent PNGs in `docs/browser_qa/` for desktop menu, tutorial active/review, tutorial-complete, protocol-results, and portrait tutorial active/review states
 - continuation menu raster evidence in `docs/browser_qa/2026-06-07-continuation-canvas-menu.png`, reconstructed from numbered canvas-data chunks rather than one large DOM read
 - dev-only `qaFreezeElapsedMs` active-round clock control plus
   `npm run playtest:qa-links`, producing persistent frozen active-state PNGs
@@ -258,7 +258,7 @@ Status: live route and interaction smoke passed; no implementation defect found.
 
 The existing local dev server on port `5178` booted controlled menu, tutorial,
 tutorial-complete, and protocol-results routes with both
-`tokenization-training-qa` and `tokenization-training-canvas-qa`
+`tokenizer-training-qa` and `tokenizer-training-canvas-qa`
 present at `qaViewport=390x844`. The menu `Begin Training` action transitioned
 to tutorial PlayScene, and the tutorial-complete `Start Endless Training`
 action transitioned to Endless PlayScene. A vertical swipe through the first
@@ -342,10 +342,10 @@ now protect the active-popup/text-panel separation. The saved artifacts are
 `docs/browser_qa/2026-06-07-qa-links-small-phone-protocol-results.png`.
 
 A further latest current-build QA refresh on dev port `5180` used chunked
-data-URL reads from `tokenization-training-canvas-qa` after the current
+data-URL reads from `tokenizer-training-canvas-qa` after the current
 UI, tutorial-window, continuous-motion, near-text robot comment, and space-run
 input fixes. The runtime now formalizes that workaround through
-`tokenization-training-canvas-qa-chunks` and numbered chunk nodes, so
+`tokenizer-training-canvas-qa-chunks` and numbered chunk nodes, so
 future browser passes can reconstruct large canvas PNG payloads without one
 large DOM read. Chunk nodes are written before the manifest and stamped with a
 matching capture id and data-URL hash so an extractor can reject mixed-frame reads and stale same-length data instead of assembling a corrupt PNG. The

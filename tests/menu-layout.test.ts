@@ -91,7 +91,7 @@ describe("computeMenuLayout", () => {
 
   it("keeps small-phone title, module label, premise, and best record visually separated", () => {
     const layout = computeMenuLayout(320, 568);
-    const titleBottom = layout.title.y + estimatedTextHeight("Manual Tokenization Training", layout.title.fontSize, layout.title.wordWrapWidth) / 2;
+    const titleBottom = layout.title.y + estimatedTextHeight("Tokenizer Training", layout.title.fontSize, layout.title.wordWrapWidth) / 2;
     const moduleTop = layout.moduleLabel.y - estimatedTextHeight(layout.moduleLabel.text, layout.moduleLabel.fontSize, layout.moduleLabel.wordWrapWidth) / 2;
     const moduleBottom = layout.moduleLabel.y + estimatedTextHeight(layout.moduleLabel.text, layout.moduleLabel.fontSize, layout.moduleLabel.wordWrapWidth) / 2;
     const premiseTop = layout.premise.y - estimatedTextHeight(menuCopy().premise, layout.premise.fontSize, layout.premise.wordWrapWidth) / 2;

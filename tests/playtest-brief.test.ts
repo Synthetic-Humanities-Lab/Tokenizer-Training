@@ -20,7 +20,7 @@ describe("playtest operator brief", () => {
       sessionFiles
     }));
 
-    expect(rendered).toContain("Tokenization Training playtest operator brief");
+    expect(rendered).toContain("Tokenizer Training playtest operator brief");
     expect(rendered).toContain("npm run playtest:preflight");
     expect(rendered).toContain("Start strict playtest server:");
     expect(rendered).toContain("npm run playtest:serve:lan -- --port 5179");

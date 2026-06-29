@@ -17,7 +17,7 @@ import type {
   PlaytestPrincipleEvidenceLabel
 } from "../scripts/evaluate-playtest-notes";
 
-const completeSummary = `Tokenization Training playtest summary
+const completeSummary = `Tokenizer Training playtest summary
 Run ID: mtt-20260606-172531z
 Outcome: quit
 Start: handoff screen
@@ -96,7 +96,7 @@ function sessionNote(options: {
     })
     .join("\n");
 
-  return `# Tokenization Training Playtest Notes
+  return `# Tokenizer Training Playtest Notes
 
 ## Session Metadata
 
@@ -639,7 +639,7 @@ describe("playtest note evaluator", () => {
   it("validates required copied-summary evidence fields", () => {
     expect(validateCopiedSummary(completeSummary).complete).toBe(true);
 
-    const validation = validateCopiedSummary(`Tokenization Training playtest summary
+    const validation = validateCopiedSummary(`Tokenizer Training playtest summary
 Run ID: not captured
 Start: not captured
 Input: not captured
@@ -662,7 +662,7 @@ Best saved: 0 rounds / Regex Intern`);
     expect(validation.invalidFields).toEqual([]);
 
     expect(
-      validateCopiedSummary(`Tokenization Training playtest summary
+      validateCopiedSummary(`Tokenizer Training playtest summary
 Run ID:
 Start: handoff screen
 Input: touch
@@ -1032,7 +1032,7 @@ Best saved: 1 rounds / Regex Intern`).missingFields
           tester: `P${index + 1}`,
           input: index === 0 ? "touch" : "mouse",
           deviceBrowser: index === 0 ? "iPad Safari" : "Desktop Chrome",
-          summary: `Tokenization Training playtest summary
+          summary: `Tokenizer Training playtest summary
 Run ID: not captured
 Start: handoff screen
 Input: touch

@@ -92,9 +92,9 @@ describe("downloadTextFile", () => {
 
   it("sanitizes playtest summary filenames", () => {
     expect(summaryFilename("mtt-20260606-172531z")).toBe(
-      "tokenization-training-summary-mtt-20260606-172531z.txt"
+      "tokenizer-training-summary-mtt-20260606-172531z.txt"
     );
-    expect(summaryFilename("bad run/id")).toBe("tokenization-training-summary-bad-run-id.txt");
-    expect(summaryFilename(undefined)).toBe("tokenization-training-summary-unidentified-run.txt");
+    expect(summaryFilename("bad run/id")).toBe("tokenizer-training-summary-bad-run-id.txt");
+    expect(summaryFilename(undefined)).toBe("tokenizer-training-summary-unidentified-run.txt");
   });
 });

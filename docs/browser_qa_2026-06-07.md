@@ -225,7 +225,7 @@ the full-tab screenshot gap.
 
 A further in-app Browser pass used a fresh strict dev server on port `5181`
 for the current worktree. Desktop menu boot exposed the expected
-`Tokenization Training` title, the WienerWorks division menu QA
+`Tokenizer Training` title, the WienerWorks division menu QA
 state, and no browser warning or error logs. A desktop tutorial route then
 accepted a drag through the first `simple_001` boundary, staged exactly one
 cut, and resolved to review with token strip
@@ -364,7 +364,7 @@ for the work-order ledger, while full-tab screenshot proof remains missing.
 
 A continuation in-app Browser smoke used the existing same-machine strict shell
 at `http://127.0.0.1:5173/?playtestReset=1`. The page title was
-`Tokenization Training`, `#game-root` existed, the Phaser canvas reported
+`Tokenizer Training`, `#game-root` existed, the Phaser canvas reported
 `1280x720`, the menu QA JSON was present, and the chunked canvas manifest
 reported `MenuScene`, `1280x720`, five chunks, capture id
 `MenuScene-1280-720-261834-d7b253e0`, and data-URL length `261834`.
@@ -378,7 +378,7 @@ outside the page, and wrote
 `196357` bytes, validates at `1280x720`, and has a complete `IEND` chunk.
 
 Visual inspection of the JPEG preview showed the full WienerWorks division menu shell,
-centered Tokenization Training card, work-order ledger, and
+centered Tokenizer Training card, work-order ledger, and
 Begin Training, Endless Training, and Sound controls without the earlier
 temporary truncation artifact. This is current app-authored canvas evidence
 only; it still does not prove full-tab screenshot capture or real phone/tablet

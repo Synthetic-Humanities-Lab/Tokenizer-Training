@@ -11,7 +11,7 @@ function readRepoFile(path: string): string {
   return readFileSync(fileURLToPath(new URL(`../${path}`, import.meta.url)), "utf8");
 }
 
-const completedRollup = `# Tokenization Training Playtest Rollup
+const completedRollup = `# Tokenizer Training Playtest Rollup
 
 ## Session Index
 
@@ -206,7 +206,7 @@ describe("playtest rollup evaluator", () => {
   it("renders issue output for command-line use", () => {
     const output = renderPlaytestRollupEvaluation(evaluatePlaytestRollup(readRepoFile("docs/playtest_rollup_template.md")));
 
-    expect(output).toContain("Tokenization Training playtest rollup");
+    expect(output).toContain("Tokenizer Training playtest rollup");
     expect(output).toContain("Decision: iterate before broader playtest");
     expect(output).toContain("Issues:");
     expect(output).toContain("Principle decisions:");

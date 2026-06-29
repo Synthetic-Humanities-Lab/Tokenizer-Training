@@ -189,7 +189,7 @@ describe("SessionFlowSystem", () => {
       ]
     });
 
-    expect(text).toContain("Manual Tokenization Training playtest summary");
+    expect(text).toContain("Tokenizer Training playtest summary");
     expect(text).toContain("Run ID: mtt-20260606-172531z");
     expect(text).toContain("Outcome: quit");
     expect(text).toContain("Start: handoff screen");

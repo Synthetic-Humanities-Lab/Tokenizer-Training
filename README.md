@@ -1,4 +1,4 @@
-# Tokenization Training
+# Tokenizer Training
 
 Browser-first Phaser prototype for training players to predict token boundaries by swiping across text. The original single-file MVP is preserved in `reference/manual_tokenization_training_mvp.html`; the production workflow starts from `src/main.ts`.
 
@@ -83,7 +83,7 @@ npm run playtest:brief
 
 The brief also checks the requested strict port. If the port is already
 listening, it probes candidate reset-safe launch URLs. When one candidate is
-already serving the Tokenization Training shell, the brief keeps the
+already serving the Tokenizer Training shell, the brief keeps the
 requested port only if that launch can be used for the next note. With the
 default host list, localhost is checked first so stale LAN addresses do not
 block desktop shakedown, but if the next note must satisfy the mobile gate the
@@ -248,7 +248,7 @@ not name both continued play interest and intentional degraded visual style, or
 the mobile gate has no real
 phone/tablet session with touch, pen, or mixed input, `Network: LAN`, and a
 non-localhost `Launch URL`.
-Session metadata and copied summaries must keep the game-generated `mtt-...`
+Session metadata and copied summaries must keep the game-generated `tt-...`
 run ID format; participant IDs or spreadsheet labels are not accepted as run
 IDs.
 The copied `Input evidence:` line records the browser-reported pointer type

@@ -94,7 +94,7 @@ describe("browser QA evidence notes", () => {
     expect(audit).toContain("hidden Copy Summary");
     expect(audit).toContain("same-gesture cut");
     expect(audit).toContain("return-to-space gesture");
-    expect(audit).toContain("tokenization-training-canvas-qa");
+    expect(audit).toContain("tokenizer-training-canvas-qa");
     expect(audit).toContain("preserveDrawingBuffer");
     expect(audit).toContain("Save Summary text-file fallback");
   });
@@ -243,7 +243,7 @@ describe("browser QA evidence notes", () => {
     expect(matrix).toContain("latest `2026-06-07-latest-canvas-*`");
     expect(matrix).toContain("browser drag plus Resolve");
     expect(matrix).toContain("chunked data-URL raster evidence");
-    expect(matrix).toContain("tokenization-training-canvas-qa-chunks");
+    expect(matrix).toContain("tokenizer-training-canvas-qa-chunks");
     expect(matrix).toContain("bounded pieces");
     expect(matrix).toContain("capture-id and data-URL-hash matching");
     expect(matrix).toContain("reject mixed-frame");

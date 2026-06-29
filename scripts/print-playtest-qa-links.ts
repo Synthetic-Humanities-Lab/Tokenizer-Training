@@ -69,7 +69,7 @@ export function renderPlaytestQaLinks(options: PlaytestLinkRenderOptions): strin
   });
 
   return [
-    "Tokenization Training internal visual QA links",
+    "Tokenizer Training internal visual QA links",
     "",
     "Use these before a tester session to inspect deterministic canvas QA states.",
     "Do not use these URLs for tester sessions or real mobile evidence.",

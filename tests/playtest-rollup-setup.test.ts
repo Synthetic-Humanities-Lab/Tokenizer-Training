@@ -41,7 +41,7 @@ describe("playtest rollup setup", () => {
     const rollup = preparePlaytestRollup({ outputPath, templatePath, overwrite: true });
 
     expect(rollup.created).toBe(true);
-    expect(readFileSync(outputPath, "utf8")).toContain("# Tokenization Training Playtest Rollup");
+    expect(readFileSync(outputPath, "utf8")).toContain("# Tokenizer Training Playtest Rollup");
     expect(readFileSync(outputPath, "utf8")).not.toBe("old rollup");
   });
 

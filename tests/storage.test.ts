@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { LEGACY_STORAGE_PREFIX, PREVIOUS_STORAGE_PREFIX, STORAGE_PREFIX } from "../src/game/systems/ProductIdentitySystem";
 import { StorageSystem, type StorageLike } from "../src/game/systems/StorageSystem";
 
 class MemoryStorage implements StorageLike {
@@ -58,6 +59,40 @@ describe("StorageSystem", () => {
     expect(storage.loadHighScore()).toBeNull();
   });
 
+  it("migrates high scores from the previous tokenization-training key", () => {
+    const memory = new MemoryStorage();
+    const legacyRecord = {
+      rounds: 12,
+      balance: 18.75,
+      accuracy: 0.81,
+      rank: "BPE Adjacent",
+      updatedAt: "2026-06-06T17:25:31.000Z"
+    };
+    memory.setItem(`${PREVIOUS_STORAGE_PREFIX}.high-score`, JSON.stringify(legacyRecord));
+
+    const loaded = new StorageSystem(memory).loadHighScore();
+
+    expect(loaded).toEqual(legacyRecord);
+    expect(memory.getItem(`${STORAGE_PREFIX}.high-score`)).toBe(JSON.stringify(legacyRecord));
+  });
+
+  it("migrates high scores from the original manual-tokenization-training key", () => {
+    const memory = new MemoryStorage();
+    const legacyRecord = {
+      rounds: 7,
+      balance: 6.5,
+      accuracy: 0.7,
+      rank: "Junior Boundary Clerk",
+      updatedAt: "2026-06-06T17:25:31.000Z"
+    };
+    memory.setItem(`${LEGACY_STORAGE_PREFIX}.high-score`, JSON.stringify(legacyRecord));
+
+    const loaded = new StorageSystem(memory).loadHighScore();
+
+    expect(loaded).toEqual(legacyRecord);
+    expect(memory.getItem(`${STORAGE_PREFIX}.high-score`)).toBe(JSON.stringify(legacyRecord));
+  });
+
   it("continues session flow when high score persistence fails", () => {
     const storage = new StorageSystem(new ThrowingStorage());
 
@@ -80,6 +115,18 @@ describe("StorageSystem", () => {
     expect(storage.loadMuted()).toBe(true);
     storage.saveMuted(false);
     expect(storage.loadMuted()).toBe(false);
+  });
+
+  it("migrates muted state from legacy keys", () => {
+    const previousMemory = new MemoryStorage();
+    previousMemory.setItem(`${PREVIOUS_STORAGE_PREFIX}.muted`, "true");
+    expect(new StorageSystem(previousMemory).loadMuted()).toBe(true);
+    expect(previousMemory.getItem(`${STORAGE_PREFIX}.muted`)).toBe("true");
+
+    const originalMemory = new MemoryStorage();
+    originalMemory.setItem(`${LEGACY_STORAGE_PREFIX}.muted`, "true");
+    expect(new StorageSystem(originalMemory).loadMuted()).toBe(true);
+    expect(originalMemory.getItem(`${STORAGE_PREFIX}.muted`)).toBe("true");
   });
 
   it("clears saved score and mute state for controlled playtest starts", () => {

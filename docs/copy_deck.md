@@ -4,7 +4,7 @@
 
 - **browser_path:** `wienerworks://legacy-language-ops`
 - **company_name:** `WienerWorks`
-- **product_name:** `Manual Tokenization Training`
+- **product_name:** `Tokenizer Training`
 - **division_name:** `Human Segmentation Division`
 - **browser_badge:** `2026 AI browser / retained for cost recovery`
 - **status_badge:** `legacy language operations shell`
@@ -16,7 +16,7 @@
 ### Heading stack
 
 - **kicker:** `Welcome to WienerWorks`
-- **title:** `Manual Tokenization Training`
+- **title:** `Tokenizer Training`
 - **subtitle:** `Human Segmentation Division`
 
 ### Body copy

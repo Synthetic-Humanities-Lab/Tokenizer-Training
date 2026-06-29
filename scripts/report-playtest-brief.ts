@@ -116,7 +116,7 @@ export function renderPlaytestBrief(report: PlaytestBriefReport): string {
     ];
 
   const lines = [
-    "Tokenization Training playtest operator brief",
+    "Tokenizer Training playtest operator brief",
     "",
     "Preflight:",
     "  npm run playtest:preflight",

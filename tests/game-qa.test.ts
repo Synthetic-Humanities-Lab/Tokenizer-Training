@@ -4,8 +4,10 @@ import {
   GAME_QA_CANVAS_CAPTURE_CHUNKS_ID,
   GAME_QA_CANVAS_CAPTURE_ID,
   LEGACY_GAME_QA_SNAPSHOT_ID,
+  PREVIOUS_GAME_QA_SNAPSHOT_ID,
   clearGameQaSnapshot,
   gameQaCanvasCaptureChunkId,
+  previousGameQaCanvasCaptureChunkId,
   GAME_QA_SNAPSHOT_ID,
   snapshotWithInteractionProjection,
   writeGameQaCanvasCapture,
@@ -192,8 +194,9 @@ describe("writeGameQaSnapshot", () => {
     writeGameQaSnapshot(snapshot, { documentRef, enabled: true });
     writeGameQaSnapshot(updated, { documentRef, enabled: true });
 
-    expect(nodes.size).toBe(2);
+    expect(nodes.size).toBe(3);
     expect(JSON.parse(nodes.get(GAME_QA_SNAPSHOT_ID)?.textContent ?? "")).toEqual(updated);
+    expect(JSON.parse(nodes.get(PREVIOUS_GAME_QA_SNAPSHOT_ID)?.textContent ?? "")).toEqual(updated);
     expect(JSON.parse(nodes.get(LEGACY_GAME_QA_SNAPSHOT_ID)?.textContent ?? "")).toEqual(updated);
   });
 
@@ -220,7 +223,7 @@ describe("writeGameQaSnapshot", () => {
     writeGameQaSnapshot(snapshot, { documentRef, enabled: true });
     clearGameQaSnapshot({ documentRef, enabled: false });
 
-    expect(nodes.size).toBe(2);
+    expect(nodes.size).toBe(3);
   });
 
   it("writes a dev-only canvas capture when a readable canvas is available", () => {
@@ -260,6 +263,7 @@ describe("writeGameQaSnapshot", () => {
     });
     expect(JSON.parse(manifest?.textContent ?? "").dataUrlHash).toMatch(/^[0-9a-f]{8}$/);
     expect(nodes.get(gameQaCanvasCaptureChunkId(0))?.textContent).toBe("data:image/png;base64,abc123");
+    expect(nodes.get(previousGameQaCanvasCaptureChunkId(0))?.textContent).toBe("data:image/png;base64,abc123");
     expect(nodes.get(gameQaCanvasCaptureChunkId(0))?.getAttribute("data-capture-id")).toBe(
       JSON.parse(manifest?.textContent ?? "").captureId
     );

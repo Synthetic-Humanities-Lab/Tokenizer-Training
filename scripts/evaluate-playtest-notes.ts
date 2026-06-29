@@ -111,7 +111,11 @@ export interface PlaytestGateEvaluation {
 }
 
 const REQUIRED_SESSION_COUNT = 5;
-const LEGACY_PRODUCT_SUMMARY_TITLE = "Tokenization Training playtest summary";
+const LEGACY_PRODUCT_SUMMARY_TITLES = [
+  "Tokenization Training playtest summary",
+  "Manual Tokenization Training playtest summary"
+];
+const VALID_PRODUCT_SUMMARY_TITLES = [PRODUCT_SUMMARY_TITLE, ...LEGACY_PRODUCT_SUMMARY_TITLES];
 
 export const playtestDebriefQuestions = [
   "What were you trying to do when you swiped?",
@@ -442,7 +446,7 @@ export function validateCopiedSummary(
   const missingFields: string[] = [];
   const invalidFields: string[] = [];
 
-  if (!summary.includes(PRODUCT_SUMMARY_TITLE) && !summary.includes(LEGACY_PRODUCT_SUMMARY_TITLE)) {
+  if (!VALID_PRODUCT_SUMMARY_TITLES.some((title) => summary.includes(title))) {
     missingFields.push("summary header");
   }
 
@@ -601,7 +605,7 @@ export function playtestSessionEvidenceIssues(session: PlaytestSessionNote): str
 export function renderPlaytestGateEvaluation(evaluation: PlaytestGateEvaluation): string {
   const completedSessions = evaluation.sessions.filter((session) => playtestSessionEvidenceIssues(session).length === 0);
   const lines = [
-    "Tokenization Training playtest gate",
+    "Tokenizer Training playtest gate",
     `Session files: ${evaluation.sessions.length}/${REQUIRED_SESSION_COUNT}`,
     `Completed notes: ${completedSessions.length}/${REQUIRED_SESSION_COUNT}`,
     `Completed real mobile/touch notes: ${completedSessions.filter((session) => session.isMobileSession).length}`,

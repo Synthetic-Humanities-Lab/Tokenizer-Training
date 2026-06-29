@@ -1,4 +1,4 @@
-# Tokenization Training Playtest Notes
+# Tokenizer Training Playtest Notes
 
 Use this template for the first five-user playtest. Do not explain tokenization
 or the fiction before the player has tried the tutorial. Keep
@@ -10,7 +10,7 @@ Fill every field. The evaluator rejects blank fields and template-placeholder
 values such as `mouse / touch / pen / trackpad / mixed`, `same-machine / LAN`,
 `yes / no`, or `screenshot / photo / screen recording / observer notes / none`.
 The `Run ID` must be copied from the game or copied result summary and keep the
-game-generated `mtt-...` format.
+game-generated `tt-...` format.
 
 - Tester ID: P3
 - Date:

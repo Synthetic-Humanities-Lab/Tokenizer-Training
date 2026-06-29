@@ -155,7 +155,7 @@ export function evaluatePlaytestRollup(markdown: string, file = "rollup.md"): Pl
 
 export function renderPlaytestRollupEvaluation(evaluation: PlaytestRollupEvaluation): string {
   const lines = [
-    "Tokenization Training playtest rollup",
+    "Tokenizer Training playtest rollup",
     `File: ${evaluation.rollup.file}`,
     `Decision: ${evaluation.ready ? "broader playtest ready" : "iterate before broader playtest"}`,
     "",

@@ -1,4 +1,4 @@
-# Tokenization Training Codex Context Pack
+# Tokenizer Training Codex Context Pack
 
 Drop these files into the root of your Codex project/repo.
 

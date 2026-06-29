@@ -1,4 +1,4 @@
-import { LEGACY_STORAGE_PREFIX, STORAGE_PREFIX } from "./ProductIdentitySystem";
+import { LEGACY_STORAGE_PREFIXES, STORAGE_PREFIX } from "./ProductIdentitySystem";
 
 export interface StorageLike {
   getItem(key: string): string | null;
@@ -20,8 +20,10 @@ export interface HighScoreRecord {
 
 const HIGH_SCORE_KEY = `${STORAGE_PREFIX}.high-score`;
 const MUTED_KEY = `${STORAGE_PREFIX}.muted`;
-const LEGACY_HIGH_SCORE_KEY = `${LEGACY_STORAGE_PREFIX}.high-score`;
-const LEGACY_MUTED_KEY = `${LEGACY_STORAGE_PREFIX}.muted`;
+const LEGACY_HIGH_SCORE_KEYS = LEGACY_STORAGE_PREFIXES.map((prefix) => `${prefix}.high-score`);
+const LEGACY_MUTED_KEYS = LEGACY_STORAGE_PREFIXES.map((prefix) => `${prefix}.muted`);
+const HIGH_SCORE_KEYS = [HIGH_SCORE_KEY, ...LEGACY_HIGH_SCORE_KEYS];
+const MUTED_KEYS = [MUTED_KEY, ...LEGACY_MUTED_KEYS];
 
 export class StorageSystem {
   private readonly storage: StorageLike | undefined;
@@ -36,17 +38,17 @@ export class StorageSystem {
     }
 
     try {
-      const raw = this.storage.getItem(HIGH_SCORE_KEY) ?? this.storage.getItem(LEGACY_HIGH_SCORE_KEY);
-      if (!raw) {
+      const stored = readFirstStorageValue(this.storage, HIGH_SCORE_KEYS);
+      if (!stored.raw) {
         return null;
       }
 
-      const parsed = validatedHighScore(raw);
+      const parsed = validatedHighScore(stored.raw);
       if (!parsed) {
         return null;
       }
 
-      if (this.storage.getItem(HIGH_SCORE_KEY) === null) {
+      if (stored.key !== HIGH_SCORE_KEY && this.storage.getItem(HIGH_SCORE_KEY) === null) {
         this.storage.setItem(HIGH_SCORE_KEY, JSON.stringify(parsed));
       }
       return parsed;
@@ -89,12 +91,12 @@ export class StorageSystem {
         return canonical === "true";
       }
 
-      const legacy = this.storage.getItem(LEGACY_MUTED_KEY);
-      if (legacy !== null) {
-        this.storage.setItem(MUTED_KEY, legacy === "true" ? "true" : "false");
+      const legacy = readFirstStorageValue(this.storage, LEGACY_MUTED_KEYS);
+      if (legacy.raw !== null) {
+        this.storage.setItem(MUTED_KEY, legacy.raw === "true" ? "true" : "false");
       }
 
-      return legacy === "true";
+      return legacy.raw === "true";
     } catch {
       return false;
     }
@@ -117,15 +119,13 @@ export class StorageSystem {
       if (this.storage.removeItem) {
         this.storage.removeItem(HIGH_SCORE_KEY);
         this.storage.removeItem(MUTED_KEY);
-        this.storage.removeItem(LEGACY_HIGH_SCORE_KEY);
-        this.storage.removeItem(LEGACY_MUTED_KEY);
+        LEGACY_HIGH_SCORE_KEYS.forEach((key) => this.storage?.removeItem?.(key));
+        LEGACY_MUTED_KEYS.forEach((key) => this.storage?.removeItem?.(key));
         return;
       }
 
-      this.storage.setItem(HIGH_SCORE_KEY, "");
-      this.storage.setItem(MUTED_KEY, "false");
-      this.storage.setItem(LEGACY_HIGH_SCORE_KEY, "");
-      this.storage.setItem(LEGACY_MUTED_KEY, "false");
+      HIGH_SCORE_KEYS.forEach((key) => this.storage?.setItem(key, ""));
+      MUTED_KEYS.forEach((key) => this.storage?.setItem(key, "false"));
     } catch {
       // Reset links should not block boot when storage is unavailable.
     }
@@ -158,6 +158,17 @@ export class StorageSystem {
   private comparableRankScore(record: HighScoreRecord): number {
     return record.rankScore ?? record.rounds * 10 + record.accuracy * 35 + Math.max(0, record.balance) * 0.15;
   }
+}
+
+function readFirstStorageValue(storage: StorageLike, keys: string[]): { key: string; raw: string | null } {
+  for (const key of keys) {
+    const raw = storage.getItem(key);
+    if (raw !== null) {
+      return { key, raw };
+    }
+  }
+
+  return { key: keys[0] ?? "", raw: null };
 }
 
 function getBrowserStorage(): StorageLike | undefined {

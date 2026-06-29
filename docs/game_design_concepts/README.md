@@ -1,7 +1,7 @@
 # Game Design Concepts For Tokenizer Training
 
 This repository translates the reading notes into implementation guidance for
-Tokenization Training. Each concept names a design claim, explains how it
+Tokenizer Training. Each concept names a design claim, explains how it
 should appear in the game, and gives example checks for playtesting.
 
 ## Concept Index

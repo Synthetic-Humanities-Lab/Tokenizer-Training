@@ -9,10 +9,10 @@ import {
 const gameShell = `<!doctype html>
 <html lang="en">
   <head>
-    <title>Manual Tokenization Training - WienerWorks</title>
+    <title>Tokenizer Training - WienerWorks</title>
   </head>
   <body>
-    <main id="game-root" aria-label="Manual Tokenization Training by WienerWorks"></main>
+    <main id="game-root" aria-label="Tokenizer Training by WienerWorks"></main>
   </body>
 </html>`;
 
@@ -44,10 +44,10 @@ describe("playtest launch check", () => {
       gameRootFound: true,
       resetParamFound: true
     });
-    expect(rendered).toContain("Tokenization Training launch check");
+    expect(rendered).toContain("Tokenizer Training launch check");
     expect(rendered).toContain(`http://127.0.0.1:${port}/?playtestReset=1`);
     expect(rendered).toContain("HTTP response: PASS (200)");
-    expect(rendered).toContain("Title: PASS (Manual Tokenization Training - WienerWorks)");
+    expect(rendered).toContain("Title: PASS (Tokenizer Training - WienerWorks)");
     expect(rendered).toContain("Game root: PASS (main#game-root)");
     expect(rendered).toContain("Reset parameter: PASS (playtestReset=1)");
     expect(rendered).toContain("Decision: launch URL is serving the game shell");

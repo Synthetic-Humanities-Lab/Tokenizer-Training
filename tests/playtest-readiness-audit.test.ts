@@ -34,7 +34,7 @@ describe("playtest readiness audit", () => {
 
     expect(audit.ready).toBe(true);
     expect(audit.issues).toEqual([]);
-    expect(rendered).toContain("Tokenization Training local evidence audit");
+    expect(rendered).toContain("Tokenizer Training local evidence audit");
     expect(rendered).toContain("Decision: local package ready for user-session preflight");
     expect(rendered).toContain("Local evidence package: PASS");
     expect(rendered).toContain("docs/game_design_reading_notes/chapter_note_manifest.md");
@@ -86,12 +86,12 @@ describe("playtest readiness audit", () => {
           {
             file: "docs/playtests/session-1.md",
             metadata: { runId: "mtt-20260606-100001z", input: "touch" },
-            copiedSummary: "Tokenization Training playtest summary\nStart: handoff screen\n"
+            copiedSummary: "Tokenizer Training playtest summary\nStart: handoff screen\n"
           },
           {
             file: "docs/playtests/session-2.md",
             metadata: { runId: "mtt-20260606-100002z", input: "mouse" },
-            copiedSummary: "Tokenization Training playtest summary\nStart: handoff screen\n"
+            copiedSummary: "Tokenizer Training playtest summary\nStart: handoff screen\n"
           }
         ],
         tallies: [

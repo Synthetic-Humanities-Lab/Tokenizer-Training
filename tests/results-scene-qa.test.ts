@@ -28,7 +28,7 @@ const metricRows = [
 ] as const;
 
 const copySummaryText = [
-  "Manual Tokenization Training playtest summary",
+  "Tokenizer Training playtest summary",
   "Run ID: mtt-20260606-172531z",
   "Outcome: quit",
   "Start: handoff screen",

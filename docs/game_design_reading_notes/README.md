@@ -3,7 +3,7 @@
 These notes synthesize the source PDFs in `../Game Design Reading and Principles/`.
 They are written as design working notes, not substitutes for the books. Each book
 has one synoptic note and chapter-level notes that extract consequences for
-Tokenization Training.
+Tokenizer Training.
 
 `chapter_note_manifest.md` is the inventory of note units. It treats each linked
 section as a separate chapter/source-section note while preserving one readable

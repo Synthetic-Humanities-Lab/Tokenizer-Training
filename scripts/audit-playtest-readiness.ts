@@ -240,7 +240,7 @@ export function rollupSessionConsistencyIssues(
 export function renderPlaytestReadinessAudit(audit: PlaytestReadinessAudit): string {
   const localReady = audit.localFiles.every((file) => file.ok);
   const lines = [
-    "Tokenization Training playtest readiness audit",
+    "Tokenizer Training playtest readiness audit",
     `Decision: ${audit.ready ? "broader playtest ready" : "collect user evidence before broader playtest"}`,
     "",
     `Local evidence package: ${localReady ? "PASS" : "FAIL"}`,
@@ -259,7 +259,7 @@ export function renderPlaytestReadinessAudit(audit: PlaytestReadinessAudit): str
   } else {
     lines.push(
       "",
-      "Tokenization Training playtest gate",
+      "Tokenizer Training playtest gate",
       "Session files: 0/5",
       "Completed notes: 0/5",
       "Completed real mobile/touch notes: 0",
@@ -272,7 +272,7 @@ export function renderPlaytestReadinessAudit(audit: PlaytestReadinessAudit): str
   } else {
     lines.push(
       "",
-      "Tokenization Training playtest rollup",
+      "Tokenizer Training playtest rollup",
       `File: ${audit.rollupFile}`,
       "Decision: missing completed rollup"
     );
@@ -304,7 +304,7 @@ export function renderPlaytestReadinessAudit(audit: PlaytestReadinessAudit): str
 
 export function renderLocalEvidenceAudit(audit: LocalEvidenceAudit): string {
   const lines = [
-    "Tokenization Training local evidence audit",
+    "Tokenizer Training local evidence audit",
     `Decision: ${audit.ready ? "local package ready for user-session preflight" : "fix local package before user sessions"}`,
     "",
     `Local evidence package: ${audit.ready ? "PASS" : "FAIL"}`,

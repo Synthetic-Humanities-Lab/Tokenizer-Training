@@ -1,4 +1,4 @@
-# Tokenization Training Facilitator Card
+# Tokenizer Training Facilitator Card
 
 Table-side script for a single tester session. Use the full protocol in
 `docs/user_playtest_protocol.md` for setup details and use
@@ -50,7 +50,7 @@ the next required mobile note is valid only if all of these are true:
   doctor-suggested free port and rerun the brief with
   `npm run playtest:brief -- --port <chosen-port>`. The brief now checks the
   requested port itself. If a candidate reset-safe launch URL is already
-  serving the Tokenization Training shell, keep that port only when the
+  serving the Tokenizer Training shell, keep that port only when the
   launch metadata is valid for the next note. If the next note must satisfy the
   mobile gate and localhost passes while Network-host launch checks fail, treat
   the requested port as same-machine-only and use the suggested free port. If

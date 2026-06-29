@@ -54,7 +54,7 @@ describe("menuSceneQaSnapshot", () => {
       muted: true
     });
     expect(element(snapshot.elements, "companyMark").text).toBe("Welcome to WienerWorks");
-    expect(element(snapshot.elements, "title").text).toBe("Manual Tokenization Training");
+    expect(element(snapshot.elements, "title").text).toBe("Tokenizer Training");
     expect(element(snapshot.elements, "premise").text).toContain("Predict token boundaries");
     expect(element(snapshot.elements, "tutorialButton").text).toBe("Begin Tutorial");
     expect(element(snapshot.elements, "endlessButton").text).toBe("Endless Training");
@@ -88,7 +88,7 @@ describe("menuSceneQaSnapshot", () => {
       highScoreRank: "Regex Intern",
       muted: false
     });
-    expect(element(snapshot.elements, "title").text).toBe("Manual Tokenization Training");
+    expect(element(snapshot.elements, "title").text).toBe("Tokenizer Training");
     expect(element(snapshot.elements, "companyMark").text).toBe("Welcome to WienerWorks");
     expect(element(snapshot.elements, "moduleLabel").text).toContain("Human Segmentation Division");
     expect(snapshot.elements.find((entry) => entry.id === "chromeText")).toBeUndefined();

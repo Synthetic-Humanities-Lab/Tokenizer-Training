@@ -231,7 +231,7 @@ function incompleteMobileSessionNote(): string {
 }
 
 function filledSessionNoteWithGenericCriterionEvidence(): string {
-  return `# Tokenization Training Playtest Notes
+  return `# Tokenizer Training Playtest Notes
 
 ## Session Metadata
 
@@ -249,7 +249,7 @@ function filledSessionNoteWithGenericCriterionEvidence(): string {
 ## Copied Result Summary
 
 \`\`\`text
-Tokenization Training playtest summary
+Tokenizer Training playtest summary
 Run ID: mtt-status-001
 Start: handoff screen
 Input: mouse

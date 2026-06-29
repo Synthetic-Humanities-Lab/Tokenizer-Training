@@ -1,6 +1,6 @@
 # Target Repository Shape
 
-tokenization-training/
+tokenizer-training/
   AGENTS.md
   README.md
   package.json

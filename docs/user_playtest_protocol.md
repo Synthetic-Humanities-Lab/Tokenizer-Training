@@ -69,7 +69,7 @@ This prints current note status, the recommended tester launch,
 copy-ready session-metadata lines, next session note target, mobile-session requirement,
 and evaluator sequence. It also checks the requested strict port. If that port
 is already listening, the brief probes candidate reset-safe launch URLs. When a
-candidate is already serving the Tokenization Training shell, the brief
+candidate is already serving the Tokenizer Training shell, the brief
 keeps the requested port only if that launch can be used for the next note.
 With the default host list, localhost is checked first so stale LAN addresses
 do not block desktop shakedown. If the next note must satisfy the mobile gate,
@@ -250,7 +250,7 @@ observed behavior, contradictions between matching observation rows and
 pass-criteria rows, or no real phone/tablet session with touch, pen, or mixed
 input, `Network: LAN`, and a non-localhost `Launch URL` for the mobile
 readability criterion. Session metadata and copied summaries must also keep the
-game-generated `mtt-...` run ID shape; do not replace it with a participant ID
+game-generated `tt-...` run ID shape; do not replace it with a participant ID
 or spreadsheet row label.
 One-word evidence cells and debrief answers such as `pass`, `yes`, `ok`,
 `fail`, or `ambiguous` are treated as missing evidence. The copied summary must
