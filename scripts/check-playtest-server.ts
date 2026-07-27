@@ -49,10 +49,8 @@ export async function buildPlaytestServerDoctor(
 ): Promise<PlaytestServerDoctorReport> {
   const lanHosts = options.hosts.filter((host) => host !== "127.0.0.1" && host !== "localhost");
   const status = buildPlaytestStatusReport();
-  const [localProbe, lanProbe] = await Promise.all([
-    probePort("127.0.0.1", options.port),
-    probePort("0.0.0.0", options.port)
-  ]);
+  const localProbe = await probePort("127.0.0.1", options.port);
+  const lanProbe = await probePort("0.0.0.0", options.port);
   const ready = localProbe.available && lanProbe.available;
   const launchCheck = ready ? undefined : await probeCandidatePlaytestLaunches(options, 1000, probePlaytestLaunch);
   const lanCandidateCheck = await probeLanLaunchCandidates(options, lanHosts, status, launchCheck?.usableLaunch);
@@ -264,10 +262,8 @@ export async function findAvailablePlaytestPort(
 
   for (let candidate = numericPort + 1; candidate <= 65535 && candidate <= numericPort + scanLimit; candidate += 1) {
     const port = String(candidate);
-    const [localProbe, lanProbe] = await Promise.all([
-      probePort("127.0.0.1", port),
-      probePort("0.0.0.0", port)
-    ]);
+    const localProbe = await probePort("127.0.0.1", port);
+    const lanProbe = await probePort("0.0.0.0", port);
 
     if (localProbe.available && lanProbe.available) {
       return port;
