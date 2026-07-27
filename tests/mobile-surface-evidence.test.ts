@@ -464,7 +464,7 @@ function playElements(options: {
     { id: "cutStatus", text: "NO CUTS", rect: { x: centerX, y: mobile ? 355 : 383, width: mobile ? 67 : 75, height: mobile ? 17 : 20 } },
     { id: "resolveButton", text: "Resolve", rect: { x: mobile ? 313 : 1156, y: controlY, width: mobile ? 78 : 180, height: 44 } },
     { id: "clearButton", text: mobile ? "Clear" : "Clear Cuts", rect: { x: mobile ? 141 : 992, y: controlY, width: mobile ? 78 : 112, height: 44 } },
-    { id: "muteButton", text: "Sound", rect: { x: mobile ? 55 : 712, y: controlY, width: mobile ? 78 : 112, height: 44 } },
+    { id: "undoButton", text: "Undo", rect: { x: mobile ? 55 : 712, y: controlY, width: mobile ? 78 : 112, height: 44 } },
     { id: "exitButton", text: mobile ? "Exit" : options.mode === "tutorial" ? "Exit Tutorial" : "Exit Training", rect: { x: mobile ? 227 : 852, y: controlY, width: mobile ? 78 : 132, height: 44 } }
   ];
 

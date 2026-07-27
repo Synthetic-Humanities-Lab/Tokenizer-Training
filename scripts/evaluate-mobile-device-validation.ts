@@ -558,7 +558,7 @@ function trainingObservationIssues(label: string, text: string | undefined): str
 
 function playThumbReachIssues(label: string, text: string | undefined): string[] {
   return namedControlIssues(label, text, [
-    ["Sound or Muted", /\bSound\b|\bMuted\b/i],
+    ["Undo", /\bUndo\b/i],
     ["Clear", /\bClear\b/i],
     ["Exit", /\bExit\b/i],
     ["Resolve", /\bResolve\b/i],

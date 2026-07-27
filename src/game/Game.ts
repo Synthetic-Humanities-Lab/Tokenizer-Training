@@ -26,6 +26,7 @@ export function createGameConfig(parent: string, dev = import.meta.env.DEV): Pha
     parent,
     backgroundColor: "#707983",
     preserveDrawingBuffer: dev,
+    roundPixels: true,
     scale: {
       mode: qaViewport ? Phaser.Scale.NONE : Phaser.Scale.RESIZE,
       autoCenter: qaViewport ? Phaser.Scale.NO_CENTER : Phaser.Scale.CENTER_BOTH,

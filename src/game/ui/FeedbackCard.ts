@@ -266,7 +266,7 @@ function compactFeedbackMaxBottom(
   const controlTop = Math.min(
     layout.resolveButton.y - layout.resolveButton.height / 2,
     layout.clearButton.y - layout.clearButton.height / 2,
-    layout.muteButton.y - layout.muteButton.height / 2,
+    layout.undoButton.y - layout.undoButton.height / 2,
     layout.exitButton.y - layout.exitButton.height / 2
   );
   const controlsBelowReview = controlTop > layout.sentenceReviewY + layout.textPanel.height / 2;
@@ -305,7 +305,7 @@ function shortLandscapeFeedbackMaxBottom(width: number, height: number): number 
   const controlsTop = Math.min(
     layout.resolveButton.y - layout.resolveButton.height / 2,
     layout.clearButton.y - layout.clearButton.height / 2,
-    layout.muteButton.y - layout.muteButton.height / 2,
+    layout.undoButton.y - layout.undoButton.height / 2,
     layout.exitButton.y - layout.exitButton.height / 2
   );
 
@@ -318,7 +318,7 @@ function desktopFeedbackCardY(width: number, height: number, cardHeight: number)
   const controlsTop = Math.min(
     layout.resolveButton.y - layout.resolveButton.height / 2,
     layout.clearButton.y - layout.clearButton.height / 2,
-    layout.muteButton.y - layout.muteButton.height / 2,
+    layout.undoButton.y - layout.undoButton.height / 2,
     layout.exitButton.y - layout.exitButton.height / 2
   );
   const minY = layout.sentenceReviewY + layout.textPanel.height / 2 + 18 + cardHeight / 2;

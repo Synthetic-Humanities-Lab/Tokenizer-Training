@@ -12,6 +12,7 @@ describe("createGameConfig", () => {
 
     expect(source).toContain("createGameConfig(parent: string, dev = import.meta.env.DEV)");
     expect(source).toContain("preserveDrawingBuffer: dev");
+    expect(source).toContain("roundPixels: true");
     expect(source).toContain("dev ? qaViewportFromUrl(globalThis.location?.href) : undefined");
     expect(source).toContain("qaViewport ? Phaser.Scale.NONE : Phaser.Scale.RESIZE");
     expect(source).toContain("autoCenter: qaViewport ? Phaser.Scale.NO_CENTER : Phaser.Scale.CENTER_BOTH");

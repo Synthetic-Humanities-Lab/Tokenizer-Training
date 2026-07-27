@@ -37,11 +37,18 @@ body {
     linear-gradient(180deg, var(--bg), var(--bg-bottom));
   color: var(--text);
   font-family: "Avenir Next", "Inter", "Trebuchet MS", Verdana, Tahoma, Arial, sans-serif;
-  filter: saturate(0.72) contrast(1.02) sepia(0.06);
+}
+
+@supports (height: 100dvh) {
+  body,
+  #game-root {
+    height: 100dvh;
+  }
 }
 
 canvas {
   display: block;
+  image-rendering: auto;
   touch-action: none;
 }
 

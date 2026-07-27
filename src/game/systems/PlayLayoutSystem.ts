@@ -29,7 +29,7 @@ export interface PlayLayout {
   textPanel: LayoutRect;
   resolveButton: LayoutRect;
   clearButton: LayoutRect;
-  muteButton: LayoutRect;
+  undoButton: LayoutRect;
   exitButton: LayoutRect;
   petWienerSlot: LayoutRect;
   sentenceStartY: number;
@@ -105,7 +105,7 @@ export function computePlayLayout({
   const controlsTop = Math.min(
     controls.resolveButton.y - controls.resolveButton.height / 2,
     controls.clearButton.y - controls.clearButton.height / 2,
-    controls.muteButton.y - controls.muteButton.height / 2
+    controls.undoButton.y - controls.undoButton.height / 2
   );
   const sentenceStartY = sentenceActiveY;
   const sentenceEndY = sentenceActiveY;
@@ -369,7 +369,7 @@ function computeControlButtons(
   contentRight = width - 28,
   safeArea: SafeAreaInsets = safeAreaInsets(undefined),
   surfaceProfile: SurfaceProfile = "browser"
-): Pick<PlayLayout, "resolveButton" | "clearButton" | "muteButton" | "exitButton"> {
+): Pick<PlayLayout, "resolveButton" | "clearButton" | "undoButton" | "exitButton"> {
   const buttonHeight = PLAY_CONTROL_BUTTON_HEIGHT;
   const y = compact ? compactPlayControlRowY(height, safeArea, surfaceProfile) : height - safeArea.bottom - 72;
 
@@ -381,14 +381,14 @@ function computeControlButtons(
       MIN_TOUCH_TARGET_SIZE,
       (safeWidth - margin * 2 - gap * 3) / 4
     );
-    const muteLeft = safeArea.left + margin;
-    const clearLeft = muteLeft + buttonWidth + gap;
+    const undoLeft = safeArea.left + margin;
+    const clearLeft = undoLeft + buttonWidth + gap;
     const exitLeft = clearLeft + buttonWidth + gap;
     const resolveLeft = exitLeft + buttonWidth + gap;
 
     return {
-      muteButton: {
-        x: muteLeft + buttonWidth / 2,
+      undoButton: {
+        x: undoLeft + buttonWidth / 2,
         y,
         width: buttonWidth,
         height: buttonHeight
@@ -418,18 +418,18 @@ function computeControlButtons(
   const gap = 18;
   const resolveWidth = 180;
   const clearWidth = 112;
-  const muteWidth = 112;
+  const undoWidth = 112;
   const exitWidth = 132;
   const resolveLeft = right - resolveWidth;
   const clearLeft = resolveLeft - gap - clearWidth;
   const exitLeft = clearLeft - gap - exitWidth;
-  const muteLeft = exitLeft - gap - muteWidth;
+  const undoLeft = exitLeft - gap - undoWidth;
 
   return {
-    muteButton: {
-      x: muteLeft + muteWidth / 2,
+    undoButton: {
+      x: undoLeft + undoWidth / 2,
       y,
-      width: muteWidth,
+      width: undoWidth,
       height: buttonHeight
     },
     clearButton: {

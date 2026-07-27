@@ -22,7 +22,7 @@ describe("PlayScene input routing integration", () => {
 
     expect(source).toContain("private readonly playInputRouter = new PlayInputRoutingSystem();");
     expect(bindControls.match(/bindPlayControlActivation\(\{/g)).toHaveLength(4);
-    for (const controlId of ["resolve", "clear", "mute", "exit"]) {
+    for (const controlId of ["resolve", "clear", "undo", "exit"]) {
       expect(bindControls).toContain(`controlId: "${controlId}"`);
     }
     expect(source).not.toMatch(/this\.(resolve|clear|mute|exit)Button\.on\("pointer(up|down)"/);

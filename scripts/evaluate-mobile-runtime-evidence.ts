@@ -24,7 +24,7 @@ const expectedBoundaries = [3, 7, 11, 14, 18];
 const expectedEvidenceTerms = ["RESOLVED TOKENS", "VERIFIED", "REWORK", "NET"];
 const expectedReadableEvidenceTerms = ["RESOLVED TOKENS", "VERIFIED", "REWORK", "NET"];
 const runtimeViewport = { width: 368, height: 552 };
-const requiredControlIds = new Set(["resolveButton", "clearButton", "muteButton", "exitButton"]);
+const requiredControlIds = new Set(["resolveButton", "clearButton", "undoButton", "exitButton"]);
 const retiredSidecarElementIds = new Set([
   "brandPanel",
   "assistantPanel",
@@ -457,7 +457,7 @@ function rejectRetiredSidecarElementIds(
 }
 
 function requiredSidecarElementIds(artifact: string, sidecar: JsonRecord): string[] {
-  const required = ["hud", "playfield", "textPanel", "text", "resolveButton", "clearButton", "muteButton", "exitButton"];
+  const required = ["hud", "playfield", "textPanel", "text", "resolveButton", "clearButton", "undoButton", "exitButton"];
   if (isReviewOrFeedbackArtifact(artifact)) {
     required.push("feedbackCard", "feedbackTokenSplit", "petWiener");
   }

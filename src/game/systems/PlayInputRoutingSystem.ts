@@ -1,4 +1,4 @@
-export type PlayControlId = "resolve" | "clear" | "mute" | "exit";
+export type PlayControlId = "resolve" | "clear" | "undo" | "exit";
 
 export interface PlayInputPointer {
   id: number;

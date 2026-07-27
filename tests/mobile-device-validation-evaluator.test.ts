@@ -38,7 +38,7 @@ const completedValidation = `# Tokenizer Training Mobile Device Validation Compl
 | Tutorial slicing works by touch | screen recording small-tutorial-cut.mov shows first staged cut by finger without edge gesture conflict. | pass |
 | Tutorial review feedback card readable | photo small-review-feedback.jpg shows clean segmentation, token split, verified/rework/net credits, and boundary audit. | pass |
 | Training observation sample covers at least five rounds | screen recording standard-endless-five-rounds.mov shows five consecutive rounds sampled within an uncapped Training session, then continues beyond round five while Token Credits remain. | pass |
-| Play-screen thumb reach acceptable | observer note: one-handed small phone reached Sound, Clear, Exit, Resolve, Next, Continue, and Finish. | pass |
+| Play-screen thumb reach acceptable | observer note: one-handed small phone reached Undo, Clear, Exit, Resolve, Next, Continue, and Finish. | pass |
 | Results thumb reach acceptable | observer note: on the Results screen, one-handed small phone reached Review Token Log, Run Training Again, and Return to Menu. | pass |
 | Finger occlusion acceptable | observer note: finger did not hide ordinary short-prompt decision points or cut markers. | pass |
 | Touch latency acceptable | observer note: staged markers appeared immediately enough that player trusted cuts; no lag complaints. | pass |
@@ -299,7 +299,7 @@ describe("mobile device validation evaluator", () => {
     const evidenceRoot = writeEvidenceArtifacts();
     const genericReach = completedValidation
       .replace(
-        "observer note: one-handed small phone reached Sound, Clear, Exit, Resolve, Next, Continue, and Finish.",
+        "observer note: one-handed small phone reached Undo, Clear, Exit, Resolve, Next, Continue, and Finish.",
         "observer note: one-handed thumb reach was acceptable."
       )
       .replace(

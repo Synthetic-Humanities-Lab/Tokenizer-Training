@@ -1,11 +1,22 @@
 export type SurfaceProfile = "browser" | "mobile";
 
 const SURFACE_QUERY_KEYS = ["surface", "ttSurface"];
+const MOBILE_SURFACE_MAX_WIDTH = 1024;
+
+export interface SurfaceRuntimeHints {
+  viewportWidth?: number;
+  maxTouchPoints?: number;
+  coarsePointer?: boolean;
+}
 
 export function surfaceProfileFromUrl(url: string | undefined): SurfaceProfile {
+  return surfaceProfileOverrideFromUrl(url) ?? "browser";
+}
+
+export function surfaceProfileOverrideFromUrl(url: string | undefined): SurfaceProfile | undefined {
   const parsed = parseSurfaceUrl(url);
   if (!parsed) {
-    return "browser";
+    return undefined;
   }
 
   for (const key of SURFACE_QUERY_KEYS) {
@@ -23,11 +34,28 @@ export function surfaceProfileFromUrl(url: string | undefined): SurfaceProfile {
     }
   }
 
-  return "browser";
+  return undefined;
 }
 
-export function readSurfaceProfile(url = globalThis.location?.href): SurfaceProfile {
-  return surfaceProfileFromUrl(url);
+export function surfaceProfileForRuntime(
+  url: string | undefined,
+  hints: SurfaceRuntimeHints
+): SurfaceProfile {
+  const override = surfaceProfileOverrideFromUrl(url);
+  if (override) {
+    return override;
+  }
+
+  const touchCapable = (hints.maxTouchPoints ?? 0) > 0 || hints.coarsePointer === true;
+  const viewportWidth = hints.viewportWidth ?? Number.POSITIVE_INFINITY;
+  return touchCapable && viewportWidth <= MOBILE_SURFACE_MAX_WIDTH ? "mobile" : "browser";
+}
+
+export function readSurfaceProfile(
+  url = globalThis.location?.href,
+  hints = readSurfaceRuntimeHints()
+): SurfaceProfile {
+  return surfaceProfileForRuntime(url, hints);
 }
 
 export function parseSurfaceProfile(value: string | null | undefined): SurfaceProfile | undefined {
@@ -51,4 +79,19 @@ function parseSurfaceUrl(url: string | undefined): URL | undefined {
   } catch {
     return undefined;
   }
+}
+
+function readSurfaceRuntimeHints(): SurfaceRuntimeHints {
+  const browserWindow = typeof window === "undefined" ? undefined : window;
+  const viewportWidth = browserWindow?.visualViewport?.width
+    ?? browserWindow?.innerWidth
+    ?? browserWindow?.screen?.width;
+  const maxTouchPoints = typeof navigator === "undefined" ? 0 : navigator.maxTouchPoints;
+  const coarsePointer = browserWindow?.matchMedia?.("(pointer: coarse)").matches ?? false;
+
+  return {
+    viewportWidth,
+    maxTouchPoints,
+    coarsePointer
+  };
 }

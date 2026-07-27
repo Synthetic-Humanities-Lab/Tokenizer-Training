@@ -50,7 +50,7 @@ describe("mobile optimization report", () => {
 
   it("records the compact active-play exit label contract", () => {
     expect(report).toContain("mobile tutorial changed from `Menu` to `Exit`");
-    expect(report).toContain("Sound / Clear / Exit / Resolve control contract");
+    expect(report).toContain("Undo / Clear / Exit / Resolve control contract");
   });
 
   it("records the review feedback and active speech contract", () => {

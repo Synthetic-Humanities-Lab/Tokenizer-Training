@@ -71,7 +71,8 @@ export interface PlaySceneQaSnapshotInput {
   resolveButtonDeadlinePressure?: number | null;
   clearButtonText?: string;
   clearButtonActionable?: boolean;
-  muteButtonText?: string;
+  undoButtonText?: string;
+  undoButtonActionable?: boolean;
   exitButtonText?: string;
   feedbackRect: GameQaRect;
   feedbackVisible: boolean;
@@ -220,7 +221,7 @@ export function playSceneQaSnapshot(input: PlaySceneQaSnapshotInput): GameQaSnap
     })),
     { id: "resolveButton", rect: input.layout.resolveButton, text: input.resolveButtonText },
     { id: "clearButton", rect: input.layout.clearButton, text: input.clearButtonText },
-    { id: "muteButton", rect: input.layout.muteButton, text: input.muteButtonText },
+    { id: "undoButton", rect: input.layout.undoButton, text: input.undoButtonText },
     { id: "exitButton", rect: input.layout.exitButton, text: input.exitButtonText },
     {
       id: "feedbackCard",
@@ -329,7 +330,7 @@ export function playSceneQaSnapshot(input: PlaySceneQaSnapshotInput): GameQaSnap
 
   const resolveTouchTargetOk = isMinimumTouchTarget(input.layout.resolveButton);
   const clearTouchTargetOk = isMinimumTouchTarget(input.layout.clearButton);
-  const muteTouchTargetOk = isMinimumTouchTarget(input.layout.muteButton);
+  const undoTouchTargetOk = isMinimumTouchTarget(input.layout.undoButton);
   const exitTouchTargetOk = isMinimumTouchTarget(input.layout.exitButton);
 
   return {
@@ -397,9 +398,10 @@ export function playSceneQaSnapshot(input: PlaySceneQaSnapshotInput): GameQaSnap
       resolveButtonDeadlinePressure: normalizedNumber(input.resolveButtonDeadlinePressure),
       clearTouchTargetOk,
       clearButtonActionable: input.clearButtonActionable ?? false,
-      muteTouchTargetOk,
+      undoTouchTargetOk,
+      undoButtonActionable: input.undoButtonActionable ?? false,
       exitTouchTargetOk,
-      allPlayControlTouchTargetsOk: resolveTouchTargetOk && clearTouchTargetOk && muteTouchTargetOk && exitTouchTargetOk,
+      allPlayControlTouchTargetsOk: resolveTouchTargetOk && clearTouchTargetOk && undoTouchTargetOk && exitTouchTargetOk,
       motionStartY: normalizedNumber(input.motionStartY),
       motionEndY: normalizedNumber(input.motionEndY),
       motionCurrentY: normalizedNumber(input.motionCurrentY),

@@ -91,7 +91,7 @@ describe("PlayInputRoutingSystem", () => {
     const router = new PlayInputRoutingSystem();
     const mouse = pointer(1, 100, { button });
 
-    expect(router.beginControl("mute", mouse)).toBe(false);
+    expect(router.beginControl("undo", mouse)).toBe(false);
     expect(router.beginSlice(mouse)).toBe(false);
   });
 
@@ -99,9 +99,9 @@ describe("PlayInputRoutingSystem", () => {
     const router = new PlayInputRoutingSystem();
     const controlClick = pointer(1, 100, { button: 0, primaryDown: false });
 
-    expect(router.beginControl("mute", controlClick)).toBe(false);
+    expect(router.beginControl("undo", controlClick)).toBe(false);
     expect(router.beginSlice(controlClick)).toBe(false);
-    expect(router.beginControl("mute", pointer(1, 200))).toBe(true);
+    expect(router.beginControl("undo", pointer(1, 200))).toBe(true);
   });
 
   it("ignores a wrong-button release for a primary owner", () => {

@@ -198,7 +198,7 @@ describe("computeFeedbackCardTextLayout", () => {
     const controlTop = Math.min(
       edges(layout.resolveButton).top,
       edges(layout.clearButton).top,
-      edges(layout.muteButton).top,
+      edges(layout.undoButton).top,
       edges(layout.exitButton).top
     );
 
@@ -219,7 +219,7 @@ describe("computeFeedbackCardTextLayout", () => {
     const controlTop = Math.min(
       edges(play.resolveButton).top,
       edges(play.clearButton).top,
-      edges(play.muteButton).top,
+      edges(play.undoButton).top,
       edges(play.exitButton).top
     );
 
@@ -244,7 +244,7 @@ describe("computeFeedbackCardTextLayout", () => {
     const controlTop = Math.min(
       edges(play.resolveButton).top,
       edges(play.clearButton).top,
-      edges(play.muteButton).top,
+      edges(play.undoButton).top,
       edges(play.exitButton).top
     );
 
@@ -348,7 +348,7 @@ describe("computeFeedbackCardTextLayout", () => {
     const controlTop = Math.min(
       edges(play.resolveButton).top,
       edges(play.clearButton).top,
-      edges(play.muteButton).top,
+      edges(play.undoButton).top,
       edges(play.exitButton).top
     );
 

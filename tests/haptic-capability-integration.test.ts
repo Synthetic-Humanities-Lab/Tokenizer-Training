@@ -85,7 +85,6 @@ describe("haptic capability integration", () => {
   it("drives PlayScene haptics from the haptic preference rather than Sound", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
     const create = methodSource(source, "  create(");
-    const toggleMute = methodSource(source, "  private toggleMute(");
 
     expect(source).toContain("private readonly haptics = new HapticFeedbackSystem();");
     expect(source).not.toContain("new HapticFeedbackSystem(this.audio.isMuted())");
@@ -93,8 +92,8 @@ describe("haptic capability integration", () => {
     expect(create).toContain(
       "this.haptics.setMuted(!hapticPreference.snapshot(hapticCapability.available).enabled);"
     );
-    expect(toggleMute).toContain("this.storage.saveMuted(muted);");
-    expect(toggleMute).not.toContain("this.haptics");
+    expect(source).not.toContain("private toggleMute(");
+    expect(source).not.toContain("this.storage.saveMuted(");
   });
 
   it.each(AUDIO_SCENES)("refreshes scene-local audio from storage on every create in %s", (path) => {

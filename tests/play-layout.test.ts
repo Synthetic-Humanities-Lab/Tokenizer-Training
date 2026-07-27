@@ -53,14 +53,14 @@ describe("computePlayLayout", () => {
     expect(withinViewport(layout.exitButton, 390, 844)).toBe(true);
     expect(withinViewport(layout.resolveButton, 390, 844)).toBe(true);
     expect(withinViewport(layout.clearButton, 390, 844)).toBe(true);
-    expect(withinViewport(layout.muteButton, 390, 844)).toBe(true);
-    expect(overlaps(layout.resolveButton, layout.muteButton)).toBe(false);
+    expect(withinViewport(layout.undoButton, 390, 844)).toBe(true);
+    expect(overlaps(layout.resolveButton, layout.undoButton)).toBe(false);
     expect(overlaps(layout.resolveButton, layout.clearButton)).toBe(false);
-    expect(overlaps(layout.clearButton, layout.muteButton)).toBe(false);
+    expect(overlaps(layout.clearButton, layout.undoButton)).toBe(false);
     expect(overlaps(layout.exitButton, layout.resolveButton)).toBe(false);
-    expect(layout.clearButton.width).toBe(layout.muteButton.width);
-    expect(layout.exitButton.width).toBe(layout.muteButton.width);
-    expect(layout.resolveButton.width).toBe(layout.muteButton.width);
+    expect(layout.clearButton.width).toBe(layout.undoButton.width);
+    expect(layout.exitButton.width).toBe(layout.undoButton.width);
+    expect(layout.resolveButton.width).toBe(layout.undoButton.width);
   });
 
   it("keeps the compact control row usable on narrow portrait widths", () => {
@@ -70,19 +70,19 @@ describe("computePlayLayout", () => {
     expect(layout.resolveButton.y).toBe(COMPACT_PLAY_CONTROL_TOP_ROW_Y);
     expect(withinViewport(layout.resolveButton, 320, 568)).toBe(true);
     expect(withinViewport(layout.clearButton, 320, 568)).toBe(true);
-    expect(withinViewport(layout.muteButton, 320, 568)).toBe(true);
+    expect(withinViewport(layout.undoButton, 320, 568)).toBe(true);
     expect(overlaps(layout.resolveButton, layout.clearButton)).toBe(false);
-    expect(overlaps(layout.clearButton, layout.muteButton)).toBe(false);
+    expect(overlaps(layout.clearButton, layout.undoButton)).toBe(false);
     expect(overlaps(layout.exitButton, layout.clearButton)).toBe(false);
     expect(overlaps(layout.exitButton, layout.resolveButton)).toBe(false);
     expect(layout.resolveButton.width).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET_SIZE);
     expect(layout.resolveButton.height).toBe(MIN_TOUCH_TARGET_SIZE);
     expect(layout.clearButton.height).toBe(MIN_TOUCH_TARGET_SIZE);
-    expect(layout.muteButton.height).toBe(MIN_TOUCH_TARGET_SIZE);
+    expect(layout.undoButton.height).toBe(MIN_TOUCH_TARGET_SIZE);
     expect(layout.exitButton.height).toBe(MIN_TOUCH_TARGET_SIZE);
-    expect(layout.clearButton.width).toBe(layout.muteButton.width);
-    expect(layout.exitButton.width).toBe(layout.muteButton.width);
-    expect(layout.resolveButton.width).toBe(layout.muteButton.width);
+    expect(layout.clearButton.width).toBe(layout.undoButton.width);
+    expect(layout.exitButton.width).toBe(layout.undoButton.width);
+    expect(layout.resolveButton.width).toBe(layout.undoButton.width);
   });
 
   it("bottom-docks explicit mobile-surface controls even on short phones", () => {
@@ -96,7 +96,7 @@ describe("computePlayLayout", () => {
     expect(edges(layout.resolveButton).bottom).toBe(height - 12);
     expect(edges(layout.resolveButton).top).toBeGreaterThan(edges(layout.playfield).bottom);
     expect(edges(layout.clearButton).top).toBeGreaterThan(edges(layout.playfield).bottom);
-    expect(edges(layout.muteButton).top).toBeGreaterThan(edges(layout.playfield).bottom);
+    expect(edges(layout.undoButton).top).toBeGreaterThan(edges(layout.playfield).bottom);
     expect(edges(layout.exitButton).top).toBeGreaterThan(edges(layout.playfield).bottom);
     expect(overlaps(layout.resolveButton, layout.clearButton)).toBe(false);
     expect(overlaps(layout.exitButton, layout.resolveButton)).toBe(false);
@@ -112,7 +112,7 @@ describe("computePlayLayout", () => {
     expect(edges(layout.resolveButton).bottom).toBe(height - 12);
     expect(edges(layout.resolveButton).top).toBeGreaterThan(edges(layout.playfield).bottom);
     expect(edges(layout.clearButton).top).toBeGreaterThan(edges(layout.playfield).bottom);
-    expect(edges(layout.muteButton).top).toBeGreaterThan(edges(layout.playfield).bottom);
+    expect(edges(layout.undoButton).top).toBeGreaterThan(edges(layout.playfield).bottom);
     expect(edges(layout.exitButton).top).toBeGreaterThan(edges(layout.playfield).bottom);
   });
 
@@ -125,7 +125,7 @@ describe("computePlayLayout", () => {
 
     expect(overlaps(activeTextPanel, layout.resolveButton)).toBe(false);
     expect(overlaps(activeTextPanel, layout.clearButton)).toBe(false);
-    expect(overlaps(activeTextPanel, layout.muteButton)).toBe(false);
+    expect(overlaps(activeTextPanel, layout.undoButton)).toBe(false);
     expect(overlaps(activeTextPanel, layout.exitButton)).toBe(false);
     expect(layout.sentenceStartY).toBe(layout.sentenceActiveY);
     expect(layout.sentenceEndY).toBe(layout.sentenceActiveY);
@@ -146,7 +146,7 @@ describe("computePlayLayout", () => {
     expect(contains(layout.playfield, activeTextPanel)).toBe(true);
     expect(overlaps(activeTextPanel, layout.resolveButton)).toBe(false);
     expect(overlaps(activeTextPanel, layout.clearButton)).toBe(false);
-    expect(overlaps(activeTextPanel, layout.muteButton)).toBe(false);
+    expect(overlaps(activeTextPanel, layout.undoButton)).toBe(false);
     expect(overlaps(activeTextPanel, layout.exitButton)).toBe(false);
   });
 
@@ -161,7 +161,7 @@ describe("computePlayLayout", () => {
     expect(contains(layout.playfield, reviewTextPanel)).toBe(true);
     expect(overlaps(reviewTextPanel, layout.resolveButton)).toBe(false);
     expect(overlaps(reviewTextPanel, layout.clearButton)).toBe(false);
-    expect(overlaps(reviewTextPanel, layout.muteButton)).toBe(false);
+    expect(overlaps(reviewTextPanel, layout.undoButton)).toBe(false);
   });
 
   it("lifts only the short mobile-surface review prompt to make room for feedback evidence", () => {
@@ -178,7 +178,7 @@ describe("computePlayLayout", () => {
     expect(contains(layout.playfield, reviewTextPanel)).toBe(true);
     expect(overlaps(reviewTextPanel, layout.resolveButton)).toBe(false);
     expect(overlaps(reviewTextPanel, layout.clearButton)).toBe(false);
-    expect(overlaps(reviewTextPanel, layout.muteButton)).toBe(false);
+    expect(overlaps(reviewTextPanel, layout.undoButton)).toBe(false);
     expect(overlaps(reviewTextPanel, layout.exitButton)).toBe(false);
   });
 
@@ -252,14 +252,14 @@ describe("computePlayLayout", () => {
     expect(withinViewport(layout.exitButton, 1280, 720)).toBe(true);
     expect(withinViewport(layout.resolveButton, 1280, 720)).toBe(true);
     expect(withinViewport(layout.clearButton, 1280, 720)).toBe(true);
-    expect(withinViewport(layout.muteButton, 1280, 720)).toBe(true);
+    expect(withinViewport(layout.undoButton, 1280, 720)).toBe(true);
     expect(edges(layout.resolveButton).top).toBeGreaterThan(edges(layout.playfield).bottom);
     expect(edges(layout.clearButton).top).toBeGreaterThan(edges(layout.playfield).bottom);
-    expect(edges(layout.muteButton).top).toBeGreaterThan(edges(layout.playfield).bottom);
+    expect(edges(layout.undoButton).top).toBeGreaterThan(edges(layout.playfield).bottom);
     expect(overlaps(layout.resolveButton, layout.clearButton)).toBe(false);
-    expect(overlaps(layout.clearButton, layout.muteButton)).toBe(false);
+    expect(overlaps(layout.clearButton, layout.undoButton)).toBe(false);
     expect(overlaps(layout.exitButton, layout.clearButton)).toBe(false);
-    expect(overlaps(layout.exitButton, layout.muteButton)).toBe(false);
+    expect(overlaps(layout.exitButton, layout.undoButton)).toBe(false);
     expect(layout.exitButton.y).toBe(layout.resolveButton.y);
   });
 

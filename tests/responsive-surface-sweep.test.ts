@@ -91,7 +91,7 @@ describe("first-user responsive surface sweep", () => {
       layout.chrome,
       layout.resolveButton,
       layout.clearButton,
-      layout.muteButton,
+      layout.undoButton,
       layout.exitButton,
       activeTextPanel,
       reviewTextPanel
@@ -100,17 +100,17 @@ describe("first-user responsive surface sweep", () => {
     }
 
     expect(overlaps(layout.resolveButton, layout.clearButton)).toBe(false);
-    expect(overlaps(layout.clearButton, layout.muteButton)).toBe(false);
+    expect(overlaps(layout.clearButton, layout.undoButton)).toBe(false);
     expect(overlaps(activeTextPanel, layout.resolveButton)).toBe(false);
     expect(overlaps(activeTextPanel, layout.clearButton)).toBe(false);
-    expect(overlaps(activeTextPanel, layout.muteButton)).toBe(false);
+    expect(overlaps(activeTextPanel, layout.undoButton)).toBe(false);
     expect(overlaps(activeTextPanel, layout.petWienerSlot)).toBe(false);
     expect(overlaps(reviewTextPanel, layout.resolveButton)).toBe(false);
     expect(overlaps(startingTextPanel, layout.petWienerSlot)).toBe(false);
     expect(edges(layout.resolveButton).top).toBeGreaterThan(edges(layout.chrome).bottom);
     expect(hasTouchTarget(layout.resolveButton)).toBe(true);
     expect(hasTouchTarget(layout.clearButton)).toBe(true);
-    expect(hasTouchTarget(layout.muteButton)).toBe(true);
+    expect(hasTouchTarget(layout.undoButton)).toBe(true);
     expect(hasTouchTarget(layout.exitButton)).toBe(true);
   });
 
@@ -126,7 +126,7 @@ describe("first-user responsive surface sweep", () => {
     expect(overlaps(reviewTextPanel, feedback)).toBe(false);
     expect(overlaps(feedback, layout.resolveButton)).toBe(false);
     expect(overlaps(feedback, layout.clearButton)).toBe(false);
-    expect(overlaps(feedback, layout.muteButton)).toBe(false);
+    expect(overlaps(feedback, layout.undoButton)).toBe(false);
     expect(overlaps(feedback, layout.exitButton)).toBe(false);
     expect(edges(feedback).top - edges(reviewTextPanel).bottom).toBeGreaterThanOrEqual(8);
     expect(edges(feedback).bottom).toBeLessThanOrEqual(height - 16);
@@ -174,7 +174,7 @@ describe("first-user responsive surface sweep", () => {
     expect(overlaps(reviewTextPanel, feedback)).toBe(false);
     expect(overlaps(feedback, layout.resolveButton)).toBe(false);
     expect(overlaps(feedback, layout.clearButton)).toBe(false);
-    expect(overlaps(feedback, layout.muteButton)).toBe(false);
+    expect(overlaps(feedback, layout.undoButton)).toBe(false);
     expect(overlaps(feedback, layout.exitButton)).toBe(false);
     expect(edges(feedback).bottom).toBeLessThanOrEqual(edges(layout.resolveButton).top - 12);
   });

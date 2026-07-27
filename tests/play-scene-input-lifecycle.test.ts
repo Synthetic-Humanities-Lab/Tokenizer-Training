@@ -668,8 +668,8 @@ describe("PlayScene input lifecycle", () => {
     expect(bindControlsMethod).toContain('controlId: "clear"');
     expect(bindControlsMethod).toContain('onPress: () => this.applyClearButtonVisualState(true, true)');
     expect(bindControlsMethod).toContain('onActivate: () => this.clearPlayerCuts()');
-    expect(bindControlsMethod).toContain('controlId: "mute"');
-    expect(bindControlsMethod).toContain('onActivate: () => this.toggleMute()');
+    expect(bindControlsMethod).toContain('controlId: "undo"');
+    expect(bindControlsMethod).toContain('onActivate: () => this.undoLastSwipe()');
     expect(bindControlsMethod).toContain('controlId: "exit"');
     expect(bindControlsMethod).toContain('onActivate: () => this.exitToMenu()');
     expect(resolveStateMethod).toContain("const ready = this.reviewCanAdvance();");
@@ -716,7 +716,7 @@ describe("PlayScene input lifecycle", () => {
     const shutdownMethod = source.match(/private shutdownScene\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const resolveKeyMethod = source.match(/private handleKeyboardResolve\(event: KeyboardEvent\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const clearKeyMethod = source.match(/private handleKeyboardClear\(event: KeyboardEvent\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
-    const muteKeyMethod = source.match(/private handleKeyboardMute\(event: KeyboardEvent\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+    const undoKeyMethod = source.match(/private handleKeyboardUndo\(event: KeyboardEvent\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const exitKeyMethod = source.match(/private handleKeyboardExit\(event: KeyboardEvent\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const consumeMethod = source.match(/private consumeKeyboardControl\(event: KeyboardEvent\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
 
@@ -724,19 +724,19 @@ describe("PlayScene input lifecycle", () => {
     expect(createMethod).toContain('this.input.keyboard?.on("keydown-SPACE", this.handleKeyboardResolve, this);');
     expect(createMethod).toContain('this.input.keyboard?.on("keydown-BACKSPACE", this.handleKeyboardClear, this);');
     expect(createMethod).toContain('this.input.keyboard?.on("keydown-DELETE", this.handleKeyboardClear, this);');
-    expect(createMethod).toContain('this.input.keyboard?.on("keydown-M", this.handleKeyboardMute, this);');
+    expect(createMethod).toContain('this.input.keyboard?.on("keydown-Z", this.handleKeyboardUndo, this);');
     expect(createMethod).toContain('this.input.keyboard?.on("keydown-ESC", this.handleKeyboardExit, this);');
     expect(shutdownMethod).toContain('this.input.keyboard?.off("keydown-ENTER", this.handleKeyboardResolve, this);');
     expect(shutdownMethod).toContain('this.input.keyboard?.off("keydown-SPACE", this.handleKeyboardResolve, this);');
     expect(shutdownMethod).toContain('this.input.keyboard?.off("keydown-BACKSPACE", this.handleKeyboardClear, this);');
     expect(shutdownMethod).toContain('this.input.keyboard?.off("keydown-DELETE", this.handleKeyboardClear, this);');
-    expect(shutdownMethod).toContain('this.input.keyboard?.off("keydown-M", this.handleKeyboardMute, this);');
+    expect(shutdownMethod).toContain('this.input.keyboard?.off("keydown-Z", this.handleKeyboardUndo, this);');
     expect(shutdownMethod).toContain('this.input.keyboard?.off("keydown-ESC", this.handleKeyboardExit, this);');
     expect(resolveKeyMethod).toContain("this.consumeKeyboardControl(event);");
     expect(resolveKeyMethod).toContain("if (event.repeat) {");
     expect(resolveKeyMethod).toContain("this.handleResolveButton();");
     expect(clearKeyMethod).toContain("this.clearPlayerCuts();");
-    expect(muteKeyMethod).toContain("this.toggleMute();");
+    expect(undoKeyMethod).toContain("this.undoLastSwipe();");
     expect(exitKeyMethod).toContain("this.exitToMenu();");
     expect(consumeMethod).toContain("event.preventDefault();");
     expect(consumeMethod).toContain("event.stopPropagation();");
@@ -786,7 +786,6 @@ describe("PlayScene input lifecycle", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
     const sampleMethod = applyPointerCutSampleMethod(source);
     const noCutMethod = source.match(/private playNoCutFeedback\(point\?: Point, preview\?: NoCutPreviewSnapshot\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
-    const toggleMethod = source.match(/private toggleMute\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
 
     expect(source).toContain('import { hapticFeedbackCapability, HapticFeedbackSystem } from "../systems/HapticFeedbackSystem";');
     expect(source).toContain("private readonly haptics = new HapticFeedbackSystem();");
@@ -813,7 +812,7 @@ describe("PlayScene input lifecycle", () => {
     expect(noCutMethod).not.toContain('this.audio.play("miss");');
     expect(noCutMethod).not.toContain('this.haptics.play("miss", this.inputModality);');
     expect(noCutMethod).not.toContain("this.scoring.scoreRound");
-    expect(toggleMethod).not.toContain("this.haptics");
+    expect(source).not.toContain("private toggleMute(");
   });
 
   it("acknowledges same-gesture adjacent-slot corrections without adding pet speech or scoring", () => {

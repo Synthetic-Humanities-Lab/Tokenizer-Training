@@ -152,7 +152,7 @@ describe("playSceneQaSnapshot", () => {
       resolveButtonReady: true,
       resolveButtonReadyPulse: 0.75,
       clearButtonText: "Clear",
-      muteButtonText: "Sound",
+      undoButtonText: "Undo",
       exitButtonText: "Exit",
       feedbackRect: computeFeedbackCardLayout(width, height, layout.contentPanel),
       feedbackVisible: false,
@@ -256,7 +256,7 @@ describe("playSceneQaSnapshot", () => {
       resolveButtonReadyPulse: 0.75,
       clearTouchTargetOk: true,
       clearButtonActionable: false,
-      muteTouchTargetOk: true,
+      undoTouchTargetOk: true,
       exitTouchTargetOk: true,
       allPlayControlTouchTargetsOk: true,
       motionStartY: layout.sentenceStartY,
@@ -284,11 +284,11 @@ describe("playSceneQaSnapshot", () => {
     });
     expect(element(snapshot.elements, "resolveButton").rect?.height).toBe(MIN_TOUCH_TARGET_SIZE);
     expect(element(snapshot.elements, "clearButton").rect?.height).toBe(MIN_TOUCH_TARGET_SIZE);
-    expect(element(snapshot.elements, "muteButton").rect?.height).toBe(MIN_TOUCH_TARGET_SIZE);
+    expect(element(snapshot.elements, "undoButton").rect?.height).toBe(MIN_TOUCH_TARGET_SIZE);
     expect(element(snapshot.elements, "exitButton").rect?.height).toBe(MIN_TOUCH_TARGET_SIZE);
     expect(element(snapshot.elements, "resolveButton").text).toBe("Resolve");
     expect(element(snapshot.elements, "clearButton").text).toBe("Clear");
-    expect(element(snapshot.elements, "muteButton").text).toBe("Sound");
+    expect(element(snapshot.elements, "undoButton").text).toBe("Undo");
     expect(element(snapshot.elements, "exitButton").text).toBe("Exit");
     expect(element(snapshot.elements, "logoWiener").rect).toEqual(layout.logoWiener);
     expect(element(snapshot.elements, "petWiener").rect).toEqual(layout.petWienerSlot);
@@ -810,7 +810,7 @@ describe("playSceneQaSnapshot", () => {
       minTouchTargetSize: MIN_TOUCH_TARGET_SIZE,
       resolveTouchTargetOk: true,
       clearTouchTargetOk: true,
-      muteTouchTargetOk: true,
+      undoTouchTargetOk: true,
       exitTouchTargetOk: true,
       allPlayControlTouchTargetsOk: true,
       motionStartY: null,

@@ -54,7 +54,7 @@ const requiredPlayElementIds = [
   "cutStatus",
   "resolveButton",
   "clearButton",
-  "muteButton",
+  "undoButton",
   "exitButton"
 ] as const;
 
@@ -379,13 +379,13 @@ function validateSinglePlaySurface(
     }
   }
 
-  for (const id of ["resolveButton", "clearButton", "muteButton", "exitButton"]) {
+  for (const id of ["resolveButton", "clearButton", "undoButton", "exitButton"]) {
     requireTouchRect(element(snapshot.elements, id)?.rect, `${expected.label} ${id}`, issues);
   }
 
   requireElementText(snapshot.elements, "resolveButton", "Resolve", `${expected.label} resolve button`, issues);
   requireElementText(snapshot.elements, "clearButton", expected.compact ? "Clear" : "Clear Cuts", `${expected.label} clear button`, issues);
-  requireElementText(snapshot.elements, "muteButton", "Sound", `${expected.label} mute button`, issues);
+  requireElementText(snapshot.elements, "undoButton", "Undo", `${expected.label} undo button`, issues);
   requireElementText(snapshot.elements, "exitButton", expectedExitButtonText(expected.compact, expected.mode), `${expected.label} exit button`, issues);
   requireSubstantiveText(snapshot.elements, "petSpeechBubble", `${expected.label} Wiener speech`, issues);
 

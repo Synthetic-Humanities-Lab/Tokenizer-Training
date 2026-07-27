@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   parseSurfaceProfile,
+  surfaceProfileForRuntime,
   surfaceProfileFromUrl
 } from "../src/game/systems/SurfaceProfileSystem";
 
@@ -25,5 +26,34 @@ describe("SurfaceProfileSystem", () => {
   it("ignores unknown profile names", () => {
     expect(parseSurfaceProfile("tablet")).toBeUndefined();
     expect(surfaceProfileFromUrl("https://example.test/?surface=tablet")).toBe("browser");
+  });
+
+  it("selects the mobile surface automatically for touch-sized runtime viewports", () => {
+    expect(surfaceProfileForRuntime("https://example.test/", {
+      viewportWidth: 390,
+      maxTouchPoints: 5,
+      coarsePointer: true
+    })).toBe("mobile");
+  });
+
+  it("keeps narrow mouse-only browsers on the browser surface", () => {
+    expect(surfaceProfileForRuntime("https://example.test/", {
+      viewportWidth: 390,
+      maxTouchPoints: 0,
+      coarsePointer: false
+    })).toBe("browser");
+  });
+
+  it("honors explicit surface overrides before runtime detection", () => {
+    expect(surfaceProfileForRuntime("https://example.test/?surface=browser", {
+      viewportWidth: 390,
+      maxTouchPoints: 5,
+      coarsePointer: true
+    })).toBe("browser");
+    expect(surfaceProfileForRuntime("https://example.test/?surface=mobile", {
+      viewportWidth: 1280,
+      maxTouchPoints: 0,
+      coarsePointer: false
+    })).toBe("mobile");
   });
 });

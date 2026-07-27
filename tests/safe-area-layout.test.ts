@@ -64,7 +64,7 @@ describe("safe-area layout", () => {
     expect(edges(layout.resolveButton).bottom).toBe(height - PHONE_SAFE_AREA.bottom - 12);
     expect(withinSafeRect(layout.resolveButton, width, height)).toBe(true);
     expect(withinSafeRect(layout.clearButton, width, height)).toBe(true);
-    expect(withinSafeRect(layout.muteButton, width, height)).toBe(true);
+    expect(withinSafeRect(layout.undoButton, width, height)).toBe(true);
     expect(withinSafeRect(layout.exitButton, width, height)).toBe(true);
     expect(edges(feedback).bottom).toBeLessThanOrEqual(edges(layout.resolveButton).top - 8);
   });

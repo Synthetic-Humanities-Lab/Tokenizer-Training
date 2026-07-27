@@ -34,6 +34,7 @@ import {
   cutConfirmationAudioCues
 } from "../systems/AudioSystem";
 import { CutInputSessionSystem } from "../systems/CutInputSessionSystem";
+import { CutUndoSystem } from "../systems/CutUndoSystem";
 import {
   difficultyPhaseAnnouncement,
   DifficultySystem,
@@ -268,6 +269,7 @@ export class PlayScene extends Phaser.Scene {
   private readonly resolutionFeedback = new ResolutionFeedbackSystem();
   private readonly swipe = new SwipeCutSystem();
   private readonly cutInput = new CutInputSessionSystem(this.swipe);
+  private readonly cutUndo = new CutUndoSystem();
   private readonly storage = new StorageSystem();
   private readonly audio = new AudioSystem(this.storage.loadMuted());
   private readonly haptics = new HapticFeedbackSystem();
@@ -322,8 +324,8 @@ export class PlayScene extends Phaser.Scene {
   private resolveReadyPulseStartedAt?: number;
   private clearButton!: Phaser.GameObjects.Rectangle;
   private clearLabel!: Phaser.GameObjects.Text;
-  private muteButton!: Phaser.GameObjects.Rectangle;
-  private muteLabel!: Phaser.GameObjects.Text;
+  private undoButton!: Phaser.GameObjects.Rectangle;
+  private undoLabel!: Phaser.GameObjects.Text;
   private exitButton!: Phaser.GameObjects.Rectangle;
   private exitLabel!: Phaser.GameObjects.Text;
   private playControlDisposers: Array<() => void> = [];
@@ -601,8 +603,8 @@ export class PlayScene extends Phaser.Scene {
       fontSize: "15px",
       color: uiPalette.text
     }).setOrigin(0.5).setDepth(23);
-    this.muteButton = this.add.rectangle(0, 0, 112, 40, buttonVisual.fill, buttonVisual.fillAlpha).setStrokeStyle(1, buttonVisual.stroke).setDepth(22);
-    this.muteLabel = this.add.text(0, 0, "", {
+    this.undoButton = this.add.rectangle(0, 0, 112, 40, buttonVisual.fill, buttonVisual.fillAlpha).setStrokeStyle(1, buttonVisual.stroke).setDepth(22);
+    this.undoLabel = this.add.text(0, 0, "Undo", {
       fontFamily: uiFonts.body,
       fontSize: "15px",
       color: uiPalette.text
@@ -627,7 +629,7 @@ export class PlayScene extends Phaser.Scene {
     this.input.keyboard?.on("keydown-SPACE", this.handleKeyboardResolve, this);
     this.input.keyboard?.on("keydown-BACKSPACE", this.handleKeyboardClear, this);
     this.input.keyboard?.on("keydown-DELETE", this.handleKeyboardClear, this);
-    this.input.keyboard?.on("keydown-M", this.handleKeyboardMute, this);
+    this.input.keyboard?.on("keydown-Z", this.handleKeyboardUndo, this);
     this.input.keyboard?.on("keydown-ESC", this.handleKeyboardExit, this);
     this.scale.on("resize", this.layout, this);
     this.unsubscribeMotionPreference = motionRuntime?.subscribe((snapshot) => {
@@ -636,7 +638,7 @@ export class PlayScene extends Phaser.Scene {
     this.registerFocusPauseListeners();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.shutdownScene, this);
 
-    this.updateMuteLabel();
+    this.updateUndoButtonState();
     this.layout();
     this.startRound();
   }
@@ -644,7 +646,7 @@ export class PlayScene extends Phaser.Scene {
   private bindPlayControls(): void {
     this.resolveButton.setInteractive({ useHandCursor: true });
     this.clearButton.setInteractive({ useHandCursor: true });
-    this.muteButton.setInteractive({ useHandCursor: true });
+    this.undoButton.setInteractive({ useHandCursor: true });
     this.exitButton.setInteractive({ useHandCursor: true });
 
     this.playControlDisposers = [
@@ -667,13 +669,13 @@ export class PlayScene extends Phaser.Scene {
         onActivate: () => this.clearPlayerCuts()
       }),
       bindPlayControlActivation({
-        controlId: "mute",
-        button: this.muteButton,
+        controlId: "undo",
+        button: this.undoButton,
         router: this.playInputRouter,
-        onRest: () => this.muteButton.setFillStyle(buttonVisual.fill, buttonVisual.fillAlpha),
-        onHover: () => this.muteButton.setFillStyle(buttonVisual.hoverFill, buttonVisual.hoverAlpha),
-        onPress: () => this.muteButton.setFillStyle(buttonVisual.pressFill, buttonVisual.pressAlpha),
-        onActivate: () => this.toggleMute()
+        onRest: () => this.applyUndoButtonVisualState(false),
+        onHover: () => this.applyUndoButtonVisualState(true),
+        onPress: () => this.applyUndoButtonVisualState(true, true),
+        onActivate: () => this.undoLastSwipe()
       }),
       bindPlayControlActivation({
         controlId: "exit",
@@ -826,6 +828,7 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private resetTransientSliceState(): void {
+    this.cutUndo.completeGesture(this.currentCuts);
     this.cutInput.endGesture();
     this.lastPointerPoint = undefined;
     this.gestureTouchedCutBand = false;
@@ -837,6 +840,7 @@ export class PlayScene extends Phaser.Scene {
     this.inputFeelMetrics.endGesture();
     this.clearArmedCutPreview();
     this.clearTrail();
+    this.updateUndoButtonState();
   }
 
   private startRound(): void {
@@ -872,6 +876,7 @@ export class PlayScene extends Phaser.Scene {
     this.cutStatusText.setVisible(true);
     this.inputFeelMetrics.startRound();
     this.currentCuts = [];
+    this.cutUndo.clear();
     this.resolving = false;
     this.lastResolveTrigger = null;
     this.tutorialReviewReady = false;
@@ -886,6 +891,7 @@ export class PlayScene extends Phaser.Scene {
     this.resolveDeadlinePressureWasActive = false;
     this.updateResolveButtonState();
     this.updateClearButtonState();
+    this.updateUndoButtonState();
     this.round += 1;
     const previousDifficultyPhase = this.previousDifficultyPhase;
     this.currentDifficulty = this.difficulty.getState(this.round);
@@ -1045,6 +1051,9 @@ export class PlayScene extends Phaser.Scene {
       return;
     }
 
+    if (canStartSlice) {
+      this.cutUndo.beginGesture(this.currentCuts);
+    }
     this.applyPointerCutSample(point);
   }
 
@@ -1229,6 +1238,7 @@ export class PlayScene extends Phaser.Scene {
       this.noteActiveCutPulses(releaseSamplePulseCuts, "release");
       this.renderPlayerCuts();
     }
+    this.cutUndo.completeGesture(this.currentCuts);
     this.gestureTouchedCutBand = false;
     this.gestureHadCut = false;
     this.gestureAddedCuts.clear();
@@ -1242,6 +1252,7 @@ export class PlayScene extends Phaser.Scene {
       this.playNoCutFeedback(releasePoint, noCutPreview);
     }
     this.inputFeelMetrics.endGesture();
+    this.updateUndoButtonState();
     this.renderInputResponseBadge(this.inputFeelMetrics.snapshot(this.baseNowMs()));
     this.writePlayQaSnapshot();
     this.trailFadeTween?.stop();
@@ -1292,11 +1303,12 @@ export class PlayScene extends Phaser.Scene {
       return;
     }
 
-    this.resolving = true;
     const interruptedOwner = this.playInputRouter.cancelAll();
     if (interruptedOwner?.kind === "control") {
       this.resetPlayControlVisual(interruptedOwner.controlId);
     }
+    this.cutUndo.completeGesture(this.currentCuts);
+    this.resolving = true;
     this.lastResolveTrigger = trigger;
     this.tutorialReviewReady = false;
     this.tutorialReviewReadyAtMs = null;
@@ -1321,6 +1333,7 @@ export class PlayScene extends Phaser.Scene {
     this.resolveReadyPulseStartedAt = undefined;
     this.updateResolveButtonState();
     this.updateClearButtonState();
+    this.updateUndoButtonState();
     const now = this.nowMs();
     this.hideWienerSpeech();
     this.clearReviewRevealTimers();
@@ -1446,8 +1459,8 @@ export class PlayScene extends Phaser.Scene {
       this.applyClearButtonVisualState(false);
       return;
     }
-    if (controlId === "mute") {
-      this.muteButton.setFillStyle(buttonVisual.fill, buttonVisual.fillAlpha);
+    if (controlId === "undo") {
+      this.applyUndoButtonVisualState(false);
       return;
     }
     this.exitButton.setFillStyle(buttonVisual.fill, 0.82);
@@ -1456,7 +1469,7 @@ export class PlayScene extends Phaser.Scene {
   private resetAllPlayControlVisuals(): void {
     this.resetPlayControlVisual("resolve");
     this.resetPlayControlVisual("clear");
-    this.resetPlayControlVisual("mute");
+    this.resetPlayControlVisual("undo");
     this.resetPlayControlVisual("exit");
   }
 
@@ -1504,13 +1517,13 @@ export class PlayScene extends Phaser.Scene {
     this.clearPlayerCuts();
   }
 
-  private handleKeyboardMute(event: KeyboardEvent): void {
+  private handleKeyboardUndo(event: KeyboardEvent): void {
     this.consumeKeyboardControl(event);
     if (event.repeat) {
       return;
     }
 
-    this.toggleMute();
+    this.undoLastSwipe();
   }
 
   private handleKeyboardExit(event: KeyboardEvent): void {
@@ -2786,9 +2799,10 @@ export class PlayScene extends Phaser.Scene {
     this.clearButton.setSize(layout.clearButton.width, layout.clearButton.height);
     this.clearLabel.setPosition(this.clearButton.x, this.clearButton.y);
     this.updateClearButtonState();
-    this.muteButton.setPosition(layout.muteButton.x, layout.muteButton.y);
-    this.muteButton.setSize(layout.muteButton.width, layout.muteButton.height);
-    this.muteLabel.setPosition(this.muteButton.x, this.muteButton.y);
+    this.undoButton.setPosition(layout.undoButton.x, layout.undoButton.y);
+    this.undoButton.setSize(layout.undoButton.width, layout.undoButton.height);
+    this.undoLabel.setPosition(this.undoButton.x, this.undoButton.y);
+    this.updateUndoButtonState();
     this.layoutPetWiener(layout, safeArea, surfaceProfile);
     this.layoutWienerSpeech();
     this.hud.layout(width, layout.contentPanel, safeArea, surfaceProfile);
@@ -3546,7 +3560,8 @@ export class PlayScene extends Phaser.Scene {
       resolveButtonDeadlinePressure: this.resolveDeadlinePressure(),
       clearButtonText: this.clearLabel?.text,
       clearButtonActionable: this.clearButtonActionable(),
-      muteButtonText: this.muteLabel?.text,
+      undoButtonText: this.undoLabel?.text,
+      undoButtonActionable: this.undoButtonActionable(),
       exitButtonText: this.exitLabel?.text,
       feedbackRect: feedbackLayout,
       feedbackVisible: this.feedbackCard.isVisible(),
@@ -3631,6 +3646,10 @@ export class PlayScene extends Phaser.Scene {
 
   private clearButtonActionable(): boolean {
     return !this.resolving && this.currentCuts.length > 0;
+  }
+
+  private undoButtonActionable(): boolean {
+    return !this.resolving && this.cutUndo.canUndo();
   }
 
   private shouldUseRendererQaCapture(): boolean {
@@ -4071,17 +4090,30 @@ export class PlayScene extends Phaser.Scene {
     this.setSentenceY(layout.sentenceReviewY);
   }
 
-  private toggleMute(): void {
-    const muted = this.audio.toggleMuted();
-    this.storage.saveMuted(muted);
-    this.updateMuteLabel();
-    if (!muted) {
-      this.audio.play("ui");
+  private undoLastSwipe(): void {
+    if (!this.undoButtonActionable()) {
+      return;
     }
-  }
 
-  private updateMuteLabel(): void {
-    this.muteLabel?.setText(this.audio.isMuted() ? "Muted" : "Sound");
+    const previousCuts = this.cutUndo.undo();
+    if (!previousCuts) {
+      return;
+    }
+
+    this.currentCuts = previousCuts;
+    this.clearActiveCutMarkers();
+    this.clearTextCutImpact();
+    this.clearChainSwipeFeedback();
+    this.clearNoCutFeedback();
+    this.renderPlayerCuts();
+    this.renderCutStatus();
+    this.resolveReadyPulseStartedAt = this.currentCuts.length > 0 ? this.baseNowMs() : undefined;
+    this.updateResolveButtonState();
+    this.updateClearButtonState();
+    this.updateUndoButtonState();
+    this.haptics.play("clear", this.inputModality);
+    this.audio.play("ui");
+    this.writePlayQaSnapshot();
   }
 
   private updateResolveButtonState(): void {
@@ -4168,6 +4200,21 @@ export class PlayScene extends Phaser.Scene {
     this.applyClearButtonVisualState(false);
   }
 
+  private updateUndoButtonState(): void {
+    this.applyUndoButtonVisualState(false);
+  }
+
+  private applyUndoButtonVisualState(hovered: boolean, pressed = false): void {
+    const actionable = this.undoButtonActionable();
+    const state = clearButtonVisualState(actionable, hovered, pressed);
+    this.undoLabel?.setText("Undo");
+    this.undoButton?.setAlpha(state.alpha);
+    this.undoButton?.setFillStyle(state.fillColor, state.fillAlpha);
+    if (this.undoButton?.input) {
+      this.undoButton.input.cursor = actionable ? "pointer" : false;
+    }
+  }
+
   private applyClearButtonVisualState(hovered: boolean, pressed = false): void {
     const canClear = this.clearButtonActionable();
     const state = clearButtonVisualState(canClear, hovered, pressed);
@@ -4192,6 +4239,7 @@ export class PlayScene extends Phaser.Scene {
       this.resetPlayControlVisual(interruptedOwner.controlId);
     }
     this.resetTransientSliceState();
+    this.cutUndo.clear();
     const clearedCutCount = this.currentCuts.length;
     this.playClearCutFeedback(this.currentCuts);
     this.haptics.play("clear", this.inputModality);
@@ -4205,6 +4253,7 @@ export class PlayScene extends Phaser.Scene {
     this.renderCutStatus();
     this.updateResolveButtonState();
     this.updateClearButtonState();
+    this.updateUndoButtonState();
     this.writePlayQaSnapshot();
     if (clearedCutCount > 0) {
       this.audio.play("clear");
@@ -4297,7 +4346,7 @@ export class PlayScene extends Phaser.Scene {
     this.input.keyboard?.off("keydown-SPACE", this.handleKeyboardResolve, this);
     this.input.keyboard?.off("keydown-BACKSPACE", this.handleKeyboardClear, this);
     this.input.keyboard?.off("keydown-DELETE", this.handleKeyboardClear, this);
-    this.input.keyboard?.off("keydown-M", this.handleKeyboardMute, this);
+    this.input.keyboard?.off("keydown-Z", this.handleKeyboardUndo, this);
     this.input.keyboard?.off("keydown-ESC", this.handleKeyboardExit, this);
     this.scale.off("resize", this.layout, this);
   }
