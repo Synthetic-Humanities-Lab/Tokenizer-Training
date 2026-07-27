@@ -2,6 +2,8 @@ import type { GameQaElement, GameQaSnapshot } from "./GameQaSystem";
 import type { MenuCopy } from "./MenuContentSystem";
 import type { MenuLayout } from "./MenuLayoutSystem";
 import { PRODUCT_NAME } from "./ProductIdentitySystem";
+import { bestRankDisplayText, rankForRounds } from "./RankSystem";
+import type { StorageQaState } from "./StorageSystem";
 
 export interface MenuSceneQaSnapshotInput {
   width: number;
@@ -10,14 +12,14 @@ export interface MenuSceneQaSnapshotInput {
   copy: MenuCopy;
   highScoreRounds: number;
   highScoreRank: string;
-  soundButtonText: string;
+  muted: boolean;
+  trainingQualified?: boolean;
+  storageQaState?: StorageQaState;
 }
 
 export function menuSceneQaSnapshot(input: MenuSceneQaSnapshotInput): GameQaSnapshot {
   const highScoreRounds = Math.max(0, Math.floor(input.highScoreRounds));
-  const bestRecordText = input.layout.compact
-    ? `Best Record: ${input.highScoreRank} / ${highScoreRounds} rounds`
-    : `Best Record: ${input.highScoreRank} / ${highScoreRounds} rounds cleared`;
+  const bestRecordText = bestRankDisplayText(highScoreRounds);
   const elements: GameQaElement[] = [
     { id: "card", rect: input.layout.card },
     {
@@ -31,7 +33,7 @@ export function menuSceneQaSnapshot(input: MenuSceneQaSnapshotInput): GameQaSnap
           : input.layout.companyMark.x + input.layout.companyMark.wordWrapWidth / 2,
         y: input.layout.companyMark.y,
         width: input.layout.companyMark.wordWrapWidth,
-        height: input.layout.companyMark.fontSize * 1.45
+        height: input.layout.companyMark.fontSize * 1.35 * lineCount(input.layout.companyMark.displayText)
       }
     },
     {
@@ -43,37 +45,45 @@ export function menuSceneQaSnapshot(input: MenuSceneQaSnapshotInput): GameQaSnap
         x: input.layout.title.x,
         y: input.layout.title.y,
         width: input.layout.title.wordWrapWidth,
-        height: input.layout.title.fontSize * 1.35
+        height: input.layout.title.fontSize * 1.25 * lineCount(input.layout.title.displayText)
       }
     },
     {
       id: "menuMascot",
       rect: input.layout.menuMascot
     },
-    {
-      id: "moduleLabel",
-      text: input.layout.moduleLabel.text,
-      fontSize: input.layout.moduleLabel.fontSize,
-      wordWrapWidth: input.layout.moduleLabel.wordWrapWidth,
-      rect: {
-        x: input.layout.moduleLabel.x,
-        y: input.layout.moduleLabel.y,
-        width: input.layout.moduleLabel.wordWrapWidth,
-        height: input.layout.compact ? 28 : 16
-      }
-    },
-    {
-      id: "premise",
-      text: input.copy.premise,
-      fontSize: input.layout.premise.fontSize,
-      wordWrapWidth: input.layout.premise.wordWrapWidth,
-      rect: {
-        x: input.layout.premise.x,
-        y: input.layout.premise.y,
-        width: input.layout.premise.wordWrapWidth,
-        height: 76
-      }
-    },
+    ...(input.layout.moduleLabel.visible
+      ? [
+          {
+            id: "moduleLabel",
+            text: input.layout.moduleLabel.text,
+            fontSize: input.layout.moduleLabel.fontSize,
+            wordWrapWidth: input.layout.moduleLabel.wordWrapWidth,
+            rect: {
+              x: input.layout.moduleLabel.x,
+              y: input.layout.moduleLabel.y,
+              width: input.layout.moduleLabel.wordWrapWidth,
+              height: input.layout.compact ? 28 : 16
+            }
+          }
+        ]
+      : []),
+    ...(input.layout.premise.visible
+      ? [
+          {
+            id: "premise",
+            text: input.copy.premise,
+            fontSize: input.layout.premise.fontSize,
+            wordWrapWidth: input.layout.premise.wordWrapWidth,
+            rect: {
+              x: input.layout.premise.x,
+              y: input.layout.premise.y,
+              width: input.layout.premise.wordWrapWidth,
+              height: 76
+            }
+          }
+        ]
+      : []),
     ...(input.layout.workOrder.visible
       ? [
           {
@@ -104,12 +114,18 @@ export function menuSceneQaSnapshot(input: MenuSceneQaSnapshotInput): GameQaSnap
         x: input.layout.bestRecord.x,
         y: input.layout.bestRecord.y,
         width: input.layout.bestRecord.wordWrapWidth,
-        height: input.layout.bestRecord.fontSize * 1.5
-      }
+        height: input.layout.bestRecord.fontSize * 1.35 * lineCount(bestRecordText)
+      },
+      visible: input.layout.bestRecord.visible
     },
-    { id: "tutorialButton", text: "Begin Tutorial", rect: input.layout.tutorialButton },
-    { id: "endlessButton", text: "Endless Training", rect: input.layout.endlessButton },
-    { id: "soundButton", text: input.soundButtonText, rect: input.layout.soundButton }
+    { id: "tutorialButton", text: "Tutorial", rect: input.layout.tutorialButton },
+    {
+      id: "trainingButton",
+      text: input.trainingQualified === false ? "Training - Locked" : "Training",
+      rect: input.layout.trainingButton
+    },
+    { id: "tokenLogButton", text: "Token Log", rect: input.layout.tokenLogButton },
+    { id: "settingsButton", text: "Settings", rect: input.layout.settingsButton }
   ];
 
   return {
@@ -121,9 +137,15 @@ export function menuSceneQaSnapshot(input: MenuSceneQaSnapshotInput): GameQaSnap
     },
     state: {
       highScoreRounds: Math.max(0, Math.floor(input.highScoreRounds)),
-      highScoreRank: input.highScoreRank,
-      muted: input.soundButtonText.includes("Off")
+      highScoreRank: rankForRounds(highScoreRounds),
+      muted: input.muted,
+      trainingQualified: input.trainingQualified ?? true,
+      ...input.storageQaState
     },
     elements
   };
+}
+
+function lineCount(text: string): number {
+  return Math.max(1, text.split("\n").length);
 }

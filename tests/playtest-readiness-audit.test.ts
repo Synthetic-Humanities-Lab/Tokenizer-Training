@@ -41,11 +41,16 @@ describe("playtest readiness audit", () => {
     expect(rendered).toContain("docs/game_design_reading_notes/chapter_note_manifest.md");
     expect(rendered).toContain("docs/economy_tuning_audit.md");
     expect(rendered).toContain("docs/objective_completion_audit.md");
+    expect(rendered).toContain("docs/current_surface_contract.md");
+    expect(rendered).toContain("docs/mobile_shell.md");
     expect(rendered).toContain("docs/playtest_operations.md");
-    expect(rendered).toContain("docs/browser_qa_2026-06-07.md");
-    expect(rendered).toContain("2026-06-07-latest-canvas-small-phone-tutorial-active.png");
-    expect(rendered).toContain("2026-06-07-tight-toast-small-phone-tutorial-active.png");
-    expect(rendered).toContain("2026-06-07-post-ui-byte-route-portrait.png");
+    expect(rendered).toContain("docs/mobile_device_evidence_manifest.md");
+    expect(rendered).toContain("scripts/evaluate-playtest-notes.ts");
+    expect(rendered).toContain("scripts/evaluate-mobile-cross-reference.ts");
+    expect(rendered).toContain("scripts/evaluate-mobile-evidence-freshness.ts");
+    expect(audit.localFiles.some((file) => file.path.toLowerCase().endsWith(".png"))).toBe(false);
+    expect(rendered).not.toContain("2026-06-07-tight-toast-small-phone-tutorial-active.png");
+    expect(rendered).not.toContain("2026-06-07-post-ui-byte-route-portrait.png");
   });
 
   it("renders the executable next steps without claiming broad readiness", () => {
@@ -137,7 +142,7 @@ describe("playtest readiness audit", () => {
     );
   });
 
-  it("rejects large but incomplete PNG evidence artifacts", () => {
+  it("rejects large but incomplete PNG artifacts when a PNG is explicitly required", () => {
     const root = mkdtempSync(join(tmpdir(), "mtt-readiness-png-"));
     mkdirSync(join(root, "docs/browser_qa"), { recursive: true });
     const artifactPath = join(root, "docs/browser_qa/2026-06-07-browser-canvas-desktop-menu.png");
@@ -146,15 +151,14 @@ describe("playtest readiness audit", () => {
       Buffer.alloc(60_000, 0)
     ]));
 
-    const audit = auditPlaytestReadiness({
-      rootDir: root,
-      sessionFiles: [],
-      rollupFile: "rollup.md"
+    const file = checkReadinessFileRequirement(root, {
+      path: "docs/browser_qa/2026-06-07-browser-canvas-desktop-menu.png",
+      minBytes: 50_000,
+      pngDimensions: { width: 1280, height: 720 }
     });
-    const file = audit.localFiles.find((entry) => entry.path.endsWith("2026-06-07-browser-canvas-desktop-menu.png"));
 
-    expect(file?.ok).toBe(false);
-    expect(file?.issue).toContain("not a complete readable PNG");
+    expect(file.ok).toBe(false);
+    expect(file.issue).toContain("not a complete readable PNG");
   });
 
   it("validates PNG structure, not only file signature", () => {

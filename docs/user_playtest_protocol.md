@@ -139,7 +139,7 @@ those URLs use `qaViewport` and `qaFreezeElapsedMs`, so they are not tester
 launch URLs and do not count as real mobile evidence.
 
 - `?mode=tutorial`: start directly in Tutorial
-- `?mode=endless`: start directly in Endless Training
+- `?mode=endless`: start directly in Training
 - `?mode=tutorial-complete`: start directly at the tutorial handoff screen for
   layout and screenshot checks
 - `?mode=results`: start directly at a zero-round results screen for layout,
@@ -177,9 +177,9 @@ npm run playtest:notes
 3. Run the full tutorial without external explanation unless the tester is
    blocked for more than 30 seconds.
 4. After the tutorial-complete handoff appears, wait to see whether the tester
-   starts Endless Training without prompting. If they do not act for 30 seconds,
+   selects `Start Training` without prompting. If they do not act for 30 seconds,
    ask them what they think the screen is offering.
-5. Ask the tester to play Endless Training until budget exhaustion or voluntary
+5. Ask the tester to play uncapped Training until budget exhaustion or voluntary
    quit after at least five rounds.
 6. On the results screen, ask the tester to press Copy Summary and paste the
    copied text into the playtest notes. If the button changes to Save Summary,
@@ -254,7 +254,7 @@ game-generated `tt-...` run ID shape; do not replace it with a participant ID
 or spreadsheet row label.
 One-word evidence cells and debrief answers such as `pass`, `yes`, `ok`,
 `fail`, or `ambiguous` are treated as missing evidence. The copied summary must
-also match the session run ID, and the post-tutorial Endless run must report
+also match the session run ID, and the post-tutorial Training run must report
 `Start: handoff screen`. It must also include a captured `Round trace` rather
 than `Round trace: not captured`.
 The copied `Input evidence:` line records what pointer type the browser reported
@@ -302,8 +302,8 @@ Record the following without correcting the player mid-round:
 - whether the Wiener tutorial speech explains both the labor/browser situation
   and tokenizer mechanics without facilitator explanation
 - whether missed and false markers are understood during review
-- whether pay, cost, net, balance, and rank are understood
-- whether the tutorial-complete handoff gets the player into Endless Training
+- whether verified credits, rework, net credits, remaining credits, and rank are understood
+- whether the tester selects `Start Training` at the tutorial-complete handoff
 - whether dense strings feel like higher-risk tokenization, not random noise
 - whether the obsolete AI labor frame is noticed through play
 - whether the degraded visual style reads as intentional and whether the player
@@ -324,11 +324,25 @@ Ask after play, not during active rounds:
 1. What were you trying to do when you swiped?
 2. What is a token boundary, based on the game?
 3. Name one way tokenization differs from ordinary word reading.
-4. What made pay go up or company cost go up?
+4. What made Token Credits increase or rework increase?
 5. Did any result feel unfair or caused by input imprecision?
 6. What did the AI/browser fiction make you think was happening?
 7. Which screen or moment was hardest to read?
 8. What made you want to keep playing or stop?
+
+## Separate Numerical Token Probe
+
+The main five-session protocol does not yet prove that players understand token
+IDs as encoding-specific identifiers. Use
+`docs/token_comprehension_probe.md` for a separate five-novice, unscored
+near-transfer study after the participant completes Tutorial and before Token Log
+or Training.
+
+Do not count those dedicated probe sessions toward the main protocol's
+unprompted tutorial-handoff criterion: stopping to ask the probe deliberately
+contaminates that observation. Do not add the probe to the game, gate Training,
+or infer comprehension from cut accuracy. The probe records three first answers,
+reasons, confidence, and pass/ambiguous/fail decisions under a fixed rubric.
 
 ## Pass Criteria
 
@@ -337,9 +351,9 @@ The build is ready for broader playtest only if:
 - at least 4 of 5 testers can perform the first tutorial action without outside
   instruction
 - at least 4 of 5 can explain one non-word tokenization behavior after tutorial
-- at least 4 of 5 can start Endless Training from the tutorial-complete handoff
+- at least 4 of 5 can select `Start Training` from the tutorial-complete handoff
   without outside instruction
-- at least 4 of 5 can explain pay minus cost equals net after a review state
+- at least 4 of 5 can explain verified credits minus rework equals net credits after a review state
 - no tester reports systematic swipe/snap mistrust
 - mobile testers can read the HUD, text panel, review markers, feedback card,
   and Wiener speech without overlap or clipping
@@ -378,7 +392,7 @@ The build is ready for broader playtest only if:
   usually record as mouse-like pointer input.
 - The copied summary records session start source as menu, direct, handoff
   screen, results retry, or not captured. For the main protocol, the expected
-  post-tutorial endless run should report `Start: handoff screen`.
+  post-tutorial Training run should report `Start: handoff screen`.
 - The copied summary records a per-round fixture trace with fixture ID,
   category, tier, token count, and OK/missed/false counts. Use it to identify
   which examples actually produced confusion or apparent mastery.

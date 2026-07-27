@@ -15,7 +15,7 @@ describe("playtest link generation", () => {
     expect(links).toEqual([
       { label: "Controlled menu", url: "http://192.168.1.20:5174/?playtestReset=1" },
       { label: "Tutorial start", url: "http://192.168.1.20:5174/?mode=tutorial&playtestReset=1" },
-      { label: "Endless start", url: "http://192.168.1.20:5174/?mode=endless&playtestReset=1" },
+      { label: "Training start", url: "http://192.168.1.20:5174/?mode=endless&playtestReset=1" },
       { label: "Handoff QA", url: "http://192.168.1.20:5174/?mode=tutorial-complete&playtestReset=1" },
       { label: "Failed Tutorial QA", url: "http://192.168.1.20:5174/?mode=tutorial-failed&playtestReset=1" },
       { label: "Results QA", url: "http://192.168.1.20:5174/?mode=results&playtestReset=1" },
@@ -90,6 +90,8 @@ describe("playtest link generation", () => {
     expect(output).toContain("record screenshot, photo, screen recording, or observer-note evidence");
     expect(output).toContain("Host 127.0.0.1");
     expect(output).toContain("Host 192.168.1.20");
+    expect(output).toContain("Training start: http://192.168.1.20:5174/?mode=endless&playtestReset=1");
+    expect(output).not.toContain("Endless start:");
     expect(output).toContain("http://192.168.1.20:5174/?mode=tutorial&playtestReset=1");
     expect(output).toContain("http://192.168.1.20:5174/?mode=tutorial-complete&playtestReset=1");
     expect(output).toContain("http://192.168.1.20:5174/?mode=tutorial-failed&playtestReset=1");

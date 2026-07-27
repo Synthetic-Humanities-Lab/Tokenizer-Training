@@ -86,7 +86,7 @@ the next required mobile note is valid only if all of these are true:
   as planned setup until brief or launch-check marks the exact running host
   copy-ready.
 - Do not pre-explain tokenization, the Wiener, the labor fiction, or
-  the pay/cost system.
+  the Token Credit/rework system.
 
 ## Opening Script
 
@@ -128,8 +128,8 @@ the debrief.
 - Whether Wiener tutorial speech explains both the labor/browser situation and
   tokenizer mechanics without your explanation.
 - Whether review markers explain OK, missed, and false cuts.
-- Whether pay, company cost, net, balance, and rank are understood.
-- Whether the tester starts Endless from the tutorial-complete handoff.
+- Whether verified credits, rework, net credits, remaining credits, and rank are understood.
+- Whether the tester selects `Start Training` from the tutorial-complete handoff.
 - Whether dense strings feel like risky tokenization, not random noise.
 - Whether the degraded AI labor frame is noticed without being named.
 - Whether errors feel earned and recoverable rather than arbitrary.
@@ -147,7 +147,7 @@ Ask after play, not during active rounds.
 1. What were you trying to do when you swiped?
 2. What is a token boundary, based on the game?
 3. Name one way tokenization differs from ordinary word reading.
-4. What made pay go up or company cost go up?
+4. What made Token Credits increase or rework increase?
 5. Did any result feel unfair or caused by input imprecision?
 6. What did the AI/browser fiction make you think was happening?
 7. Which screen or moment was hardest to read?
@@ -167,7 +167,7 @@ Ask after play, not during active rounds.
 - A mobile readability pass must name a concrete artifact or observation plus a
   surface or failure mode: HUD, static prompt text, review markers, feedback,
   Wiener speech, clipping, overlap, or finger occlusion.
-- For the main protocol, the post-tutorial Endless summary must report
+- For the main protocol, the post-tutorial Training summary must report
   `Start: handoff screen`.
 - The final rollup must connect evidence back to the five principle areas:
   top game design, critical/conceptual play, emotional design, game feel, and

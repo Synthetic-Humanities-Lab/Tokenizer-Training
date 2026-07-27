@@ -41,6 +41,8 @@ export const TOUCH_AIM_LOUPE_WIDTH = 128;
 export const TOUCH_AIM_LOUPE_HEIGHT = 42;
 export const TOUCH_AIM_LOUPE_POINTER_CLEARANCE = 72;
 export const TOUCH_AIM_LOUPE_MIN_POINTER_CLEARANCE = 32;
+const TOUCH_AIM_LOUPE_COMPACT_VERTICAL_OFFSET = 60;
+const TOUCH_AIM_LOUPE_DESKTOP_VERTICAL_OFFSET = 54;
 
 export function touchAimLoupeState(input: TouchAimLoupeInput): TouchAimLoupeState {
   if (!input.slot || !shouldShowTouchAimLoupe(input.compact, input.inputModality)) {
@@ -117,7 +119,7 @@ function touchAimLoupePlacement(
 ): { rect: GameQaRect; placement: Exclude<TouchAimLoupePlacement, "hidden"> } {
   const side = touchAimLoupePreferredSide(pointer, slotX, viewport.width);
   const flippedSide: -1 | 1 = side === 1 ? -1 : 1;
-  const verticalOffset = compact ? 48 : 54;
+  const verticalOffset = compact ? TOUCH_AIM_LOUPE_COMPACT_VERTICAL_OFFSET : TOUCH_AIM_LOUPE_DESKTOP_VERTICAL_OFFSET;
   const candidates = [
     candidateLoupeRect(slotX, side, viewport, textTop - verticalOffset, "above"),
     candidateLoupeRect(slotX, flippedSide, viewport, textTop - verticalOffset, "above"),

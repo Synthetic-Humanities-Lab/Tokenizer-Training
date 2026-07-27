@@ -122,29 +122,29 @@ describe("SwipeCutSystem", () => {
     expect(system.boundariesCrossedBySegment(slots, { x: 190, y: 20 }, { x: 20, y: 20 })).toEqual([6, 5, 3, 2, 1]);
   });
 
-  it("builds playable slots between characters without duplicating around spaces", () => {
+  it("represents an ordinary space with one centered playable slot", () => {
     const system = new SwipeCutSystem();
     const slots = system.buildPlayableSlots({ left: 0, top: 0, bottom: 40, width: 210 }, "the cat");
 
     expect(slots.map((slot) => slot.index)).toEqual([1, 2, 3, 5, 6]);
     expect(slots.find((slot) => slot.index === 3)?.x).toBe(105);
+    expect(slots.find((slot) => slot.index === 4)).toBeUndefined();
     expect(system.nearestBoundary(slots, { x: 105, y: 20 }, 8)).toBe(3);
-    expect(system.nearestBoundary(slots, { x: 90, y: 20 }, 8)).toBeNull();
-    expect(system.nearestBoundary(slots, { x: 120, y: 20 }, 5)).toBeNull();
   });
 
-  it("does not expose both sides of an underscore separator as playable slots", () => {
+  it("exposes both sides of an underscore as independently playable slots", () => {
     const system = new SwipeCutSystem();
     const slots = system.buildPlayableSlots({ left: 0, top: 0, bottom: 40, width: 190 }, "invoice_final04");
     const indexes = slots.map((slot) => slot.index);
 
     expect(indexes).toContain(7);
-    expect(indexes).not.toContain(8);
-    expect(slots.find((slot) => slot.index === 7)?.x).toBe(95);
-    expect(system.unplayableBoundaries([8], "invoice_final04")).toEqual([8]);
+    expect(indexes).toContain(8);
+    expect(slots.find((slot) => slot.index === 7)?.x).toBeCloseTo(88.67, 2);
+    expect(slots.find((slot) => slot.index === 8)?.x).toBeCloseTo(101.33, 2);
+    expect(system.unplayableBoundaries([8], "invoice_final04")).toEqual([]);
   });
 
-  it("collapses repeated spaces into a single playable pre-space boundary", () => {
+  it("collapses a repeated space run into one centered playable slot", () => {
     const system = new SwipeCutSystem();
     const slots = system.buildPlayableSlots(
       { left: 0, top: 0, bottom: 40, width: 420 },
@@ -157,7 +157,7 @@ describe("SwipeCutSystem", () => {
     expect(slots.find((slot) => slot.index === 6)?.x).toBe(210);
   });
 
-  it("centers text-aware token boundary slots over visible space runs", () => {
+  it("centers token boundary evidence over the represented space run", () => {
     const system = new SwipeCutSystem();
     const bounds = { left: 0, top: 0, bottom: 40, width: 420 };
     const textAwareSlots = system.buildTokenBoundarySlots(bounds, "spaces  matter", [6]);
@@ -169,7 +169,7 @@ describe("SwipeCutSystem", () => {
     expect(numericSlots[0].x).toBe(180);
   });
 
-  it("reports truth boundaries that cannot be selected by the simplified display", () => {
+  it("reports the suppressed second side of a space as unplayable", () => {
     const system = new SwipeCutSystem();
 
     expect(system.unplayableBoundaries([3], "the cat")).toEqual([]);

@@ -7,14 +7,27 @@ function readRepoFile(path: string): string {
 }
 
 describe("PlayScene pet speech cadence", () => {
-  it("emits one prompt comment on round start and one reaction comment on resolve", () => {
+  it("emits prompt speech on round start and restores Wiener speech during review feedback", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
     const setCommentCalls = source.match(/this\.setWienerSpeech\(/g) ?? [];
 
-    expect(setCommentCalls).toHaveLength(2);
+    expect(setCommentCalls).toHaveLength(3);
     expect(source).toContain("this.setWienerSpeech(activeLine, { sticky: true });");
-    expect(source).toContain("this.setWienerSpeech(pending.resolutionLine, {");
-    expect(source).toContain("sticky: this.tutorialMode");
+    expect(source).toContain("this.setWienerSpeech(followUp, { sticky: true });");
+    expect(source).toContain("wienerSpeechMaxLength(this.compactLayout, this.wienerSpeechSticky)");
+    expect(source).toContain("this.hideWienerSpeech();");
+    expect(source).toContain("this.setWienerSpeech(pending.resolutionLine");
+  });
+
+  it("keeps Training review speech focused on Wiener's complete selected line", () => {
+    const source = readRepoFile("src/game/scenes/PlayScene.ts");
+    const resolutionLine = source.slice(
+      source.indexOf("const resolutionLine = this.tutorialMode"),
+      source.indexOf("this.writePlayQaSnapshot();", source.indexOf("const resolutionLine = this.tutorialMode"))
+    );
+
+    expect(resolutionLine).toContain(": summary.wienerSpeech;");
+    expect(resolutionLine).not.toContain("summary.nextPredictionCue");
   });
 
   it("does not emit extra speech for clear, overcut, or timer warning events", () => {
@@ -26,5 +39,21 @@ describe("PlayScene pet speech cadence", () => {
     expect(warningMethod).not.toContain("setWienerSpeech");
     expect(source).not.toContain("maybeShowOvercutComment");
     expect(source).not.toContain("More cuts. Expensive");
+  });
+
+  it("keeps the active Training line visible after the first staged cut", () => {
+    const source = readRepoFile("src/game/scenes/PlayScene.ts");
+    const sampleMethod = source.match(/private applyPointerCutSample\([\s\S]+?\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+
+    expect(sampleMethod).toContain("if (this.tutorialMode)");
+    expect(sampleMethod).not.toContain("this.hideWienerSpeech();");
+  });
+
+  it("reserves timer clearance only for active speech", () => {
+    const source = readRepoFile("src/game/scenes/PlayScene.ts");
+
+    expect(source).toContain(
+      "activeTimerRect: this.resolving ? undefined : this.qaRectFromBounds(this.timerTrack.getBounds())"
+    );
   });
 });

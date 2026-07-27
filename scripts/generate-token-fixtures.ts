@@ -202,8 +202,11 @@ export function generateFixture(
   };
 }
 
-export function generateFixturesFromCsv(csv: string): GeneratedFixture[] {
-  return generateFixtures(parseSeedCsv(csv));
+export function generateFixturesFromCsv(
+  csv: string,
+  adapter: BuildTimeTokenizerAdapter = createBuildTimeTokenizerAdapter()
+): GeneratedFixture[] {
+  return generateFixtures(parseSeedCsv(csv), adapter);
 }
 
 function decodeUtf8Strict(fixtureId: string, bytes: Uint8Array, unsafeReasons: string[]): string {

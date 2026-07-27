@@ -23,6 +23,6 @@ describe("createGameConfig", () => {
     const source = readRepoFile("src/game/Game.ts");
 
     expect(source).toContain("activePointers: 3");
-    expect(source).toContain("scene: [BootScene, MenuScene, TutorialScene, PlayScene, TutorialCompleteScene, ResultsScene]");
+    expect(source).toContain("scene: [BootScene, MenuScene, SettingsScene, TokenLogScene, TutorialScene, PlayScene, TutorialCompleteScene, ResultsScene]");
   });
 });

@@ -1,16 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { DifficultySystem } from "../src/game/systems/DifficultySystem";
-import { ScoringSystem } from "../src/game/systems/ScoringSystem";
+import {
+  ScoringSystem,
+  STARTING_TOKEN_CREDITS
+} from "../src/game/systems/ScoringSystem";
 import { SwipeCutSystem } from "../src/game/systems/SwipeCutSystem";
 import { TokenizerSystem, type TokenFixture } from "../src/game/systems/TokenizerSystem";
 
-type StrategyName = "none" | "overcut" | "half" | "nearPerfect" | "perfect";
+type StrategyName = "none" | "overcut" | "half" | "nearPerfect" | "intermittent" | "perfect";
 
 interface StrategySimulation {
   failureRound: number;
-  finalBalance: number;
-  totalPay: number;
-  totalCost: number;
+  finalCredits: number;
+  totalVerifiedCredits: number;
+  totalReworkCredits: number;
   roundsPlayed: number;
   maxTierReached: number;
 }
@@ -49,9 +52,9 @@ function simulateStrategy(strategy: StrategyName, limit: number): StrategySimula
   const difficulty = new DifficultySystem();
   const scoring = new ScoringSystem();
   const fixtures = pickEndlessFixtures(limit);
-  let balance = 40;
-  let totalPay = 0;
-  let totalCost = 0;
+  let credits = STARTING_TOKEN_CREDITS;
+  let totalVerifiedCredits = 0;
+  let totalReworkCredits = 0;
   let failureRound = 0;
   let roundsPlayed = 0;
   let maxTierReached = 0;
@@ -62,19 +65,17 @@ function simulateStrategy(strategy: StrategyName, limit: number): StrategySimula
     const state = difficulty.getState(round);
     const score = scoring.scoreRound({
       truth: fixture.boundary_positions,
-      guesses: strategyGuesses(strategy, fixture),
-      tier: fixture.tier,
-      difficultyWeight: fixture.difficulty_weight * state.penaltyScale,
-      tokenCount: fixture.token_count,
-      timeRemainingRatio: strategy === "perfect" ? 0.4 : 0
+      guesses: strategyGuesses(strategy, fixture, round),
+      difficultyWeight: fixture.difficulty_weight,
+      penaltyScale: state.penaltyScale
     });
 
-    balance = Number((balance + score.net).toFixed(2));
-    totalPay = Number((totalPay + score.pay).toFixed(2));
-    totalCost = Number((totalCost + score.companyCost).toFixed(2));
+    credits += score.creditDelta;
+    totalVerifiedCredits += score.verifiedCredits;
+    totalReworkCredits += score.reworkCredits;
     roundsPlayed = round;
     maxTierReached = Math.max(maxTierReached, fixture.tier);
-    if (balance <= 0) {
+    if (credits <= 0) {
       failureRound = round;
       break;
     }
@@ -82,15 +83,15 @@ function simulateStrategy(strategy: StrategyName, limit: number): StrategySimula
 
   return {
     failureRound,
-    finalBalance: balance,
-    totalPay,
-    totalCost,
+    finalCredits: credits,
+    totalVerifiedCredits,
+    totalReworkCredits,
     roundsPlayed,
     maxTierReached
   };
 }
 
-function strategyGuesses(strategy: StrategyName, fixture: TokenFixture): number[] {
+function strategyGuesses(strategy: StrategyName, fixture: TokenFixture, round = 1): number[] {
   if (strategy === "none") {
     return [];
   }
@@ -101,6 +102,16 @@ function strategyGuesses(strategy: StrategyName, fixture: TokenFixture): number[
 
   if (strategy === "nearPerfect") {
     return fixture.boundary_positions.slice(0, Math.max(0, fixture.boundary_positions.length - 1));
+  }
+
+  if (strategy === "intermittent") {
+    if (round % 5 === 0) {
+      return [];
+    }
+
+    return round % 3 === 0
+      ? fixture.boundary_positions.slice(0, Math.max(0, fixture.boundary_positions.length - 1))
+      : fixture.boundary_positions;
   }
 
   if (strategy === "half") {
@@ -115,12 +126,12 @@ function strategyGuesses(strategy: StrategyName, fixture: TokenFixture): number[
   return slots.map((slot) => slot.index);
 }
 
-describe("endless economy progression", () => {
-  it("terminates repeated non-play after onboarding but before the economy becomes toothless", () => {
+describe("endless Token Credit progression", () => {
+  it("terminates repeated non-play after onboarding but before credit pressure becomes toothless", () => {
     const difficulty = new DifficultySystem();
     const scoring = new ScoringSystem();
     const fixtures = pickEndlessFixtures(12);
-    let balance = 40;
+    let credits = STARTING_TOKEN_CREDITS;
     let failureRound = 0;
 
     for (let index = 0; index < fixtures.length; index += 1) {
@@ -130,14 +141,12 @@ describe("endless economy progression", () => {
       const score = scoring.scoreRound({
         truth: fixture.boundary_positions,
         guesses: [],
-        tier: fixture.tier,
-        difficultyWeight: fixture.difficulty_weight * state.penaltyScale,
-        tokenCount: fixture.token_count,
-        timeRemainingRatio: 0
+        difficultyWeight: fixture.difficulty_weight,
+        penaltyScale: state.penaltyScale
       });
 
-      balance += score.net;
-      if (balance <= 0) {
+      credits += score.creditDelta;
+      if (credits <= 0) {
         failureRound = round;
         break;
       }
@@ -145,7 +154,7 @@ describe("endless economy progression", () => {
 
     expect(failureRound).toBeGreaterThan(4);
     expect(failureRound).toBeLessThanOrEqual(8);
-    expect(balance).toBeLessThanOrEqual(0);
+    expect(credits).toBeLessThanOrEqual(0);
   });
 
   it("has reached dense tier-three strings by round eight", () => {
@@ -159,8 +168,8 @@ describe("endless economy progression", () => {
   it("drains sustained half-complete segmentation before dense strings become toothless", () => {
     const difficulty = new DifficultySystem();
     const scoring = new ScoringSystem();
-    const fixtures = pickEndlessFixtures(12);
-    let balance = 40;
+    const fixtures = pickEndlessFixtures(16);
+    let credits = STARTING_TOKEN_CREDITS;
     let failureRound = 0;
 
     for (let index = 0; index < fixtures.length; index += 1) {
@@ -174,22 +183,20 @@ describe("endless economy progression", () => {
       const score = scoring.scoreRound({
         truth: fixture.boundary_positions,
         guesses: firstHalfOfTruth,
-        tier: fixture.tier,
-        difficultyWeight: fixture.difficulty_weight * state.penaltyScale,
-        tokenCount: fixture.token_count,
-        timeRemainingRatio: 0
+        difficultyWeight: fixture.difficulty_weight,
+        penaltyScale: state.penaltyScale
       });
 
-      balance += score.net;
-      if (balance <= 0) {
+      credits += score.creditDelta;
+      if (credits <= 0) {
         failureRound = round;
         break;
       }
     }
 
-    expect(failureRound).toBeGreaterThanOrEqual(8);
-    expect(failureRound).toBeLessThanOrEqual(12);
-    expect(balance).toBeLessThanOrEqual(0);
+    expect(failureRound).toBeGreaterThanOrEqual(12);
+    expect(failureRound).toBeLessThanOrEqual(16);
+    expect(credits).toBeLessThanOrEqual(0);
   });
 
   it("rotates dense categories across early tier-three rounds before repeating", () => {
@@ -202,7 +209,7 @@ describe("endless economy progression", () => {
   it("keeps the deterministic strategy envelope aligned with learning pressure", () => {
     const noPlay = simulateStrategy("none", 12);
     const overcut = simulateStrategy("overcut", 12);
-    const half = simulateStrategy("half", 14);
+    const half = simulateStrategy("half", 16);
     const nearPerfect = simulateStrategy("nearPerfect", 20);
     const perfect = simulateStrategy("perfect", 24);
 
@@ -213,9 +220,9 @@ describe("endless economy progression", () => {
     expect(noPlay.failureRound).toBeGreaterThan(4);
     expect(noPlay.failureRound).toBeLessThanOrEqual(8);
 
-    expect(half.failureRound).toBeGreaterThanOrEqual(8);
-    expect(half.failureRound).toBeLessThanOrEqual(12);
-    expect(half.maxTierReached).toBe(3);
+    expect(half.failureRound).toBeGreaterThanOrEqual(12);
+    expect(half.failureRound).toBeLessThanOrEqual(16);
+    expect(half.maxTierReached).toBe(4);
 
     expect(nearPerfect.failureRound).toBeGreaterThanOrEqual(13);
     expect(nearPerfect.failureRound).toBeLessThanOrEqual(20);
@@ -224,8 +231,23 @@ describe("endless economy progression", () => {
     expect(perfect.failureRound).toBe(0);
     expect(perfect.roundsPlayed).toBe(24);
     expect(perfect.maxTierReached).toBe(4);
-    expect(perfect.finalBalance).toBeGreaterThan(100);
-    expect(perfect.totalPay).toBeGreaterThan(perfect.totalCost * 20);
+    expect(perfect.finalCredits).toBeGreaterThan(100);
+    expect(perfect.totalVerifiedCredits).toBeGreaterThan(0);
+    expect(perfect.totalReworkCredits).toBe(0);
+  });
+
+  it("does not let later clean rounds subsidize repeated timeouts indefinitely", () => {
+    const intermittent = simulateStrategy("intermittent", 200);
+    const perfect = simulateStrategy("perfect", 200);
+
+    expect(intermittent.failureRound).toBeGreaterThanOrEqual(20);
+    expect(intermittent.failureRound).toBeLessThanOrEqual(45);
+    expect(intermittent.finalCredits).toBeLessThanOrEqual(0);
+
+    expect(perfect.failureRound).toBe(0);
+    expect(perfect.roundsPlayed).toBe(200);
+    expect(perfect.finalCredits).toBeGreaterThan(500);
+    expect(perfect.finalCredits).toBeLessThan(1_000);
   });
 
   it("penalizes cutting every legal slot on a dense string", () => {
@@ -242,14 +264,11 @@ describe("endless economy progression", () => {
     const score = scoring.scoreRound({
       truth: fixture!.boundary_positions,
       guesses: slots.map((slot) => slot.index),
-      tier: fixture!.tier,
-      difficultyWeight: fixture!.difficulty_weight,
-      tokenCount: fixture!.token_count,
-      timeRemainingRatio: 0
+      difficultyWeight: fixture!.difficulty_weight
     });
 
     expect(score.correctCuts).toEqual(fixture!.boundary_positions);
     expect(score.falseCuts.length).toBeGreaterThan(0);
-    expect(score.net).toBeLessThan(0);
+    expect(score.creditDelta).toBeLessThan(0);
   });
 });

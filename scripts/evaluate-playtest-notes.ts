@@ -1,7 +1,6 @@
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import {
-  LEGACY_PLAYTEST_RUN_PREFIX,
   PLAYTEST_RUN_PREFIX,
   PRODUCT_SUMMARY_TITLE
 } from "../src/game/systems/ProductIdentitySystem";
@@ -77,6 +76,7 @@ export interface PlaytestPrincipleEvidenceValidation {
 
 export interface PlaytestSessionNote {
   file: string;
+  h1?: string;
   metadata: PlaytestMetadata;
   metadataValidation: PlaytestMetadataValidation;
   copiedSummary: string;
@@ -111,17 +111,13 @@ export interface PlaytestGateEvaluation {
 }
 
 const REQUIRED_SESSION_COUNT = 5;
-const LEGACY_PRODUCT_SUMMARY_TITLES = [
-  "Tokenization Training playtest summary",
-  "Manual Tokenization Training playtest summary"
-];
-const VALID_PRODUCT_SUMMARY_TITLES = [PRODUCT_SUMMARY_TITLE, ...LEGACY_PRODUCT_SUMMARY_TITLES];
+const PLAYTEST_SESSION_H1 = "# Tokenizer Training Playtest Notes";
 
 export const playtestDebriefQuestions = [
   "What were you trying to do when you swiped?",
   "What is a token boundary, based on the game?",
   "Name one way tokenization differs from ordinary word reading.",
-  "What made pay go up or company cost go up?",
+  "What made Token Credits increase or rework increase?",
   "Did any result feel unfair or caused by input imprecision?",
   "What did the AI/browser fiction make you think was happening?",
   "Which screen or moment was hardest to read?",
@@ -135,8 +131,8 @@ export const playtestObservationLabels = [
   "Clear Cuts discovered or understood",
   "Snap positions trusted",
   "Missed/false review markers understood",
-  "Pay, cost, net, balance, and rank understood",
-  "Tutorial-complete handoff starts Endless without prompting",
+  "Verified credits, rework, net credits, remaining credits, and rank understood",
+  "Tutorial-complete handoff: Start Training selected without prompting",
   "Dense strings read as higher-risk tokenization",
   "Degraded AI labor frame noticed through play",
   "Degraded visual style felt intentional and play invited another round",
@@ -175,14 +171,14 @@ export const playtestCriteria: PlaytestCriterion[] = [
   },
   {
     id: "handoff",
-    label: "Starts Endless from tutorial-complete handoff",
+    label: "Selects Start Training from tutorial-complete handoff",
     threshold: "at least 4 of 5",
     minPasses: 4,
     scope: "at-least"
   },
   {
     id: "netExplanation",
-    label: "Explains pay minus cost equals net",
+    label: "Explains verified credits minus rework equals net credits",
     threshold: "at least 4 of 5",
     minPasses: 4,
     scope: "at-least"
@@ -227,8 +223,8 @@ const criterionByLabel = new Map(playtestCriteria.map((criterion) => [criterion.
 const observationLabelSet = new Set<string>(playtestObservationLabels);
 const criterionObservationConsistency: Partial<Record<PlaytestCriterionId, PlaytestObservationLabel>> = {
   firstAction: "First tutorial action without outside instruction",
-  handoff: "Tutorial-complete handoff starts Endless without prompting",
-  netExplanation: "Pay, cost, net, balance, and rank understood",
+  handoff: "Tutorial-complete handoff: Start Training selected without prompting",
+  netExplanation: "Verified credits, rework, net credits, remaining credits, and rank understood",
   snapTrust: "Snap positions trusted",
   mobileReadability: "Mobile HUD/text/review/feedback/Wiener speech readable",
   laborFrame: "Degraded AI labor frame noticed through play",
@@ -246,6 +242,7 @@ export function parsePlaytestSessionNote(markdown: string, file = "session.md"):
 
   return {
     file,
+    h1: firstNonblankLine(markdown),
     metadata,
     metadataValidation: validateSessionMetadata(metadata),
     copiedSummary,
@@ -293,6 +290,16 @@ export function validateObservationNotes(
       !mobileObservationEvidenceIsConcrete(note.evidence)
     ) {
       invalidRows.push(`${label} evidence must name mobile or non-mobile context plus a readable surface or failure mode`);
+    }
+
+    if (
+      label === "Tutorial-complete handoff: Start Training selected without prompting" &&
+      note.result === "pass" &&
+      !trainingHandoffEvidenceIsConcrete(note.evidence)
+    ) {
+      invalidRows.push(
+        `${label} pass evidence must name the tutorial-complete handoff, an affirmative started Training or clicked Training action, and no-prompt/coaching/timing evidence`
+      );
     }
   }
 
@@ -446,8 +453,11 @@ export function validateCopiedSummary(
   const missingFields: string[] = [];
   const invalidFields: string[] = [];
 
-  if (!VALID_PRODUCT_SUMMARY_TITLES.some((title) => summary.includes(title))) {
+  const summaryHeader = firstNonblankLine(summary);
+  if (!summaryHeader) {
     missingFields.push("summary header");
+  } else if (summaryHeader !== PRODUCT_SUMMARY_TITLE) {
+    invalidFields.push(`summary first nonblank line must exactly equal "${PRODUCT_SUMMARY_TITLE}"`);
   }
 
   const runId = capturedLine(summary, /^Run ID:\s*(.+)$/im);
@@ -530,6 +540,10 @@ export function evaluatePlaytestSessions(sessions: PlaytestSessionNote[]): Playt
 
 export function playtestSessionEvidenceIssues(session: PlaytestSessionNote): string[] {
   const issues: string[] = [];
+
+  if (session.h1 !== PLAYTEST_SESSION_H1) {
+    issues.push(`${session.file}: H1 must exactly be "${PLAYTEST_SESSION_H1}".`);
+  }
 
   if (!session.metadataValidation.complete) {
     const metadataIssues = [
@@ -880,7 +894,7 @@ function principleEvidenceIsConcrete(label: PlaytestPrincipleEvidenceLabel, valu
 
   switch (label) {
     case "Top game design loop evidence":
-      return /\b(prompt|instruction|action|swipe|cut|review|feedback|consequence|net|next|loop|handoff|endless)\b/.test(
+      return /\b(prompt|instruction|action|swipe|cut|review|feedback|consequence|net|next|loop|handoff|training|endless)\b/.test(
         normalized
       );
     case "Critical/conceptual play evidence":
@@ -914,12 +928,17 @@ function criterionPassEvidenceIsConcrete(criterionId: PlaytestCriterionId, value
         normalized
       );
     case "handoff":
-      return /\b(handoff|tutorial-complete|start(ed)? endless|endless training)\b/.test(normalized) &&
-        /\b(no prompt|unprompted|without (outside )?instruction|no coaching|no intervention|within \d+ seconds?)\b/.test(
-          normalized
-        );
+      return trainingHandoffEvidenceIsConcrete(value);
     case "netExplanation":
-      return /\bpay\b/.test(normalized) && /\bcost\b/.test(normalized) && /\bnet\b/.test(normalized);
+      return (
+        /\bverified\b/.test(normalized) &&
+        /\brework\b/.test(normalized) &&
+        /\b(?:net|credits?)\b/.test(normalized)
+      ) || (
+        /\bpay\b/.test(normalized) &&
+        /\bcost\b/.test(normalized) &&
+        /\bnet\b/.test(normalized)
+      );
     case "snapTrust":
       return /\b(swipe|snap|gesture|input|cut)\b/.test(normalized) &&
         /\b(trusted|precise|fair|no complaint|no mistrust|did not blame|not input imprecision)\b/.test(normalized);
@@ -935,10 +954,50 @@ function criterionPassEvidenceIsConcrete(criterionId: PlaytestCriterionId, value
           normalized
         );
     case "copiedSummary":
-      return /\b(copy summary|copied summary|pasted|ledger|run id|start source|ok\/missed\/false|net|best saved)\b/.test(
+      return /\b(copy summary|copied summary|pasted|ledger|run id|start source|ok\/missed\/false|verified|rework|net|best saved)\b/.test(
         normalized
       );
   }
+}
+
+function trainingHandoffEvidenceIsConcrete(value: string): boolean {
+  const clauses = value
+    .trim()
+    .toLowerCase()
+    .split(/[.!?;\n]+/)
+    .map((clause) => clause.trim())
+    .filter(Boolean);
+
+  return clauses.some((clause) => {
+    const handoffContext =
+      /\bhandoff(?:\s+(?:screen|surface|state))?\b/.test(clause) ||
+      /\btutorial[- ]complet(?:e|ed|ion)\s+(?:screen|surface|state)\b/.test(clause);
+    const startedTraining = /\bstart(?:ed|s)\s+(?:the\s+)?[`"']?training\b[`"']?/.test(clause);
+    const clickedTraining = /\bclick(?:ed|s)\s+(?:on\s+)?(?:the\s+)?[`"']?(?:start\s+)?training\b[`"']?(?:\s+(?:button|action|control))?/.test(
+      clause
+    );
+    const withoutOutsideInstruction = /\b(no prompts?|no prompting|unprompted|without (?:outside |facilitator )?(?:instructions?|prompts?|prompting|coaching)|no coaching|no intervention|within \d+ seconds?)\b/.test(
+      clause
+    );
+    const negatedOrFailedAction =
+      /\b(?:(?:no|zero)\s+(?:testers?|players?|participants?|users?|sessions?|one)|none\s+of\s+(?:the\s+)?(?:testers?|players?|participants?|users?|sessions?)|not\s+one\s+(?:tester|player|participant|user|session))\s+(?:ever\s+)?(?:successfully\s+)?(?:clicked|clicks|started|starts)\b/.test(
+        clause
+      ) ||
+      /\b(?:did|does|do|could|can|was|were)\s+not\s+(?:successfully\s+)?(?:click|start)\b/.test(clause) ||
+      /\b(?:didn't|doesn't|don't|couldn't|can't|cannot)\s+(?:successfully\s+)?(?:click|start)\b/.test(clause) ||
+      /\bnever\s+(?:clicked|clicks|started|starts)\b/.test(clause) ||
+      /\b(?:failed|fails)\s+to\s+(?:click|start)\b/.test(clause) ||
+      /\b(?:was|were|is|are)\s+unable\s+to\s+(?:click|start)\b/.test(clause);
+    const mainMenuAction = /\bmain[- ]menu\b/.test(clause);
+
+    return (
+      handoffContext &&
+      (startedTraining || clickedTraining) &&
+      withoutOutsideInstruction &&
+      !negatedOrFailedAction &&
+      !mainMenuAction
+    );
+  });
 }
 
 function sessionObservationCriterionConsistencyIssues(session: PlaytestSessionNote): string[] {
@@ -984,7 +1043,13 @@ function debriefAnswerAddressesQuestion(index: number, value: string): boolean {
         normalized
       );
     case 3:
-      return /\b(pay)\b/.test(normalized) && /\b(cost|net|missed|false|correct)\b/.test(normalized);
+      return (
+        /\b(?:verified|token credits?)\b/.test(normalized) &&
+        /\b(?:rework|net|missed|false|exact)\b/.test(normalized)
+      ) || (
+        /\bpay\b/.test(normalized) &&
+        /\b(cost|net|missed|false|correct)\b/.test(normalized)
+      );
     case 4:
       return /\b(fair|unfair|snap|swipe|gesture|input|precise|imprecision|mistrust|trusted|blame)\b/.test(
         normalized
@@ -1015,6 +1080,10 @@ function capturedLine(summary: string, pattern: RegExp): string | undefined {
   return undefined;
 }
 
+function firstNonblankLine(markdown: string): string | undefined {
+  return markdown.split(/\r?\n/).find((line) => line.trim().length > 0);
+}
+
 function hasCapturedRoundTrace(summary: string): boolean {
   const lines = summary.split(/\r?\n/);
   const headerIndex = lines.findIndex((line) => /^Round trace:\s*$/i.test(line));
@@ -1036,15 +1105,25 @@ function hasCapturedInputFeelTrace(summary: string): boolean {
     return false;
   }
 
-  return lines.slice(headerIndex + 1).some((line) =>
+  const traceLines = lines.slice(headerIndex + 1);
+  const hasFieldLegend = traceLines.some((line) =>
+    /\bfirst[-\s]?cut\b.*\blatency\b/i.test(line) &&
+    /\bresolve\b.*\btiming\b/i.test(line) &&
+    /\bbatch\b.*\bownership\b/i.test(line) &&
+    /\bno[-\s]?cut\b.*\backnowledgement/i.test(line) &&
+    /\btouch[-\s]?loupe\b.*\bclearance\b/i.test(line)
+  );
+  const hasMetricLine = traceLines.some((line) =>
     /^\d+\.\s+samples\s+\d+\s+\/\s+responses\s+\d+\s+\/\s+first\s+(?:\d+ms|n\/a)\s+\/\s+resolve-first\s+(?:\d+ms|n\/a)\s+\/\s+resolve-last\s+(?:\d+ms|n\/a)\s+\/\s+commit\s+\d+\s+\/\s+batch\s+\d+\s+\/\s+release-latched\s+\d+\s+\/\s+last-source\s+(?:direct|release|adjust|none)\s+\/\s+adjusted\s+\d+\s+\/\s+gesture-samples\s+\d+\s+\/\s+owned-cuts\s+\d+\s+\/\s+no-cut\s+\d+\s+\/\s+near\s+\d+\s+\/\s+off\s+\d+\s+\/\s+loupe\s+\d+\s+\/\s+ready\s+\d+\s+\/\s+low-clear\s+\d+\s+\/\s+min-clear\s+(?:\d+px|n\/a)$/i.test(
       line
     )
   );
+
+  return hasFieldLegend && hasMetricLine;
 }
 
 function validGameRunId(value: string): boolean {
-  return new RegExp(`^(?:${PLAYTEST_RUN_PREFIX}|${LEGACY_PLAYTEST_RUN_PREFIX})-[a-z0-9-]+$`, "i").test(value.trim());
+  return new RegExp(`^${PLAYTEST_RUN_PREFIX}-[a-z0-9-]+$`, "i").test(value.trim());
 }
 
 function mobileSessionFromMetadata(metadata: PlaytestMetadata): boolean {

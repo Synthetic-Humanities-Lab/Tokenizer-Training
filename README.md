@@ -26,13 +26,15 @@ on the same trusted network needs to load the web build.
 npm run generate:fixtures
 npm run test
 npm run build
+npm run build:pages
 ```
 
-- `generate:fixtures` rebuilds tokenizer fixture JSON from
-  `src/game/data/seed_strings.csv`.
+- `generate:fixtures` rebuilds fixtures from `src/game/data/seed_strings.csv`.
 - `test` runs the Vitest suite.
 - `build` runs TypeScript checking and the Vite production build.
-
+- `build:pages` produces the repository-relative GitHub Pages build.
+Pushes to `main` run `.github/workflows/deploy-pages.yml`, which tests, builds,
+and deploys `dist/`.
 For formal playtest setup, use the stricter playtest commands rather than the
 ordinary dev server:
 
@@ -54,8 +56,9 @@ and mobile-gate procedure.
 
 The project is a playable vertical slice: Vite + TypeScript + Phaser, scene
 boundaries, modular game systems, deterministic tokenizer fixtures, tutorial
-mode, endless training, scoring economics, rank/high-score persistence,
-resettable playtest starts, browser QA geometry, and tests.
+mode, Training progression with no round cap while Token Credits remain,
+exact-token/rework economics, rank/high-score persistence, resettable playtest starts,
+browser QA geometry, and tests.
 
 It is still pre-user-playtest. Real-device touch behavior, mobile readability,
 player comprehension, and economic tuning need external evidence before the

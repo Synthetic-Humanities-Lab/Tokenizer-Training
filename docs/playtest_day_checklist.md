@@ -91,7 +91,7 @@ mobile note blank and fix the LAN path instead of using same-machine proof.
 14. Confirm any mobile-gate note records `Network: LAN` and a Launch URL using
     Vite's Network host, not `localhost` or `127.0.0.1`.
 15. Keep `docs/playtest_facilitator_card.md` visible. Do not pre-explain
-   tokenization, the Wiener, the labor fiction, or pay/cost rules.
+   tokenization, Wiener, the labor fiction, or Token Credit/rework rules.
 
 ## During Each Session
 
@@ -104,13 +104,13 @@ mobile note blank and fix the LAN path instead of using same-machine proof.
    blank-run swipes, return-to-space cleanup of accidental ordinary-word
    duplicates without suppressing deliberate currency or punctuation token cuts,
    static prompt clearance, near-text Wiener speech, Wiener tutorial speech,
-   review markers, pay/cost/net, and tutorial-complete handoff were understood
+   review markers, verified/rework/net credits, and tutorial-complete handoff were understood
    without explanation.
 5. For any phone/tablet session, record a screenshot, photo, screen recording,
    or explicit observer note naming the readable surface or failure mode: HUD,
    static prompt text, review markers, feedback, Wiener speech, clipping, overlap, or
    finger occlusion.
-6. Ask the tester to play Endless Training until budget exhaustion or voluntary
+6. Ask the tester to play uncapped Training until budget exhaustion or voluntary
    quit after at least five rounds.
 7. On the results screen, ask the tester to press Copy Summary. If it changes
    to Save Summary, press it and paste the downloaded text file instead.

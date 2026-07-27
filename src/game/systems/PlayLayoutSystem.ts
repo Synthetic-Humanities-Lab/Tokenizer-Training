@@ -1,8 +1,12 @@
 import { buttonVisual, uiPalette } from "../ui/VisualTheme";
+import { safeAreaInsets, type SafeAreaInput, type SafeAreaInsets } from "./SafeAreaSystem";
+import type { SurfaceProfile } from "./SurfaceProfileSystem";
 
 export interface ViewportSize {
   width: number;
   height: number;
+  safeArea?: SafeAreaInput;
+  surfaceProfile?: SurfaceProfile;
 }
 
 export interface LayoutRect {
@@ -55,6 +59,7 @@ export interface ControlButtonVisualState {
 const TEXT_PANEL_HEIGHT = 96;
 const DESKTOP_BOTTOM_OFFSET = 150;
 const DESKTOP_REVIEW_SENTENCE_LIFT = 36;
+const MOBILE_SURFACE_SHORT_REVIEW_SENTENCE_LIFT = 36;
 export const MIN_TOUCH_TARGET_SIZE = 44;
 export const PLAY_CONTROL_BUTTON_HEIGHT = MIN_TOUCH_TARGET_SIZE;
 export const COMPACT_PLAY_CONTROL_TOP_ROW_Y = 166;
@@ -74,17 +79,25 @@ export interface ShortLandscapeReviewColumns {
   feedback: LayoutRect;
 }
 
-export function computePlayLayout({ width, height }: ViewportSize): PlayLayout {
+export function computePlayLayout({
+  width,
+  height,
+  safeArea: safeAreaInput,
+  surfaceProfile = "browser"
+}: ViewportSize): PlayLayout {
+  const safeArea = safeAreaInsets(safeAreaInput);
   const compact = width < 760;
-  const topOffset = compact ? 190 : 118;
-  const bottomOffset = compact ? 136 : DESKTOP_BOTTOM_OFFSET;
+  const mobileSurface = surfaceProfile === "mobile";
+  const compactTopOffset = mobileSurface && height < 640 ? 186 : 190;
+  const topOffset = (compact ? compactTopOffset : 118) + safeArea.top;
+  const bottomOffset = (compact ? 136 : DESKTOP_BOTTOM_OFFSET) + safeArea.bottom;
   const playfieldHeight = Math.max(260, height - topOffset - bottomOffset);
   const playfieldY = topOffset + playfieldHeight / 2;
-  const contentLeft = compact ? 12 : 20;
-  const contentRight = compact ? width - 12 : width - 20;
+  const contentLeft = safeArea.left + (compact ? 12 : 20);
+  const contentRight = width - safeArea.right - (compact ? 12 : 20);
   const contentWidth = Math.max(280, contentRight - contentLeft);
   const contentX = contentLeft + contentWidth / 2;
-  const controls = computeControlButtons(width, height, compact, contentRight);
+  const controls = computeControlButtons(width, height, compact, contentRight, safeArea, surfaceProfile);
   const maxPanelWidth = computeTextPanelWidth(width, compact, contentWidth);
   const sentenceActiveY = playfieldY;
   const playfieldTop = playfieldY - playfieldHeight / 2;
@@ -100,7 +113,8 @@ export function computePlayLayout({ width, height }: ViewportSize): PlayLayout {
     width,
     height,
     compact,
-    sentenceActiveY,
+    mobileSurface,
+    sentenceActiveY: compact && mobileSurface ? sentenceActiveY - 12 : sentenceActiveY,
     playfieldTop
   });
   const petWienerSlot = computePetWienerSlot({
@@ -126,9 +140,9 @@ export function computePlayLayout({ width, height }: ViewportSize): PlayLayout {
     bottomOffset,
     contentPanel: {
       x: contentX,
-      y: height / 2,
+      y: safeArea.top + Math.max(0, height - safeArea.top - safeArea.bottom) / 2,
       width: contentWidth,
-      height: Math.max(0, height - 24)
+      height: Math.max(0, height - safeArea.top - safeArea.bottom - 24)
     },
     playfield: {
       x: contentX,
@@ -149,7 +163,7 @@ export function computePlayLayout({ width, height }: ViewportSize): PlayLayout {
     },
     timer: {
       x: contentLeft + 16,
-      y: topOffset - 14,
+      y: compact && mobileSurface && height < 640 ? topOffset - 8 : topOffset - 14,
       width: Math.max(120, contentWidth - 32),
       height: 8
     },
@@ -206,31 +220,24 @@ export function shortLandscapeReviewColumns({ width, height }: ViewportSize): Sh
 
 export function exitButtonLabel(compact: boolean, tutorialMode: boolean): string {
   if (compact) {
-    return tutorialMode ? "Menu" : "Exit";
+    return "Exit";
   }
 
   return tutorialMode ? "Exit Tutorial" : "Exit Training";
 }
 
 export function resolveButtonLabel(resolving: boolean, compact = false, stagedCutCount = 0): string {
+  void stagedCutCount;
   if (resolving) {
     return compact ? "Review" : "Reviewing";
-  }
-
-  const normalizedCutCount = Math.max(0, Math.floor(stagedCutCount));
-  if (normalizedCutCount > 0) {
-    return `Resolve ${normalizedCutCount}`;
   }
 
   return "Resolve";
 }
 
 export function clearButtonLabel(compact: boolean, cutCount = 0, canClear = cutCount > 0): string {
-  const normalizedCutCount = Math.max(0, Math.floor(cutCount));
-  if (canClear && normalizedCutCount > 0) {
-    return `Clear ${normalizedCutCount}`;
-  }
-
+  void cutCount;
+  void canClear;
   return compact ? "Clear" : "Clear Cuts";
 }
 
@@ -336,58 +343,72 @@ export function clearButtonVisualState(canClear: boolean, hovered: boolean, pres
   };
 }
 
-export function compactPlayControlsDockedAtBottom(height: number): boolean {
-  return height >= COMPACT_PLAY_CONTROL_BOTTOM_DOCK_MIN_HEIGHT;
+export function compactPlayControlsDockedAtBottom(
+  height: number,
+  surfaceProfile: SurfaceProfile = "browser"
+): boolean {
+  return surfaceProfile === "mobile" || height >= COMPACT_PLAY_CONTROL_BOTTOM_DOCK_MIN_HEIGHT;
 }
 
-export function compactPlayControlRowY(height: number): number {
-  return compactPlayControlsDockedAtBottom(height)
-    ? height - COMPACT_PLAY_CONTROL_BOTTOM_MARGIN - PLAY_CONTROL_BUTTON_HEIGHT / 2
-    : COMPACT_PLAY_CONTROL_TOP_ROW_Y;
+export function compactPlayControlRowY(
+  height: number,
+  safeAreaInput?: SafeAreaInput,
+  surfaceProfile: SurfaceProfile = "browser"
+): number {
+  const safeArea = safeAreaInsets(safeAreaInput);
+
+  return compactPlayControlsDockedAtBottom(height, surfaceProfile)
+    ? height - safeArea.bottom - COMPACT_PLAY_CONTROL_BOTTOM_MARGIN - PLAY_CONTROL_BUTTON_HEIGHT / 2
+    : safeArea.top + COMPACT_PLAY_CONTROL_TOP_ROW_Y;
 }
 
 function computeControlButtons(
   width: number,
   height: number,
   compact: boolean,
-  contentRight = width - 28
+  contentRight = width - 28,
+  safeArea: SafeAreaInsets = safeAreaInsets(undefined),
+  surfaceProfile: SurfaceProfile = "browser"
 ): Pick<PlayLayout, "resolveButton" | "clearButton" | "muteButton" | "exitButton"> {
   const buttonHeight = PLAY_CONTROL_BUTTON_HEIGHT;
-  const y = compact ? compactPlayControlRowY(height) : height - 72;
+  const y = compact ? compactPlayControlRowY(height, safeArea, surfaceProfile) : height - safeArea.bottom - 72;
 
   if (compact) {
     const margin = 16;
     const gap = 8;
-    const smallWidth = width < 370 ? 58 : 66;
-    const resolveWidth = Math.max(MIN_TOUCH_TARGET_SIZE, width - margin * 2 - gap * 3 - smallWidth * 3);
-    const muteLeft = margin;
-    const clearLeft = muteLeft + smallWidth + gap;
-    const exitLeft = clearLeft + smallWidth + gap;
-    const resolveLeft = exitLeft + smallWidth + gap;
+    const safeWidth = Math.max(0, width - safeArea.left - safeArea.right);
+    const buttonWidth = Math.max(
+      MIN_TOUCH_TARGET_SIZE,
+      (safeWidth - margin * 2 - gap * 3) / 4
+    );
+    const muteLeft = safeArea.left + margin;
+    const clearLeft = muteLeft + buttonWidth + gap;
+    const exitLeft = clearLeft + buttonWidth + gap;
+    const resolveLeft = exitLeft + buttonWidth + gap;
 
     return {
       muteButton: {
-        x: muteLeft + smallWidth / 2,
+        x: muteLeft + buttonWidth / 2,
         y,
-        width: smallWidth,
+        width: buttonWidth,
         height: buttonHeight
       },
       clearButton: {
-        x: clearLeft + smallWidth / 2,
+        x: clearLeft + buttonWidth / 2,
         y,
-        width: smallWidth,
+        width: buttonWidth,
         height: buttonHeight
       },
       exitButton: {
-        x: exitLeft + smallWidth / 2,
+        x: exitLeft + buttonWidth / 2,
         y,
-        width: smallWidth,
+        width: buttonWidth,
         height: buttonHeight
       },
       resolveButton: {
-        x: resolveLeft + resolveWidth / 2,
+        x: resolveLeft + buttonWidth / 2,
         y,
-        width: resolveWidth,
+        width: buttonWidth,
         height: buttonHeight
       }
     };
@@ -477,9 +498,17 @@ function reviewSentenceY(input: {
   width: number;
   height: number;
   compact: boolean;
+  mobileSurface: boolean;
   sentenceActiveY: number;
   playfieldTop: number;
 }): number {
+  if (input.compact && input.mobileSurface && input.height < 640) {
+    const liftedY = input.sentenceActiveY - MOBILE_SURFACE_SHORT_REVIEW_SENTENCE_LIFT;
+    const minY = input.playfieldTop + TEXT_PANEL_HEIGHT / 2 + 16;
+
+    return Math.max(minY, liftedY);
+  }
+
   if (input.compact || usesShortLandscapeReviewLayout(input)) {
     return input.sentenceActiveY;
   }

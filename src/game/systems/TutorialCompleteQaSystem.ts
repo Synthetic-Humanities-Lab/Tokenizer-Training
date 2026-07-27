@@ -1,12 +1,24 @@
-import type { GameQaSnapshot } from "./GameQaSystem";
+import type { GameQaRect, GameQaSnapshot } from "./GameQaSystem";
 import type { TutorialCompleteCopy } from "./TutorialCompleteContentSystem";
 import type { TutorialCompleteLayout } from "./TutorialCompleteLayoutSystem";
+
+export function centeredGameQaRectFromTopLeftBounds(
+  bounds: Readonly<{ x: number; y: number; width: number; height: number }>
+): GameQaRect {
+  return {
+    x: bounds.x + bounds.width / 2,
+    y: bounds.y + bounds.height / 2,
+    width: bounds.width,
+    height: bounds.height
+  };
+}
 
 export function tutorialCompleteQaSnapshot(
   width: number,
   height: number,
   layout: TutorialCompleteLayout,
-  copy: TutorialCompleteCopy
+  copy: TutorialCompleteCopy,
+  summaryRect: GameQaRect
 ): GameQaSnapshot {
   return {
     scene: "TutorialCompleteScene",
@@ -14,17 +26,6 @@ export function tutorialCompleteQaSnapshot(
     viewport: { width, height },
     elements: [
       { id: "panel", rect: layout.panel },
-      { id: "chrome", rect: layout.chrome },
-      {
-        id: "chromeText",
-        text: copy.chromePath,
-        rect: {
-          x: layout.chromeText.x + (layout.chrome.width - 14) / 2,
-          y: layout.chromeText.y,
-          width: layout.chrome.width - 14,
-          height: 16
-        }
-      },
       {
         id: "title",
         text: copy.title,
@@ -42,12 +43,7 @@ export function tutorialCompleteQaSnapshot(
         text: copy.summary,
         fontSize: layout.summary.fontSize,
         wordWrapWidth: layout.summary.wordWrapWidth,
-        rect: {
-          x: layout.summary.x,
-          y: layout.summary.y,
-          width: layout.summary.wordWrapWidth,
-          height: layout.summary.fontSize * 3.6
-        }
+        rect: summaryRect
       },
       { id: "primaryButton", text: copy.primaryAction, rect: layout.primaryButton },
       { id: "menuButton", text: copy.secondaryAction, rect: layout.menuButton }

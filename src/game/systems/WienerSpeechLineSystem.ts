@@ -1,5 +1,8 @@
 import linesJson from "../data/wiener_speech_lines.json";
-import type { RoundScoreResult } from "./ScoringSystem";
+import {
+  LOW_TOKEN_CREDIT_THRESHOLD,
+  type RoundScoreResult
+} from "./ScoringSystem";
 import type { TokenFixture } from "./TokenizerSystem";
 
 export type WienerSpeechScene = "menu" | "tutorial" | "play" | "economy" | "results" | "system";
@@ -42,14 +45,13 @@ export interface WienerSpeechPickOptions {
 }
 
 export interface WienerSpeechRoundStartContext {
-  balance: number;
+  creditBalance: number;
   fixture?: TokenFixture;
 }
 
 export const WIENER_SPEECH_EMERGENCY_LINE = "WIENER copy route missing. Continue boundary work.";
 export const WIENER_SPEECH_RECORD_MISSING_CATEGORY = "system.record_missing";
 
-const lowBalanceThreshold = 10;
 const denseCategories = new Set(["url", "email", "filename", "code", "hashtag", "tokenizer_string"]);
 
 const legacyAliasCategories: Record<LegacyWienerSpeechAlias, string[]> = {
@@ -93,7 +95,10 @@ export class WienerSpeechLineSystem {
   }
 
   categoryForRoundStart(context: WienerSpeechRoundStartContext): string {
-    if (Number.isFinite(context.balance) && context.balance <= lowBalanceThreshold) {
+    if (
+      Number.isFinite(context.creditBalance) &&
+      context.creditBalance <= LOW_TOKEN_CREDIT_THRESHOLD
+    ) {
       return "play.round_start.low_balance";
     }
 

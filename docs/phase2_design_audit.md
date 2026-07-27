@@ -1,5 +1,11 @@
 # Phase 2 Design Audit
 
+> **Historical provenance - June 2026.** This file preserves the Phase 2 audit
+> as it was recorded. Status labels and terms such as "current" describe the
+> audit-time build, not the present surface contract. Observed strings, legacy
+> IDs, round labels, product names, and screenshot descriptions below remain
+> provenance; use `docs/current_surface_contract.md` for current requirements.
+
 ## Reading-Derived Quality Standard
 
 Status: newly formalized.
@@ -20,7 +26,7 @@ Status: coherent for a vertical slice.
 
 The loop now runs through fixture-backed text presentation, swipe cuts, resolution, technical/economic feedback, balance changes, and session termination. The actual token strings are shown after resolution, which makes the tokenization lesson visible instead of implied only by boundary lines.
 
-Risk: the fixture corpus is still bounded by the safe grapheme-display filter, but it has been expanded to 78 checked-in `cl100k_base` fixtures with byte-to-grapheme validation and stronger tier/category variety coverage across economy/labor prose, punctuation, currency, IDs, local infrastructure strings, symbolic strings, leading spaces, and multilingual examples.
+Risk: the fixture corpus remains bounded by the safe grapheme-display filter, but it now contains 200 checked-in `cl100k_base` fixtures with byte-to-grapheme validation and an exact 30/30/20/20 mix across ordinary prose; punctuation, numbers, and informal language; code, web, and commands; and Latin-script multilingual, spacing, and symbolic edge cases.
 
 ## Tutorial Clarity
 
@@ -28,9 +34,9 @@ Status: improved for the current vertical slice.
 
 The main menu now names the player verb before the tutorial begins: swipe through text to place tokenizer boundary cuts. This keeps the obsolete AI-browser frame while reducing the chance that a new player reads the first screen as only satire or generic training copy.
 
-The tutorial now has five slower interactive rounds inside the training scene: simple words, spaces, punctuation/contractions, dense strings, and economy/loss condition. Completing the fifth round routes to a tutorial-complete handoff with a primary Endless Training action, so the player is not dropped back to an ambiguous menu state. Tutorial stats are reset before endless training, so the real run is not polluted by guided practice.
+The tutorial now has ten slower interactive rounds inside the training scene: basic cuts, leading-space behavior, unaided word chunks, punctuation and contractions, dense URL-like strings, currency and decimals, and the economy/loss condition. Completing the tenth round routes to a tutorial-complete handoff with a primary Endless Training action, so the player is not dropped back to an ambiguous menu state. Tutorial stats are reset before endless training, so the real run is not polluted by guided practice.
 
-The first two rounds remain worked examples with amber target hints. Later rounds remove target answers but now name the concrete features to inspect: apostrophes and final punctuation, URL dots/slashes/chunks, and dollar/decimal token splits. Each tutorial round now sequences robot-supervisor narrative, mechanics, byte-route, token-ID, work-rule, technical follow-up, and review windows: the player is told why the robot is supervising the work, what tokenization operation is being practiced, how UTF-8 bytes and learned merges become chunks, that the model receives token IDs rather than words, and what the resolved evidence shows. Each tutorial window is also mirrored as a short near-text robot comment so the player does not have to monitor only the bottom overseer panel. Tests keep these no-target-hint prompts specific and short enough for the overseer panel, separately cover the popup copy, and keep the longer guided-round popup timeline clear of the moving text, controls, and overseer.
+The first two rounds remain worked examples with amber target hints. Later rounds remove target answers but name the concrete features to inspect: apostrophes and final punctuation, URL dots/slashes/chunks, and currency/decimal token splits. The live tutorial contract is deliberately narrow: each round has one sticky active Wiener instruction and one outcome-specific Wiener review line after resolution. Round two adds a concise, encoding-qualified token-ID explanation. The feedback card remains the canonical resolved evidence surface, and the Token Log provides complete text-to-ID mappings. Deeper concepts such as UTF-8 bytes, learned merge patterns, leading-space chunks, and the distinction between chunks and IDs remain in the copy deck rather than unreachable timed popup APIs. Tests protect the production speech paths, hint withdrawal, fixture order, timing, completion, and missing-record fallbacks.
 
 Risk: the copy is more explicit, but only user sessions can prove whether players transfer from worked examples to unaided prediction without facilitator explanation.
 

@@ -98,6 +98,9 @@ export interface PlaySceneQaSnapshotInput {
   motionDurationMs?: number | null;
   motionProgress?: number | null;
   motionPaused?: boolean | null;
+  reducedMotion?: boolean;
+  motionPreferenceSupported?: boolean;
+  resolvedTextTransition?: "fall" | "fade";
   petSpeechText?: string;
   petSpeechFontSize?: number;
   petSpeechRect?: GameQaRect;
@@ -239,15 +242,6 @@ export function playSceneQaSnapshot(input: PlaySceneQaSnapshotInput): GameQaSnap
     elements.push({ id: "armedCutPreview", rect: input.armedPreviewRect });
   }
 
-  if (input.touchAimLoupeRect) {
-    elements.push({
-      id: "touchAimLoupe",
-      rect: input.touchAimLoupeRect,
-      text: input.touchAimLoupeText ?? "",
-      fontSize: input.layout.compact ? 14 : 14
-    });
-  }
-
   if (input.petSpeechRect) {
     elements.push({
       id: "petSpeechBubble",
@@ -363,12 +357,12 @@ export function playSceneQaSnapshot(input: PlaySceneQaSnapshotInput): GameQaSnap
       armedPreviewBoundary: input.armedPreviewBoundary ?? null,
       armedPreviewStrength: normalizedNumber(input.armedPreviewStrength),
       armedPreviewReady: input.armedPreviewReady ?? false,
-      touchAimLoupeBoundary: input.touchAimLoupeBoundary ?? null,
-      touchAimLoupeVisible: input.touchAimLoupeRect !== undefined,
-      touchAimLoupeSnapReady: input.touchAimLoupeSnapReady ?? false,
-      touchAimLoupePointerClearancePx: normalizedNumber(input.touchAimLoupePointerClearancePx),
-      touchAimLoupeOcclusionSafe: input.touchAimLoupeOcclusionSafe ?? false,
-      touchAimLoupePlacement: input.touchAimLoupePlacement ?? "hidden",
+      touchAimLoupeBoundary: null,
+      touchAimLoupeVisible: false,
+      touchAimLoupeSnapReady: false,
+      touchAimLoupePointerClearancePx: null,
+      touchAimLoupeOcclusionSafe: false,
+      touchAimLoupePlacement: "hidden",
       inputModality: input.inputModality,
       inputFeelGestureActive: input.inputFeel?.gestureActive ?? false,
       inputFeelSampleCount: Math.max(0, Math.floor(input.inputFeel?.sampleCount ?? 0)),
@@ -413,6 +407,9 @@ export function playSceneQaSnapshot(input: PlaySceneQaSnapshotInput): GameQaSnap
       motionDurationMs: normalizedNumber(input.motionDurationMs),
       motionProgress: normalizedNumber(input.motionProgress),
       motionPaused: input.motionPaused ?? null,
+      reducedMotion: input.reducedMotion ?? false,
+      motionPreferenceSupported: input.motionPreferenceSupported ?? false,
+      resolvedTextTransition: input.resolvedTextTransition ?? "fall",
       promptBackingVisible: input.promptBackingVisible ?? false,
       promptTextVisible: input.promptTextVisible ?? true,
       promptAcquisitionActive: input.promptAcquisitionActive ?? false,

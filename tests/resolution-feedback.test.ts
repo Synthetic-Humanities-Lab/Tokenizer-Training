@@ -3,7 +3,9 @@ import {
   AudioSystem,
   CUT_CONFIRMATION_CUE_SPACING_MS,
   MAX_CUT_CONFIRMATION_CUES,
+  NATIVE_AUDIO_MESSAGE_HANDLER_NAME,
   audioCueShapes,
+  cueEnvelope,
   cutConfirmationAudioCues,
   RESOLUTION_CUE_SPACING_MS,
   scheduleAudioCues
@@ -32,34 +34,34 @@ import {
 } from "../src/game/systems/ResolutionFeedbackSystem";
 
 describe("ResolutionFeedbackSystem", () => {
-  it("plays a compact positive resolve cue stack for clean rounds", () => {
+  it("plays one dominant positive judgement cue for clean rounds", () => {
     const cues = new ResolutionFeedbackSystem().audioCues({
       missedCuts: [],
       falseCuts: [],
-      balance: 40
+      creditBalance: 40
     });
 
-    expect(cues).toEqual(["resolve", "good"]);
+    expect(cues).toEqual(["good"]);
   });
 
-  it("distinguishes missed and false cuts with separate cues", () => {
+  it("collapses mixed cut errors into one dominant negative judgement cue", () => {
     const cues = new ResolutionFeedbackSystem().audioCues({
       missedCuts: [3],
       falseCuts: [5],
-      balance: 40
+      creditBalance: 40
     });
 
-    expect(cues).toEqual(["resolve", "miss", "falseCut", "bad"]);
+    expect(cues).toEqual(["bad"]);
   });
 
-  it("adds a warning cue for low balance after resolution", () => {
+  it("adds at most one low-balance warning after the judgement cue", () => {
     const cues = new ResolutionFeedbackSystem().audioCues({
       missedCuts: [],
       falseCuts: [5],
-      balance: 9.75
+      creditBalance: 9
     });
 
-    expect(cues).toEqual(["resolve", "falseCut", "bad", "warning"]);
+    expect(cues).toEqual(["bad", "warning"]);
   });
 
   it("maps resolved outcomes to one tactile cue so touch commits feel consequential", () => {
@@ -68,22 +70,22 @@ describe("ResolutionFeedbackSystem", () => {
     expect(system.hapticCue({
       missedCuts: [],
       falseCuts: [],
-      balance: 40
+      creditBalance: 40
     })).toBe("confirm");
     expect(system.hapticCue({
       missedCuts: [3],
       falseCuts: [],
-      balance: 40
+      creditBalance: 40
     })).toBe("miss");
     expect(system.hapticCue({
       missedCuts: [],
       falseCuts: [5],
-      balance: 40
+      creditBalance: 40
     })).toBe("miss");
     expect(system.hapticCue({
       missedCuts: [3],
       falseCuts: [5],
-      balance: 9.75
+      creditBalance: 9
     })).toBe("warning");
   });
 
@@ -129,8 +131,8 @@ describe("ResolutionFeedbackSystem", () => {
     expect(resolutionCommitBeatLabel(Number.NaN, "deadline")).toBe("TIMEOUT");
   });
 
-  it("keeps resolution feedback cues short and sonically distinct", () => {
-    const cues = ["resolve", "good", "bad", "miss", "falseCut", "warning"] as const;
+  it("keeps cue voices bounded and materially distinct", () => {
+    const cues = ["cut", "good", "bad", "warning"] as const;
     const signatures = new Set(cues.map((cue) => {
       const shape = audioCueShapes[cue];
       return `${shape.frequency}:${shape.endFrequency ?? "hold"}:${shape.type}`;
@@ -139,8 +141,30 @@ describe("ResolutionFeedbackSystem", () => {
     for (const cue of cues) {
       expect(audioCueShapes[cue].durationMs).toBeLessThanOrEqual(250);
       expect(["sine", "triangle"]).toContain(audioCueShapes[cue].type);
+      expect(["paper", "relay"]).toContain(audioCueShapes[cue].material);
+      expect(audioCueShapes[cue].noiseGain).toBeGreaterThan(0);
+      expect(audioCueShapes[cue].filterFrequency).toBeGreaterThanOrEqual(300);
     }
     expect(signatures.size).toBe(cues.length);
+  });
+
+  it("bounds oscillator and noise envelopes before scheduling WebAudio voices", () => {
+    const cutEnvelope = cueEnvelope(audioCueShapes.cut);
+    const warningEnvelope = cueEnvelope(audioCueShapes.warning);
+
+    expect(cutEnvelope).toMatchObject({
+      durationSeconds: 0.058,
+      attackSeconds: 0.002,
+      noiseDurationSeconds: 0.026,
+      oscillatorGain: 0.0065,
+      noiseGain: 0.012
+    });
+    expect(cutEnvelope.noiseGain).toBeGreaterThan(cutEnvelope.oscillatorGain);
+    expect(warningEnvelope.durationSeconds).toBeLessThanOrEqual(0.25);
+    expect(warningEnvelope.attackSeconds).toBeGreaterThanOrEqual(0.002);
+    expect(warningEnvelope.noiseDurationSeconds).toBeLessThanOrEqual(warningEnvelope.durationSeconds);
+    expect(warningEnvelope.oscillatorGain).toBeLessThanOrEqual(0.03);
+    expect(warningEnvelope.noiseGain).toBeLessThanOrEqual(0.012);
   });
 
   it("keeps cut and UI interface sounds soft and brief", () => {
@@ -160,7 +184,7 @@ describe("ResolutionFeedbackSystem", () => {
     expect(audioCueShapes.clear.frequency).not.toBe(audioCueShapes.ui.frequency);
   });
 
-  it("plans fast multi-cut confirmation bursts without turning one swipe into noise", () => {
+  it("uses one consistent shear voice for fast multi-cut confirmation bursts", () => {
     expect(MAX_CUT_CONFIRMATION_CUES).toBe(4);
     expect(CUT_CONFIRMATION_CUE_SPACING_MS).toBeGreaterThanOrEqual(20);
     expect(CUT_CONFIRMATION_CUE_SPACING_MS).toBeLessThanOrEqual(30);
@@ -170,22 +194,22 @@ describe("ResolutionFeedbackSystem", () => {
     expect(cutConfirmationAudioCues(99)).toEqual(["cut", "cut", "cut", "cut"]);
 
     const scheduled = scheduleAudioCues(cutConfirmationAudioCues(4), CUT_CONFIRMATION_CUE_SPACING_MS);
-    expect(scheduled.map((cue) => cue.delayMs)).toEqual([0, 24, 48, 72]);
-    expect(Math.max(...scheduled.map((cue) => cue.delayMs))).toBeLessThan(100);
+    expect(scheduled.map((cue) => cue.delayMs)).toEqual([0, 28, 56, 84]);
+    expect(Math.max(...scheduled.map((cue) => cue.delayMs))).toBeLessThanOrEqual(84);
   });
 
-  it("schedules stacked resolution cues distinctly inside the immediate feedback window", () => {
+  it("schedules a judgement plus optional warning inside the immediate feedback window", () => {
     const cues = new ResolutionFeedbackSystem().audioCues({
       missedCuts: [3],
       falseCuts: [5],
-      balance: 8
+      creditBalance: 8
     });
     const scheduled = scheduleAudioCues(cues);
 
-    expect(cues).toEqual(["resolve", "miss", "falseCut", "bad", "warning"]);
+    expect(cues).toEqual(["bad", "warning"]);
     expect(RESOLUTION_CUE_SPACING_MS).toBeGreaterThan(0);
     expect(new Set(scheduled.map((cue) => cue.delayMs)).size).toBe(cues.length);
-    expect(Math.max(...scheduled.map((cue) => cue.delayMs))).toBeLessThanOrEqual(250);
+    expect(Math.max(...scheduled.map((cue) => cue.delayMs))).toBeLessThanOrEqual(RESOLUTION_CUE_SPACING_MS);
   });
 
   it("can cancel delayed resolution cues when the scene exits", () => {
@@ -193,13 +217,218 @@ describe("ResolutionFeedbackSystem", () => {
     try {
       const audio = new AudioSystem();
 
-      audio.playSequence(["resolve", "miss", "falseCut", "bad", "warning"]);
-      expect(vi.getTimerCount()).toBe(4);
+      audio.playSequence(["bad", "warning"]);
+      expect(vi.getTimerCount()).toBe(1);
 
       audio.cancelPending();
       expect(vi.getTimerCount()).toBe(0);
     } finally {
       vi.useRealTimers();
+    }
+  });
+
+  it("does not create a browser audio context until an unmuted cue is explicitly played", () => {
+    let createdContexts = 0;
+    class FakeAudioContext {
+      currentTime = 0;
+      sampleRate = 48000;
+      destination = {};
+      state: AudioContextState = "running";
+
+      constructor() {
+        createdContexts += 1;
+      }
+
+      resume(): Promise<void> {
+        return Promise.resolve();
+      }
+
+      createOscillator(): OscillatorNode {
+        return {
+          type: "sine",
+          frequency: {
+            setValueAtTime: vi.fn(),
+            exponentialRampToValueAtTime: vi.fn()
+          },
+          connect: vi.fn(),
+          start: vi.fn(),
+          stop: vi.fn()
+        } as unknown as OscillatorNode;
+      }
+
+      createGain(): GainNode {
+        return {
+          gain: {
+            setValueAtTime: vi.fn(),
+            linearRampToValueAtTime: vi.fn(),
+            exponentialRampToValueAtTime: vi.fn()
+          },
+          connect: vi.fn()
+        } as unknown as GainNode;
+      }
+
+      createBiquadFilter(): BiquadFilterNode {
+        return {
+          type: "lowpass",
+          frequency: { setValueAtTime: vi.fn() },
+          Q: { setValueAtTime: vi.fn() },
+          connect: vi.fn()
+        } as unknown as BiquadFilterNode;
+      }
+
+      createBuffer(_channels: number, length: number): AudioBuffer {
+        return {
+          getChannelData: () => new Float32Array(length)
+        } as unknown as AudioBuffer;
+      }
+
+      createBufferSource(): AudioBufferSourceNode {
+        return {
+          buffer: null,
+          connect: vi.fn(),
+          start: vi.fn(),
+          stop: vi.fn()
+        } as unknown as AudioBufferSourceNode;
+      }
+    }
+
+    vi.stubGlobal("AudioContext", FakeAudioContext);
+    try {
+      const audio = new AudioSystem();
+      const mutedAudio = new AudioSystem(true);
+
+      expect(createdContexts).toBe(0);
+      mutedAudio.play("ui");
+      expect(createdContexts).toBe(0);
+      audio.play("ui");
+      expect(createdContexts).toBe(1);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("prefers the finite native audio bridge in the iOS shell and preserves mute gating", () => {
+    let createdContexts = 0;
+    const postMessage = vi.fn();
+
+    class CountingAudioContext {
+      constructor() {
+        createdContexts += 1;
+      }
+    }
+
+    vi.stubGlobal("webkit", {
+      messageHandlers: {
+        [NATIVE_AUDIO_MESSAGE_HANDLER_NAME]: { postMessage }
+      }
+    });
+    vi.stubGlobal("AudioContext", CountingAudioContext);
+    try {
+      new AudioSystem().play("cut");
+      new AudioSystem(true).play("ui");
+
+      expect(postMessage).toHaveBeenCalledOnce();
+      expect(postMessage).toHaveBeenCalledWith({ cue: "cut" });
+      expect(createdContexts).toBe(0);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("waits for a suspended audio context to resume before emitting the cue", async () => {
+    let resolveResume: (() => void) | undefined;
+    const oscillatorStart = vi.fn();
+
+    class SuspendedAudioContext {
+      currentTime = 0;
+      sampleRate = 48000;
+      destination = {};
+      state: AudioContextState = "suspended";
+
+      resume(): Promise<void> {
+        return new Promise((resolve) => {
+          resolveResume = () => {
+            this.state = "running";
+            resolve();
+          };
+        });
+      }
+
+      createOscillator(): OscillatorNode {
+        return {
+          type: "sine",
+          frequency: {
+            setValueAtTime: vi.fn(),
+            exponentialRampToValueAtTime: vi.fn()
+          },
+          connect: vi.fn(),
+          start: oscillatorStart,
+          stop: vi.fn()
+        } as unknown as OscillatorNode;
+      }
+
+      createGain(): GainNode {
+        return {
+          gain: {
+            setValueAtTime: vi.fn(),
+            linearRampToValueAtTime: vi.fn(),
+            exponentialRampToValueAtTime: vi.fn()
+          },
+          connect: vi.fn()
+        } as unknown as GainNode;
+      }
+
+      createBiquadFilter(): BiquadFilterNode {
+        return {
+          type: "lowpass",
+          frequency: { setValueAtTime: vi.fn() },
+          Q: { setValueAtTime: vi.fn() },
+          connect: vi.fn()
+        } as unknown as BiquadFilterNode;
+      }
+
+      createBuffer(_channels: number, length: number): AudioBuffer {
+        return {
+          getChannelData: () => new Float32Array(length)
+        } as unknown as AudioBuffer;
+      }
+
+      createBufferSource(): AudioBufferSourceNode {
+        return {
+          buffer: null,
+          connect: vi.fn(),
+          start: vi.fn(),
+          stop: vi.fn()
+        } as unknown as AudioBufferSourceNode;
+      }
+    }
+
+    vi.stubGlobal("AudioContext", SuspendedAudioContext);
+    try {
+      new AudioSystem().play("cut");
+
+      expect(oscillatorStart).not.toHaveBeenCalled();
+      resolveResume?.();
+      await Promise.resolve();
+
+      expect(oscillatorStart).toHaveBeenCalledOnce();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("fails soft when an embedded WebAudio context lacks a required voice node", () => {
+    class IncompleteAudioContext {
+      currentTime = 0;
+      destination = {};
+      state: AudioContextState = "running";
+    }
+
+    vi.stubGlobal("AudioContext", IncompleteAudioContext);
+    try {
+      expect(() => new AudioSystem().play("good")).not.toThrow();
+    } finally {
+      vi.unstubAllGlobals();
     }
   });
 
@@ -394,7 +623,7 @@ describe("ResolutionFeedbackSystem", () => {
       falseCuts: []
     });
 
-    expect(delay).toBe(2800);
+    expect(delay).toBe(1200);
   });
 
   it("gives dense or error-heavy rounds extra read time without stalling endless pacing", () => {
@@ -417,7 +646,8 @@ describe("ResolutionFeedbackSystem", () => {
     });
 
     expect(denseMistake).toBeGreaterThan(cleanSimple);
-    expect(denseMistake).toBeLessThanOrEqual(4200);
+    expect(denseMistake).toBeLessThanOrEqual(3300);
+    expect(denseMistake - cleanSimple).toBeGreaterThanOrEqual(1000);
   });
 
   it("allows tutorial reviews to linger longer than endless reviews", () => {

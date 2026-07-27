@@ -153,7 +153,7 @@ describe("playSceneQaSnapshot", () => {
       resolveButtonReadyPulse: 0.75,
       clearButtonText: "Clear",
       muteButtonText: "Sound",
-      exitButtonText: "Menu",
+      exitButtonText: "Exit",
       feedbackRect: computeFeedbackCardLayout(width, height, layout.contentPanel),
       feedbackVisible: false,
       armedPreviewBoundary: 3,
@@ -224,12 +224,12 @@ describe("playSceneQaSnapshot", () => {
       armedPreviewBoundary: 3,
       armedPreviewStrength: 0.62,
       armedPreviewReady: true,
-      touchAimLoupeBoundary: 3,
-      touchAimLoupeVisible: true,
-      touchAimLoupeSnapReady: true,
-      touchAimLoupePointerClearancePx: 48,
-      touchAimLoupeOcclusionSafe: true,
-      touchAimLoupePlacement: "above",
+      touchAimLoupeBoundary: null,
+      touchAimLoupeVisible: false,
+      touchAimLoupeSnapReady: false,
+      touchAimLoupePointerClearancePx: null,
+      touchAimLoupeOcclusionSafe: false,
+      touchAimLoupePlacement: "hidden",
       inputModality: "touch",
       inputFeelGestureActive: true,
       inputFeelSampleCount: 3,
@@ -289,7 +289,7 @@ describe("playSceneQaSnapshot", () => {
     expect(element(snapshot.elements, "resolveButton").text).toBe("Resolve");
     expect(element(snapshot.elements, "clearButton").text).toBe("Clear");
     expect(element(snapshot.elements, "muteButton").text).toBe("Sound");
-    expect(element(snapshot.elements, "exitButton").text).toBe("Menu");
+    expect(element(snapshot.elements, "exitButton").text).toBe("Exit");
     expect(element(snapshot.elements, "logoWiener").rect).toEqual(layout.logoWiener);
     expect(element(snapshot.elements, "petWiener").rect).toEqual(layout.petWienerSlot);
     expect(element(snapshot.elements, "text").text).toBe("the cat sat on the mat");
@@ -319,8 +319,7 @@ describe("playSceneQaSnapshot", () => {
       width: 54,
       height: 30
     });
-    expect(element(snapshot.elements, "touchAimLoupe").text).toBe("the| cat");
-    expect(element(snapshot.elements, "touchAimLoupe").rect?.height).toBe(42);
+    expect(snapshot.elements.some((entry) => entry.id === "touchAimLoupe")).toBe(false);
     expect(snapshot.elements.some((entry) => entry.id === "overseer")).toBe(false);
     expect(element(snapshot.elements, "petSpeechBubble").text).toContain("pale guides");
     expect(snapshot.elements.some((entry) => entry.id === "tutorialPopup")).toBe(false);
@@ -370,35 +369,35 @@ describe("playSceneQaSnapshot", () => {
     expect(element(snapshot.elements, "resolveButton").text).toBe("Resolve");
   });
 
-  it("exposes HUD clearance progress for active and review progression feel checks", () => {
+  it("exposes persistent quota progress for active and review progression feel checks", () => {
     const width = 1280;
     const height = 720;
     const active = playSceneQaSnapshot({
       ...snapshotBaseInput(width, height),
       mode: "endless",
       phase: "active",
-      hudProgressLabel: "CLEARANCE",
-      hudProgressCurrent: 4,
-      hudProgressTarget: 5
+      hudProgressLabel: "QUOTA",
+      hudProgressCurrent: 84,
+      hudProgressTarget: 200
     });
     const review = playSceneQaSnapshot({
       ...snapshotBaseInput(width, height),
       mode: "endless",
       phase: "review",
-      hudProgressLabel: "CLEARANCE",
-      hudProgressCurrent: 5,
-      hudProgressTarget: 5
+      hudProgressLabel: "QUOTA",
+      hudProgressCurrent: 85,
+      hudProgressTarget: 200
     });
 
     expect(active.state).toMatchObject({
-      hudProgressLabel: "CLEARANCE",
-      hudProgressCurrent: 4,
-      hudProgressTarget: 5
+      hudProgressLabel: "QUOTA",
+      hudProgressCurrent: 84,
+      hudProgressTarget: 200
     });
     expect(review.state).toMatchObject({
-      hudProgressLabel: "CLEARANCE",
-      hudProgressCurrent: 5,
-      hudProgressTarget: 5
+      hudProgressLabel: "QUOTA",
+      hudProgressCurrent: 85,
+      hudProgressTarget: 200
     });
   });
 
@@ -711,7 +710,7 @@ describe("playSceneQaSnapshot", () => {
       phase: "review",
       round: 8,
       fixtureId: "dense_001",
-      fixtureText: "openai.com/pricing",
+      fixtureText: "wiener.ai/pricing",
       cutCount: 5,
       legalSlotCount: 17,
       inputModality: "mouse",
@@ -740,12 +739,12 @@ describe("playSceneQaSnapshot", () => {
       feedbackRect: computeFeedbackCardLayout(width, height, layout.contentPanel),
       feedbackVisible: true,
       feedbackText: [
-        "False boundary inserted.",
-        "Tokens 5: <open> <ai> <.com> </pr> <icing>",
-        "Pay $7.50 - Cost $4.75 = Net $2.75",
-        "Boundary audit: OK 2 / Missed 1 / False 1 / Tokens 5 / Balance $42.75 / Cost drivers: false"
+        "RESOLVED TOKENS 5",
+        "wi │ ener │ .ai │ /pr │ icing",
+        "PAY +$7.50   DEBIT -$4.75   NET +$2.75",
+        "OK 2          MISS 1          FALSE 1"
       ].join("\n"),
-      feedbackTokenSplitText: "Tokens 5: <open> <ai> <.com> </pr> <icing>",
+      feedbackTokenSplitText: "RESOLVED TOKENS 5\nwi │ ener │ .ai │ /pr │ icing",
       feedbackTokenSplitRect: {
         x: layout.textPanel.x,
         y: computeFeedbackCardLayout(width, height, layout.contentPanel).y - 18,
@@ -791,8 +790,8 @@ describe("playSceneQaSnapshot", () => {
       resolutionTrigger: "deadline",
       hudImpactActive: true,
       hudImpactTone: "loss",
-      hudImpactTargets: ["balance", "cost"],
-      hudImpactDeltaText: "NET -$2.10",
+      hudImpactTargets: ["credits", "rework"],
+      hudImpactDeltaText: "NET -2 TC",
       hudImpactDeltaAlpha: 0.72
     });
 
@@ -834,8 +833,8 @@ describe("playSceneQaSnapshot", () => {
       resolutionAuditLegendText: "",
       hudImpactActive: true,
       hudImpactTone: "loss",
-      hudImpactTargets: "balance,cost",
-      hudImpactDeltaText: "NET -$2.10",
+      hudImpactTargets: "credits,rework",
+      hudImpactDeltaText: "NET -2 TC",
       hudImpactDeltaAlpha: 0.72,
       hudImpactDeltaVisible: false
     });
@@ -852,7 +851,8 @@ describe("playSceneQaSnapshot", () => {
     expect(snapshot.elements.some((entry) => entry.id === "petSpeechBubble")).toBe(false);
     expect(snapshot.elements.some((entry) => entry.id === "tutorialPopup")).toBe(false);
     expect(element(snapshot.elements, "feedbackCard").visible).toBe(true);
-    expect(element(snapshot.elements, "feedbackCard").text).toContain("Balance $42.75");
+    expect(element(snapshot.elements, "feedbackCard").text).toContain("DEBIT -$4.75");
+    expect(element(snapshot.elements, "feedbackCard").text).not.toContain("Balance");
     expect(snapshot.elements.some((entry) => entry.id === "overseer")).toBe(false);
     expect(element(snapshot.elements, "feedbackTokenSplit").text).toContain("/pr");
     expect(snapshot.elements.some((entry) => entry.id === "tokenStrip")).toBe(false);
@@ -900,7 +900,7 @@ describe("playSceneQaSnapshot", () => {
       phase: "active",
       round: 9,
       fixtureId: "dense_001",
-      fixtureText: "openai.com/pricing",
+      fixtureText: "wiener.ai/pricing",
       cutCount: 2,
       legalSlotCount: 17,
       inputModality: "mouse",
@@ -1093,15 +1093,15 @@ describe("playSceneQaSnapshot", () => {
       ...snapshotBaseInput(width, height),
       phase: "review",
       feedbackVisible: true,
-      feedbackText: "Clean segmentation.\nTokens 3: <open> <ai> <.com>",
-      feedbackTokenSplitText: "Tokens 3: <open> <ai> <.com>",
+      feedbackText: "RESOLVED TOKENS 3\nopen │ ai │ .com",
+      feedbackTokenSplitText: "RESOLVED TOKENS 3\nopen │ ai │ .com",
       feedbackTokenSplitRect: textRect
     });
 
     expect(snapshot.elements.some((entry) => entry.id === "tokenStrip")).toBe(false);
     expect(snapshot.elements.some((entry) => entry.id === "segmentationEvidence")).toBe(false);
     expect(element(snapshot.elements, "feedbackTokenSplit").rect).toEqual(textRect);
-    expect(element(snapshot.elements, "feedbackTokenSplit").text).toContain("<open>");
+    expect(element(snapshot.elements, "feedbackTokenSplit").text).toContain("open │ ai");
   });
 
   it("exposes transient text cut impact geometry when the prompt responds to a cut", () => {

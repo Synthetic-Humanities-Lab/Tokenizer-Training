@@ -168,10 +168,10 @@ describe("reading-derived design documentation", () => {
       expect(markdown, conceptFile).toContain("## Playtest Questions");
     }
 
-    expect(readRepoFile("docs/game_design_concepts/04_economy_and_critical_play.md")).toContain("file the resulting balance");
-    expect(readRepoFile("docs/game_design_concepts/05_emotional_design.md")).toContain("Review files the new balance");
+    expect(readRepoFile("docs/game_design_concepts/04_economy_and_critical_play.md")).toContain("verified credits minus rework equals net credits");
+    expect(readRepoFile("docs/game_design_concepts/05_emotional_design.md")).toContain("Review files the new Token Credit total");
     expect(readRepoFile("docs/economy_tuning_audit.md")).toContain("Near-perfect: miss one true boundary per round");
-    expect(readRepoFile("docs/economy_tuning_audit.md")).toContain("company cost produces net");
+    expect(readRepoFile("docs/economy_tuning_audit.md")).toContain("verified minus rework produces net credits");
     expect(readRepoFile("docs/phase2_design_audit.md")).toContain("marks low balances as `low`");
     expect(readRepoFile("docs/design_verification_matrix.md")).toContain("low-balance and closed-window states");
     expect(readRepoFile("docs/design_verification_matrix.md")).toContain(
@@ -191,12 +191,13 @@ describe("reading-derived design documentation", () => {
       "## Gate 4 - Economy Literacy",
       "## Gate 5 - Critical Frame",
       "## Gate 6 - Visual Readability",
-      "## Gate 7 - Engagement And Aesthetic Intent"
+      "## Gate 7 - Engagement And Aesthetic Intent",
+      "## Gate 8 - Numerical Token Mental Model"
     ]) {
       expect(gates).toContain(gate);
     }
-    expect(gates.match(/Pass condition:/g)?.length).toBe(7);
-    expect(gates.match(/Evidence to collect:/g)?.length).toBe(7);
+    expect(gates.match(/Pass condition:/g)?.length).toBe(8);
+    expect(gates.match(/Evidence to collect:/g)?.length).toBe(8);
 
     for (const section of [
       "## Top Game Design",
@@ -226,6 +227,109 @@ describe("reading-derived design documentation", () => {
     expect(matrix).toContain("tests/build-config.test.ts");
   });
 
+  it("separates the current surface contract from the preserved June verification record", () => {
+    const matrix = readRepoFile("docs/design_verification_matrix.md");
+    const currentSnapshot = sectionBody(matrix, "## Current Snapshot - 2026-07-18");
+    const historicalRecord = sectionBody(matrix, "## Historical June Verification Record");
+
+    expect(currentSnapshot).toContain("same Phaser/Vite game");
+    expect(currentSnapshot).toContain("one feedback card");
+    expect(currentSnapshot).toContain("one Wiener speech bubble");
+    expect(currentSnapshot).toContain("are retired");
+    expect(currentSnapshot).not.toContain("token strip appears");
+    expect(currentSnapshot).not.toContain("tutorial robot popup");
+    expect(currentSnapshot).not.toContain("compact overseer");
+
+    expect(historicalRecord).toMatch(/historical\s+observations/);
+    expect(historicalRecord).toContain("token strip");
+    expect(historicalRecord).toContain("overseer");
+
+    for (const path of [
+      "docs/phase2_design_audit.md",
+      "docs/browser_qa_2026-06-06.md",
+      "docs/browser_qa_2026-06-07.md"
+    ]) {
+      const markdown = readRepoFile(path);
+
+      expect(markdown, path).toContain("Historical provenance");
+      expect(markdown, path).toContain("docs/current_surface_contract.md");
+    }
+  });
+
+  it("keeps public Training vocabulary scoped to current player-facing authorities", () => {
+    const surfaceContract = readRepoFile("docs/current_surface_contract.md");
+    const vocabulary = sectionBody(surfaceContract, "## Public Mode Vocabulary");
+    const tutorialSource = readRepoFile("src/game/systems/TutorialCompleteContentSystem.ts");
+    const copyDeck = readRepoFile("docs/copy_deck.md");
+    const menuSection = sectionBody(copyDeck, "## Main menu");
+    const retiredMarker = "### Retired menu prose (historical reference only)";
+    const retiredStart = menuSection.indexOf(retiredMarker);
+    const currentMenu = menuSection.slice(0, retiredStart);
+    const retiredMenu = menuSection.slice(retiredStart);
+    const tutorialCompletion = sectionBody(copyDeck, "## Tutorial completion");
+    const resultsCopy = sectionBody(copyDeck, "## Results copy");
+    const designSpec = readRepoFile("docs/design_spec.md");
+    const trainingSpec = sectionBody(designSpec, "## Training");
+
+    expect(vocabulary).toContain("The menu action is `Training`");
+    expect(vocabulary).toContain("The passed-tutorial action is `Start Training`");
+    expect(vocabulary).toContain("The Results retry action is `Run Training Again`");
+    expect(vocabulary).toContain("internal mode/route identifier `endless`");
+    expect(surfaceContract).not.toContain("Start Endless Training");
+
+    expect(tutorialSource).toContain('primaryAction: "Start Training"');
+    expect(tutorialSource).not.toContain('primaryAction: "Start Endless Training"');
+    expect(tutorialCompletion).toContain("`Start Training`");
+    expect(tutorialCompletion).not.toContain("Start Endless Training");
+    expect(resultsCopy).toContain("`Run Training Again`");
+
+    expect(retiredStart).toBeGreaterThan(0);
+    expect(currentMenu).toContain("- **training:** `Training`");
+    expect(currentMenu).toContain("- **token_log:** `Token Log`");
+    expect(currentMenu).toContain("- **settings:** `Settings`");
+    expect(currentMenu).toContain("`BEST RANK` / `{rank}` / `{rounds} rounds`");
+    expect(currentMenu).not.toContain("Endless Training");
+    expect(retiredMenu).toContain("- **training:** `Endless Training`");
+    expect(retiredMenu).toContain("- **best_label:** `Best Record`");
+
+    expect(trainingSpec).toContain("uncapped while Token Credits");
+    expect(trainingSpec).toContain("ends when the account reaches zero");
+    expect(trainingSpec).toContain("internal mode/route name is `endless`");
+    expect(designSpec).not.toContain("Endless Training");
+    expect(readRepoFile("docs/browser_qa_2026-06-06.md")).toContain("Start Endless Training");
+  });
+
+  it("keeps active design guidance on Wiener speech and the canonical feedback card", () => {
+    const loop = readRepoFile("docs/game_design_concepts/01_loop_as_argument.md");
+    const display = readRepoFile("docs/game_design_concepts/06_visual_display.md");
+    const principles = readRepoFile("docs/game_design_principles.md");
+    const currentEmbodiment = sectionBody(principles, "## Current Embodiment In The Game");
+
+    expect(loop).toContain("feedback-card token, economy, and cut-audit rows");
+    expect(loop).toContain("Wiener provide the short instructional and social diagnosis");
+    expect(display).toContain("One feedback card appears during review");
+    expect(display).toContain("no separate token strip competes");
+    expect(currentEmbodiment).toContain("Active and review");
+    expect(currentEmbodiment).toContain("instruction stays in Wiener speech");
+    expect(currentEmbodiment).toContain("1.8 seconds");
+    expect(currentEmbodiment).toContain("one feedback card");
+    expect(currentEmbodiment).not.toContain("token strip");
+    expect(currentEmbodiment).not.toContain("overseer");
+  });
+
+  it("documents the truthful two-step Best Rank reset boundary", () => {
+    const contract = readRepoFile("docs/current_surface_contract.md");
+    const mobileShell = readRepoFile("docs/mobile_shell.md");
+    const reset = sectionBody(contract, "## Best Rank Reset");
+
+    expect(reset).toMatch(/first\s+activation only opens `Reset Best Rank\?`/);
+    expect(reset).toContain("canonical and every legacy high-score key");
+    expect(reset).toMatch(/Token Log, sample progress, Training access, Sound, and\s+Haptics remain/);
+    expect(reset).toContain("does not prove");
+    expect(mobileShell).toContain("settings-reset-confirm.jpg");
+    expect(mobileShell).toContain("`resetPointerActivationProven` false");
+  });
+
   it("keeps WienerWorks visual reference artifacts explicit about copy and mechanics boundaries", () => {
     const visualDirection = readRepoFile("docs/visual-reference/wienerworks_visual_direction.md");
     const laneMockup = readRepoFile("docs/visual-reference/wienerworks_gameplay_lane_mockup.md");
@@ -239,7 +343,7 @@ describe("reading-derived design documentation", () => {
     expect(laneMockup).toContain("It must not come from literal industrial imagery");
     expect(mascotSpec).toContain("pixel-art hot dog assistant");
     expect(mascotSpec).toContain("Neutral");
-    expect(soundDirection).toContain("Avoid square and sawtooth oscillators");
+    expect(soundDirection.replace(/\s+/g, " ")).toContain("Avoid square and sawtooth oscillators");
   });
 
   it("keeps current tokenizer fixture counts aligned across evidence docs", () => {

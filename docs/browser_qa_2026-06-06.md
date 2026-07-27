@@ -1,5 +1,10 @@
 # Browser QA Evidence - 2026-06-06
 
+> **Historical provenance.** This dated record preserves what the 2026-06-06
+> build and QA harness showed. Its strings, IDs, labels, product names, counts,
+> and screenshot descriptions are observations, not current requirements. See
+> `docs/current_surface_contract.md` for the current browser/iOS surface.
+
 Target: `http://127.0.0.1:5173/` in the Codex in-app Browser.
 
 ## Result

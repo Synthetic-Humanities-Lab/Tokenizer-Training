@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import fixturesJson from "../src/game/data/fixtures.json";
+import { CutInputSessionSystem } from "../src/game/systems/CutInputSessionSystem";
+import { splitGraphemes } from "../src/game/systems/GraphemeSystem";
 import { SwipeCutSystem } from "../src/game/systems/SwipeCutSystem";
 import {
-  compactTutorialSpeechTitle,
   TUTORIAL_ROUND_DURATION_MS,
   TutorialSystem
 } from "../src/game/systems/TutorialSystem";
@@ -14,7 +15,7 @@ const expectedTutorialFixtureIds = [
   "simple_002",
   "simple_010",
   "chaos_005",
-  "simple_007",
+  "punct_002",
   "punct_001",
   "punct_004",
   "dense_001",
@@ -22,9 +23,14 @@ const expectedTutorialFixtureIds = [
   "simple_014"
 ];
 
+function configuredRounds(tutorial: TutorialSystem) {
+  return Array.from({ length: tutorial.count() }, (_, index) => tutorial.byIndex(index)!);
+}
+
 describe("TutorialSystem", () => {
   it("defines ten interactive tutorial rounds using verified runtime fixtures", () => {
-    const rounds = new TutorialSystem().all();
+    const tutorial = new TutorialSystem();
+    const rounds = configuredRounds(tutorial);
 
     expect(rounds).toHaveLength(10);
     expect(rounds.map((round) => round.fixtureId)).toEqual(expectedTutorialFixtureIds);
@@ -33,280 +39,190 @@ describe("TutorialSystem", () => {
     }
   });
 
-  it("gives each tutorial round explanation, example text source, and teaching point", () => {
-    for (const round of new TutorialSystem().all()) {
-      const fixture = fixtures.find((candidate) => candidate.id === round.fixtureId);
-      expect(fixture?.text).toBe(round.exampleText);
-      expect(round.fixtureId.length).toBeGreaterThan(0);
-      expect(round.exampleText.length).toBeGreaterThan(3);
-      expect(round.explanation.length).toBeGreaterThan(24);
-      expect(round.script.promptIntroLine).toContain("WIENER");
-      expect(round.script.promptIntroLine.length).toBeGreaterThan(80);
-      expect(round.script.teachingExplanations.mechanics).toContain("WIENER");
-      expect(round.script.teachingExplanations.mechanics.length).toBeGreaterThan(80);
-      expect(round.script.teachingExplanations.mechanics.length).toBeLessThanOrEqual(190);
-      expect(round.script.teachingExplanations.mechanics).toMatch(/\b(token|tokens|tokenizer|BPE|byte|chunk|chunks|merge)\b/i);
-      expect(round.script.teachingExplanations.byteRoute).toContain("WIENER");
-      expect(round.script.teachingExplanations.byteRoute.length).toBeGreaterThan(80);
-      expect(round.script.teachingExplanations.byteRoute.length).toBeLessThanOrEqual(190);
-      expect(round.script.teachingExplanations.byteRoute).toMatch(/\b(UTF-8|byte|bytes|BPE|merge|token|tokens|chunk|chunks)\b/i);
-      expect(round.script.teachingExplanations.tokenIds).toContain("WIENER");
-      expect(round.script.teachingExplanations.tokenIds.length).toBeGreaterThan(80);
-      expect(round.script.teachingExplanations.tokenIds.length).toBeLessThanOrEqual(190);
-      expect(round.script.teachingExplanations.tokenIds).toMatch(/\b(token ID|token IDs|ID|IDs|integer|integers|model|billable)\b/i);
-      expect(round.script.teachingExplanations.workRule).toContain("WIENER");
-      expect(round.script.teachingExplanations.workRule.length).toBeGreaterThan(80);
-      expect(round.script.teachingExplanations.workRule.length).toBeLessThanOrEqual(180);
-      expect(round.script.teachingExplanations.workRule).toMatch(/\b(token|tokens|tokenizer|BPE|byte|chunk|chunks|merge)\b/i);
-      expect(round.script.teachingExplanations.followup).toContain("WIENER");
-      expect(round.script.teachingExplanations.followup.length).toBeGreaterThan(80);
-      expect(round.script.teachingExplanations.followup.length).toBeLessThanOrEqual(180);
-      expect(round.script.teachingExplanations.followup).toMatch(/\b(token|tokens|tokenizer|BPE|byte|chunk|chunks)\b/i);
-      expect(round.script.reviewExplanation.length).toBeGreaterThan(60);
-      expect(round.teachingPoint.length).toBeGreaterThan(12);
-      expect(round.script.activeInstructionLine.length).toBeGreaterThan(24);
-      expect(round.script.activeInstructionLine.length).toBeLessThanOrEqual(92);
-      expect(round.script.stageInstructionLines.mechanics.length).toBeGreaterThan(24);
-      expect(round.script.stageInstructionLines.mechanics.length).toBeLessThanOrEqual(92);
-      expect(round.script.stageInstructionLines.byteRoute.length).toBeGreaterThan(24);
-      expect(round.script.stageInstructionLines.byteRoute.length).toBeLessThanOrEqual(92);
-      expect(round.script.stageInstructionLines.tokenIds.length).toBeGreaterThan(24);
-      expect(round.script.stageInstructionLines.tokenIds.length).toBeLessThanOrEqual(92);
-      expect(round.script.stageInstructionLines.tokenIds).toMatch(/\b(ID|IDs|token|tokens|bill|billable|model)\b/i);
-      expect(round.script.stageInstructionLines.workRule.length).toBeGreaterThan(24);
-      expect(round.script.stageInstructionLines.workRule.length).toBeLessThanOrEqual(92);
-      expect(round.script.stageInstructionLines.followup.length).toBeGreaterThan(24);
-      expect(round.script.stageInstructionLines.followup.length).toBeLessThanOrEqual(92);
-      expect(round.script.reviewLine.length).toBeGreaterThan(12);
-      expect(round.script.reviewReactions.pass.length).toBeGreaterThan(24);
-      expect(round.script.reviewReactions.mixed.length).toBeGreaterThan(24);
-      expect(round.script.reviewReactions.fail.length).toBeGreaterThan(24);
+  it("keeps every production-owned tutorial line populated and within the phone speech budget", () => {
+    const tutorial = new TutorialSystem();
+    for (const [index, round] of configuredRounds(tutorial).entries()) {
+      expect(round.activeInstructionLine.length).toBeGreaterThan(24);
+      expect(round.activeInstructionLine.length).toBeLessThanOrEqual(76);
+      expect(round.firstCutFollowUpLine?.length).toBeGreaterThan(24);
+      expect(round.firstCutFollowUpLine?.length).toBeLessThanOrEqual(76);
+      for (const reaction of Object.values(round.reviewReactions)) {
+        expect(reaction.length).toBeGreaterThan(24);
+      }
+      for (const outcome of [
+        { correctCuts: 4, missedCuts: 0, falseCuts: 0 },
+        { correctCuts: 2, missedCuts: 2, falseCuts: 0 },
+        { correctCuts: 2, missedCuts: 0, falseCuts: 2 },
+        { correctCuts: 1, missedCuts: 1, falseCuts: 1 }
+      ]) {
+        expect(tutorial.reviewSpeechFor(index, outcome).length).toBeLessThanOrEqual(118);
+      }
+      expect(typeof round.showSlotHints).toBe("boolean");
       expect(typeof round.showTargetHints).toBe("boolean");
-      expect(round.instructionWindowMs).toBeGreaterThan(4000);
     }
   });
 
-  it("keeps active tutorial prompts short enough for the Wiener speech bubble", () => {
-    const tutorial = new TutorialSystem();
+  it("starts interactive play with action vocabulary already visible on screen", () => {
+    const prompt = new TutorialSystem().activePromptFor(0);
 
-    tutorial.all().forEach((_, index) => {
-      const prompt = tutorial.activePromptFor(index);
-      const mechanics = tutorial.mechanicsPromptFor(index);
-      const byte = tutorial.bytePromptFor(index);
-      const tokenIds = tutorial.tokenIdPromptFor(index);
-      const rule = tutorial.rulePromptFor(index);
-      const followup = tutorial.followupPromptFor(index);
-
-      expect(prompt).toContain(`TUTORIAL ${index + 1}/${tutorial.count()}`);
-      expect(prompt.length).toBeLessThanOrEqual(110);
-      expect(mechanics).toContain(`TUTORIAL ${index + 1}/${tutorial.count()}`);
-      expect(mechanics.length).toBeLessThanOrEqual(110);
-      expect(byte).toContain(`TUTORIAL ${index + 1}/${tutorial.count()}`);
-      expect(byte.length).toBeLessThanOrEqual(110);
-      expect(tokenIds).toContain(`TUTORIAL ${index + 1}/${tutorial.count()}`);
-      expect(tokenIds.length).toBeLessThanOrEqual(110);
-      expect(rule).toContain(`TUTORIAL ${index + 1}/${tutorial.count()}`);
-      expect(rule.length).toBeLessThanOrEqual(110);
-      expect(followup).toContain(`TUTORIAL ${index + 1}/${tutorial.count()}`);
-      expect(followup.length).toBeLessThanOrEqual(110);
-    });
+    expect(prompt).toContain("Swipe orange targets");
+    expect(prompt).toContain("every possible cut");
+    expect(prompt).toContain("Resolve submits");
+    expect(prompt.length).toBeLessThanOrEqual(110);
   });
 
-  it("builds concise intro prompts from the title, teaching point, and explanation", () => {
+  it("provides one compact, deterministic first-cut follow-up per tutorial round", () => {
     const tutorial = new TutorialSystem();
 
-    tutorial.all().forEach((round, index) => {
-      const prompt = tutorial.introPromptFor(index);
-
-      expect(prompt).toContain(round.title);
-      expect(prompt).toContain(round.teachingPoint);
-      expect(prompt).toContain(round.explanation);
-      expect(prompt).toContain(`TUTORIAL ${index + 1}/${tutorial.count()}`);
-      expect(prompt.length).toBeLessThanOrEqual(180);
+    configuredRounds(tutorial).forEach((round, index) => {
+      expect(tutorial.firstCutFollowUpFor(index)).toBe(round.firstCutFollowUpLine);
+      expect(tutorial.firstCutFollowUpFor(index)).toBe(round.firstCutFollowUpLine);
     });
+    expect(tutorial.firstCutFollowUpFor(99)).toBeUndefined();
   });
 
-  it("builds Wiener speech instructions for tutorial windows", () => {
+  it("distinguishes clean, missed-only, false-only, and mixed review outcomes", () => {
     const tutorial = new TutorialSystem();
 
-    tutorial.all().forEach((round, index) => {
-      const intro = tutorial.introSpeechFor(index);
-      const mechanics = tutorial.mechanicsExplanationFor(index);
-      const byte = tutorial.byteRouteExplanationFor(index);
-      const tokenIds = tutorial.tokenIdExplanationFor(index);
-      const rule = tutorial.workRuleExplanationFor(index);
-      const followup = tutorial.followupExplanationFor(index);
-      const review = tutorial.reviewExplanationFor(index);
-
-      expect(intro.title).toContain(`TUTORIAL ${index + 1}/${tutorial.count()}`);
-      expect(intro.title).toContain(round.title);
-      expect(intro.body).toBe(round.script.promptIntroLine);
-      expect(intro.body).toContain("WIENER");
-      expect(mechanics.title).toContain(`MECHANICS ${index + 1}/${tutorial.count()}`);
-      expect(mechanics.body).toBe(round.script.teachingExplanations.mechanics);
-      expect(mechanics.body).toContain("WIENER");
-      expect(byte.title).toContain(`BYTE ROUTE ${index + 1}/${tutorial.count()}`);
-      expect(byte.body).toBe(round.script.teachingExplanations.byteRoute);
-      expect(byte.body).toContain("WIENER");
-      expect(tokenIds.title).toContain(`TOKEN IDS ${index + 1}/${tutorial.count()}`);
-      expect(tokenIds.body).toBe(round.script.teachingExplanations.tokenIds);
-      expect(tokenIds.body).toContain("WIENER");
-      expect(rule.title).toContain(`WORK RULE ${index + 1}/${tutorial.count()}`);
-      expect(rule.body).toBe(round.script.teachingExplanations.workRule);
-      expect(rule.body).toContain("WIENER");
-      expect(followup.title).toContain(`TECH NOTE ${index + 1}/${tutorial.count()}`);
-      expect(followup.body).toBe(round.script.teachingExplanations.followup);
-      expect(followup.body).toContain("WIENER");
-      expect(review.title).toContain(`REVIEW ${index + 1}/${tutorial.count()}`);
-      expect(review.body).toBe(round.script.reviewExplanation);
-    });
-  });
-
-  it("keeps tutorial review speech qualitative so Wiener does not duplicate the score HUD", () => {
-    const tutorial = new TutorialSystem();
-
-    const clean = tutorial.reviewSpeechFor(0, {
+    expect(tutorial.reviewSpeechFor(0, {
       correctCuts: 5,
       missedCuts: 0,
       falseCuts: 0
-    });
-    expect(clean).not.toMatch(/\b\d+\s+(found|missed|false)\b/i);
-    expect(clean).toContain("Clean start");
-
-    const missed = tutorial.reviewSpeechFor(0, {
+    })).toContain("OK marks a correct cut");
+    expect(tutorial.reviewSpeechFor(0, {
       correctCuts: 1,
       missedCuts: 4,
       falseCuts: 0
-    });
-    expect(missed).not.toMatch(/\b\d+\s+(found|missed|false)\b/i);
-    expect(missed).toContain("Familiar words are not protection");
-    expect(missed.length).toBeLessThanOrEqual(154);
+    })).toContain("MISS joins two real tokens");
+    expect(tutorial.reviewSpeechFor(0, {
+      correctCuts: 1,
+      missedCuts: 0,
+      falseCuts: 1
+    })).toContain("FALSE splits a real token");
+    expect(tutorial.reviewSpeechFor(0, {
+      correctCuts: 1,
+      missedCuts: 2,
+      falseCuts: 1
+    })).toContain("MISS joins real tokens; FALSE splits another");
+  });
 
+  it("diagnoses space misses and false cuts without reversing their causes", () => {
+    const tutorial = new TutorialSystem();
+    const missed = tutorial.reviewSpeechFor(3, {
+      correctCuts: 0,
+      missedCuts: 1,
+      falseCuts: 0
+    });
     const falseCut = tutorial.reviewSpeechFor(3, {
       correctCuts: 1,
       missedCuts: 0,
       falseCuts: 1
     });
-    expect(falseCut).not.toMatch(/\b\d+\s+(found|missed|false)\b/i);
-    expect(falseCut).toContain("leading-space chunk was mishandled");
-    expect(falseCut.length).toBeLessThanOrEqual(154);
 
-    const mixed = tutorial.reviewSpeechFor(9, {
-      correctCuts: 2,
-      missedCuts: 3,
-      falseCuts: 2
-    });
-    expect(mixed).not.toMatch(/\b\d+\s+(found|missed|false)\b/i);
-    expect(mixed).toContain("balance only respects boundary evidence");
-    expect(mixed.length).toBeLessThanOrEqual(154);
+    expect(missed).toContain("needed a boundary before the visible gap");
+    expect(missed).not.toContain("cut after the gap");
+    expect(falseCut).toContain("cut after the gap");
+    expect(falseCut).not.toContain("space as absence");
   });
 
-  it("keeps live tutorial speech aligned with visible UI language", () => {
+  it("explains the ledger when its evidence first appears", () => {
     const tutorial = new TutorialSystem();
-    const publicTutorialCopy = tutorial.all().flatMap((round, index) => [
-      round.script.promptIntroLine,
-      round.script.teachingExplanations.mechanics,
-      round.script.teachingExplanations.byteRoute,
-      round.script.teachingExplanations.tokenIds,
-      round.script.teachingExplanations.workRule,
-      round.script.teachingExplanations.followup,
-      round.script.reviewExplanation,
-      round.script.activeInstructionLine,
-      round.script.stageInstructionLines.mechanics,
-      round.script.stageInstructionLines.byteRoute,
-      round.script.stageInstructionLines.tokenIds,
-      round.script.stageInstructionLines.workRule,
-      round.script.stageInstructionLines.followup,
-      round.script.reviewLine,
+    const firstReviewLines = [
+      tutorial.reviewSpeechFor(0, { correctCuts: 5, missedCuts: 0, falseCuts: 0 }),
+      tutorial.reviewSpeechFor(0, { correctCuts: 3, missedCuts: 1, falseCuts: 0 }),
+      tutorial.reviewSpeechFor(0, { correctCuts: 3, missedCuts: 0, falseCuts: 1 }),
+      tutorial.reviewSpeechFor(0, { correctCuts: 2, missedCuts: 1, falseCuts: 1 })
+    ];
+
+    for (const line of firstReviewLines) {
+      expect(line).toMatch(/ledger/i);
+      expect(line).toMatch(/VERIFIED|REWORK|Token Credit/i);
+    }
+  });
+
+  it("uses the second review pause to explain embodied token IDs without exposing the implementation name", () => {
+    const tutorial = new TutorialSystem();
+    const outcomes = [
+      { correctCuts: 4, missedCuts: 0, falseCuts: 0 },
+      { correctCuts: 2, missedCuts: 2, falseCuts: 0 },
+      { correctCuts: 2, missedCuts: 0, falseCuts: 2 },
+      { correctCuts: 1, missedCuts: 1, falseCuts: 2 }
+    ];
+
+    const reviewLine = tutorial.reviewSpeechFor(1, outcomes[0]);
+    expect(reviewLine).toContain("Standard Protocol vocabulary IDs");
+    expect(reviewLine).toContain("Falling numbers");
+    expect(reviewLine).toContain("complete tokens");
+    expect(reviewLine).toContain("not points");
+    expect(reviewLine).not.toContain("cl100k_base");
+    for (const outcome of outcomes) {
+      expect(tutorial.reviewSpeechFor(1, outcome)).toBe(reviewLine);
+    }
+  });
+
+  it("uses a genuine within-expression split for the first unguided token-not-word lesson", () => {
+    const tutorial = new TutorialSystem();
+    const round = tutorial.byIndex(4)!;
+    const fixture = fixtures.find((candidate) => candidate.id === round.fixtureId);
+
+    expect(round.fixtureId).toBe("punct_002");
+    expect(round.showTargetHints).toBe(false);
+    expect(round.activeInstructionLine).toContain("'re-enter'");
+    expect(fixture?.text).toBe("re-enter the room");
+    expect(fixture?.token_strings).toEqual(["re", "-enter", " the", " room"]);
+  });
+
+  it("keeps all visible tutorial speech aligned with current UI language", () => {
+    const tutorial = new TutorialSystem();
+    const visibleTutorialCopy = configuredRounds(tutorial).flatMap((_, index) => [
       tutorial.activePromptFor(index),
-      tutorial.introPromptFor(index),
-      tutorial.reviewExplanationFor(index).body,
+      tutorial.firstCutFollowUpFor(index) ?? "",
+      tutorial.reviewSpeechFor(index, { correctCuts: 1, missedCuts: 0, falseCuts: 0 }),
       tutorial.reviewSpeechFor(index, { correctCuts: 1, missedCuts: 2, falseCuts: 0 }),
       tutorial.reviewSpeechFor(index, { correctCuts: 1, missedCuts: 0, falseCuts: 2 }),
       tutorial.reviewSpeechFor(index, { correctCuts: 1, missedCuts: 1, falseCuts: 1 })
     ]);
 
-    for (const copy of publicTutorialCopy) {
+    for (const copy of visibleTutorialCopy) {
       expect(copy).not.toMatch(/\b(file|files|filed|filing)\b/i);
       expect(copy).not.toMatch(/\bblue\b/i);
-      expect(copy).not.toMatch(/\bscore\b/i);
       expect(copy).not.toMatch(/\bair\b/i);
+      expect(copy).not.toMatch(/\bscore\b/i);
     }
   });
 
-  it("uses short staged tutorial speech lines for tokenization mechanics", () => {
+  it("keeps the round clock and later unaided prompts explicit", () => {
     const tutorial = new TutorialSystem();
 
     expect(TUTORIAL_ROUND_DURATION_MS).toBe(32000);
-    expect(tutorial.introSpeechWindowMs()).toBe(4300);
-    expect(tutorial.mechanicsSpeechWindowMs()).toBe(4600);
-    expect(tutorial.byteRouteSpeechWindowMs()).toBe(4300);
-    expect(tutorial.tokenIdSpeechWindowMs()).toBe(4100);
-    expect(tutorial.workRuleSpeechWindowMs()).toBe(4300);
-    expect(tutorial.followupSpeechWindowMs()).toBe(4600);
-    tutorial.all().forEach((round, index) => {
-      const mechanics = tutorial.mechanicsExplanationFor(index);
-      const byte = tutorial.byteRouteExplanationFor(index);
-      const tokenIds = tutorial.tokenIdExplanationFor(index);
-      const rule = tutorial.workRuleExplanationFor(index);
-      const followup = tutorial.followupExplanationFor(index);
-
-      expect(mechanics.title).toBe(`WIENER - MECHANICS ${index + 1}/${tutorial.count()}`);
-      expect(mechanics.body).toBe(round.script.teachingExplanations.mechanics);
-      expect(mechanics.body).toMatch(/\b(token|tokens|tokenizer|BPE|byte|chunk|chunks|merge)\b/i);
-      expect(byte.title).toBe(`WIENER - BYTE ROUTE ${index + 1}/${tutorial.count()}`);
-      expect(byte.body).toBe(round.script.teachingExplanations.byteRoute);
-      expect(byte.body).toMatch(/\b(UTF-8|byte|bytes|BPE|merge|token|tokens|chunk|chunks)\b/i);
-      expect(tokenIds.title).toBe(`WIENER - TOKEN IDS ${index + 1}/${tutorial.count()}`);
-      expect(tokenIds.body).toBe(round.script.teachingExplanations.tokenIds);
-      expect(tokenIds.body).toMatch(/\b(token ID|token IDs|ID|IDs|integer|integers|model|billable)\b/i);
-      expect(rule.title).toBe(`WIENER - WORK RULE ${index + 1}/${tutorial.count()}`);
-      expect(rule.body).toBe(round.script.teachingExplanations.workRule);
-      expect(rule.body).toMatch(/\b(token|tokens|tokenizer|BPE|byte|chunk|chunks|merge)\b/i);
-      expect(followup.title).toBe(`WIENER - TECH NOTE ${index + 1}/${tutorial.count()}`);
-      expect(followup.body).toBe(round.script.teachingExplanations.followup);
-      expect(followup.body).toMatch(/\b(token|tokens|tokenizer|BPE|byte|chunk|chunks)\b/i);
-    });
-  });
-
-  it("keeps compact speech titles short without mutating full tutorial titles", () => {
-    const tutorial = new TutorialSystem();
-    const fullTitle = tutorial.introSpeechFor(5).title;
-
-    expect(fullTitle).toBe("WIENER - TUTORIAL 6/10: Contractions");
-    expect(compactTutorialSpeechTitle(fullTitle)).toBe("WIENER - TUTORIAL 6/10");
-    expect(compactTutorialSpeechTitle(tutorial.reviewExplanationFor(5).title)).toBe(
-      "WIENER - REVIEW 6/10"
-    );
-  });
-
-  it("keeps tutorial review speech inside the review window", () => {
-    const tutorial = new TutorialSystem();
-
-    expect(tutorial.reviewSpeechWindowMs(4200)).toBe(3750);
-    expect(tutorial.reviewSpeechWindowMs(7600)).toBe(5600);
-    expect(tutorial.reviewSpeechWindowMs(0)).toBe(0);
-  });
-
-  it("keeps later tutorial prompts actionable after target hints are removed", () => {
-    const tutorial = new TutorialSystem();
-
-    expect(tutorial.activePromptFor(4)).toContain("No orange answers");
-    expect(tutorial.activePromptFor(4)).toContain("token strip");
-    expect(tutorial.activePromptFor(5)).toContain("apostrophe");
-    expect(tutorial.activePromptFor(5)).toContain("final period");
+    expect(tutorial.activePromptFor(4)).toContain("Orange answers are gone");
+    expect(tutorial.activePromptFor(4)).toContain("'re-enter'");
+    expect(tutorial.activePromptFor(5)).toContain("Apostrophes");
+    expect(tutorial.activePromptFor(5)).toContain("contraction chunks");
     expect(tutorial.activePromptFor(6)).toContain("Punctuation");
-    expect(tutorial.activePromptFor(6)).toContain("question marks");
-    expect(tutorial.activePromptFor(7)).toContain("URLs fragment");
-    expect(tutorial.activePromptFor(7)).toContain("dots and slashes");
-    expect(tutorial.activePromptFor(8)).toContain("Currency");
-    expect(tutorial.activePromptFor(8)).toContain("decimals");
-    expect(tutorial.activePromptFor(9)).toContain("correct cuts pay");
-    expect(tutorial.activePromptFor(9)).toContain("create cost");
+    expect(tutorial.activePromptFor(6)).toContain("question mark");
+    expect(tutorial.activePromptFor(7)).toContain("URLs reuse");
+    expect(tutorial.activePromptFor(7)).toContain("dots, and slashes");
+    expect(tutorial.activePromptFor(8)).toContain("Prices");
+    expect(tutorial.activePromptFor(8)).toContain("decimal notation");
+  });
+
+  it("keeps the final round outcome-neutral until the aggregate audit runs", () => {
+    const tutorial = new TutorialSystem();
+    const finalCopy = [
+      tutorial.activePromptFor(9),
+      tutorial.firstCutFollowUpFor(9) ?? "",
+      tutorial.reviewSpeechFor(9, { correctCuts: 4, missedCuts: 0, falseCuts: 0 }),
+      tutorial.reviewSpeechFor(9, { correctCuts: 1, missedCuts: 2, falseCuts: 1 })
+    ].join(" ");
+
+    expect(finalCopy).toContain("Qualification");
+    expect(finalCopy).toContain("full tutorial audit");
+    expect(finalCopy).not.toMatch(/qualified|approved|denied|employment begins|can now replace/i);
   });
 
   it("uses target hints only for worked early examples", () => {
-    const rounds = new TutorialSystem().all();
+    const rounds = configuredRounds(new TutorialSystem());
 
     expect(rounds.map((round) => round.showTargetHints)).toEqual([
       true,
@@ -324,7 +240,7 @@ describe("TutorialSystem", () => {
 
   it("keeps worked target-hint rounds playable with wrong cuts still possible", () => {
     const swipe = new SwipeCutSystem();
-    const rounds = new TutorialSystem().all().filter((round) => round.showTargetHints);
+    const rounds = configuredRounds(new TutorialSystem()).filter((round) => round.showTargetHints);
 
     expect(rounds.length).toBeGreaterThan(0);
     for (const round of rounds) {
@@ -344,6 +260,40 @@ describe("TutorialSystem", () => {
     }
   });
 
+  it("lets the player stage every displayed tutorial slot without duplicating spaces", () => {
+    const swipe = new SwipeCutSystem();
+    const tutorial = new TutorialSystem();
+
+    for (const round of configuredRounds(tutorial)) {
+      const fixture = fixtures.find((candidate) => candidate.id === round.fixtureId)!;
+      const graphemeCount = splitGraphemes(fixture.text).length;
+      const bounds = { left: 0, top: 0, bottom: 40, width: graphemeCount * 30 };
+      const slots = swipe.buildPlayableSlots(bounds, fixture.text, true);
+      const graphemes = splitGraphemes(fixture.text);
+      const displayedBoundaries = Array.from({ length: graphemeCount - 1 }, (_, index) => index + 1)
+        .filter((index) => graphemes[index - 1] !== " ");
+      const input = new CutInputSessionSystem(swipe);
+      let cuts: number[] = [];
+
+      expect(slots.map((slot) => slot.index)).toEqual(displayedBoundaries);
+      for (const slot of slots) {
+        input.endGesture();
+        const result = input.applySample({
+          bounds,
+          currentCuts: cuts,
+          point: { x: slot.x, y: 20 },
+          text: fixture.text,
+          viewportWidth: 390,
+          spaceRunAssist: false,
+          playableSlots: slots
+        });
+        expect(result.addedCuts, `${fixture.id} boundary ${slot.index}`).toContain(slot.index);
+        cuts = result.cuts;
+      }
+      expect(cuts).toEqual(displayedBoundaries);
+    }
+  });
+
   it("completes after the tenth training example", () => {
     const tutorial = new TutorialSystem();
 
@@ -351,19 +301,11 @@ describe("TutorialSystem", () => {
     expect(tutorial.isCompleteAfter(10)).toBe(true);
   });
 
-  it("announces the final tutorial handoff into Endless Training", () => {
+  it("fails visibly when a tutorial record is missing", () => {
     const tutorial = new TutorialSystem();
 
-    expect(tutorial.resolveLineFor(8)).not.toContain("Returning to menu");
-    expect(tutorial.resolveLineFor(9)).toContain("Tutorial cleared");
-    expect(tutorial.resolveLineFor(9)).toContain("Endless Training");
-    expect(tutorial.resolveLineFor(9)).toContain("live cost exposure");
-  });
-
-  it("frames budget termination as an endless training rule, not a tutorial interruption", () => {
-    const economyRound = new TutorialSystem().all().at(-1)!;
-
-    expect(economyRound.explanation).toContain("Zero balance ends the shift");
-    expect(economyRound.script.reviewLine).toContain("net changes balance");
+    expect(tutorial.activePromptFor(99)).toContain("RECORD MISSING");
+    expect(tutorial.reviewSpeechFor(99, { correctCuts: 0, missedCuts: 0, falseCuts: 0 }))
+      .toContain("record unavailable");
   });
 });

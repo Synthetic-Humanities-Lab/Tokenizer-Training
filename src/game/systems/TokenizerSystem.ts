@@ -36,8 +36,11 @@ export interface FixturePickOptions {
   previousId?: string;
   previousCategory?: string;
   preferHighestTier?: boolean;
+  allowTierOverflowWhenExhausted?: boolean;
   recentIds?: string[];
   recentCategories?: string[];
+  excludeIds?: string[];
+  preferredIds?: string[];
 }
 
 const fixtures = fixturesJson as TokenFixture[];
@@ -217,16 +220,30 @@ export class TokenizerSystem {
   }
 
   pickFixture(round: number, options: FixturePickOptions): TokenFixture {
-    const eligible = this.fixtures.filter((fixture) => fixture.tier <= options.tierCap);
-    if (eligible.length === 0) {
+    const tierEligible = this.fixtures.filter((fixture) => fixture.tier <= options.tierCap);
+    if (tierEligible.length === 0) {
       throw new Error("No tokenizer fixtures available for the requested difficulty.");
     }
 
-    const maxTier = Math.max(...eligible.map((fixture) => fixture.tier));
+    const preferredIds = new Set(options.preferredIds ?? []);
+    const excludedIds = new Set(options.excludeIds ?? []);
+    const preferred = this.fixtures.filter((fixture) => preferredIds.has(fixture.id));
+    const unplayedInTier = tierEligible.filter((fixture) => !excludedIds.has(fixture.id));
+    const unplayedAcrossCorpus = options.allowTierOverflowWhenExhausted
+      ? this.fixtures.filter((fixture) => !excludedIds.has(fixture.id))
+      : [];
+    const available = preferred.length > 0
+      ? preferred
+      : unplayedInTier.length > 0
+        ? unplayedInTier
+        : unplayedAcrossCorpus.length > 0
+          ? nearestUnlockedTier(unplayedAcrossCorpus)
+          : tierEligible;
+    const maxTier = Math.max(...available.map((fixture) => fixture.tier));
     const tierPool =
       options.preferHighestTier === false
-        ? eligible
-        : eligible.filter((fixture) => fixture.tier === maxTier);
+        ? available
+        : available.filter((fixture) => fixture.tier === maxTier);
     const recentCategories = new Set([
       ...(options.recentCategories ?? []),
       options.previousCategory
@@ -263,4 +280,9 @@ export class TokenizerSystem {
       errors
     };
   }
+}
+
+function nearestUnlockedTier(fixtures: readonly TokenFixture[]): TokenFixture[] {
+  const minimumTier = Math.min(...fixtures.map(({ tier }) => tier));
+  return fixtures.filter(({ tier }) => tier === minimumTier);
 }

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   GAME_QA_CANVAS_CAPTURE_CHUNK_SIZE,
   GAME_QA_CANVAS_CAPTURE_CHUNKS_ID,
@@ -46,7 +46,7 @@ class FakeScriptElement {
   }
 }
 
-function fakeDocument() {
+function fakeDocument(hidden = false) {
   const nodes = new Map<string, FakeScriptElement>();
   const textContentWrites: string[] = [];
   let canvas: Partial<HTMLCanvasElement> | null = null;
@@ -65,7 +65,8 @@ function fakeDocument() {
         return node;
       },
       getElementById: (id: string) => nodes.get(id) ?? null,
-      querySelector: (selector: string) => selector === "canvas" ? canvas : null
+      querySelector: (selector: string) => selector === "canvas" ? canvas : null,
+      hidden
     } as unknown as Document,
     setCanvas: (nextCanvas: Partial<HTMLCanvasElement> | null) => {
       canvas = nextCanvas;
@@ -92,7 +93,7 @@ const snapshot: GameQaSnapshot = {
   viewport: { width: 390, height: 844 },
   elements: [
     { id: "panel", rect: { x: 195, y: 422, width: 358, height: 420 } },
-    { id: "primaryButton", text: "Start Endless Training", rect: { x: 195, y: 516, width: 310, height: 46 } }
+    { id: "primaryButton", text: "Start Training", rect: { x: 195, y: 516, width: 310, height: 46 } }
   ]
 };
 
@@ -183,7 +184,7 @@ describe("writeGameQaSnapshot", () => {
       id: "primaryButton",
       game: { x: 195, y: 516 },
       client: { x: 410, y: 298 },
-      text: "Start Endless Training"
+      text: "Start Training"
     });
   });
 
@@ -215,6 +216,28 @@ describe("writeGameQaSnapshot", () => {
     clearGameQaSnapshot({ documentRef, enabled: true });
 
     expect(nodes.size).toBe(0);
+  });
+
+  it("rejects a deferred canvas capture after its scene snapshot is cleared", async () => {
+    vi.useFakeTimers();
+    try {
+      const { documentRef, nodes, setCanvas } = fakeDocument(true);
+      setCanvas({
+        width: 390,
+        height: 844,
+        toDataURL: () => "data:image/png;base64,stale-scene"
+      });
+
+      writeGameQaSnapshot(snapshot, { documentRef, enabled: true });
+      clearGameQaSnapshot({ documentRef, enabled: true });
+      await vi.runAllTimersAsync();
+
+      expect(nodes.has(GAME_QA_SNAPSHOT_ID)).toBe(false);
+      expect(nodes.has(GAME_QA_CANVAS_CAPTURE_ID)).toBe(false);
+      expect(nodes.has(GAME_QA_CANVAS_CAPTURE_CHUNKS_ID)).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("keeps QA evidence when clearing is disabled", () => {

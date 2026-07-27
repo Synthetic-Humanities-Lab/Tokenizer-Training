@@ -11,25 +11,26 @@ role inside an obsolete AI browser.
 
 ## Implementation Guidance
 
-- Show pay, cost, net, balance, and rank as live system state.
-- Keep arithmetic explicit: pay minus cost equals net.
-- In review, file the resulting balance beside the boundary audit so the round's
-  net consequence is connected to remaining session pressure.
-- Make missed boundaries, false cuts, and token load visible cost drivers.
+- Show Token Credits, verified tokens, rework, net, and rank as live system state.
+- Keep arithmetic explicit: verified credits minus rework equals net credits.
+- Keep the remaining account in the HUD and the round calculation in the
+  feedback-card boundary audit.
+- Make the attribution auditable: misses invalidate adjacent tokens; false cuts
+  invalidate a token and create an extra fragment.
 - Use rank names as bureaucratic comedy, not motivational leveling.
-- End endless sessions when balance reaches zero.
+- End Training when Token Credits reach zero.
 
 ## Example In-Game Expression
 
-- A player can earn pay for correct cuts while still losing net balance because
-  missed boundaries and false cuts raised cost.
-- A review card can show `Pay - Cost = Net` and then file `Balance $...`, making
-  the institutional consequence immediate rather than deferred to the HUD.
+- A player can verify several exact tokens while still losing net credits because
+  a miss damaged two neighbours or speculative cuts created rework.
+- A review card shows `VERIFIED - REWORK = NET`; the HUD account changes at the
+  same resolution beat.
 - Dense strings can be high-value but fragile.
 - The overseer line explains the technical error before the joke.
 
 ## Playtest Questions
 
 - Does the economy make players care about accuracy without hiding learning?
-- Can players predict that too many speculative cuts will be expensive?
+- Can players predict that too many speculative cuts will create rework?
 - Does the satire read through the system, not just through copy?

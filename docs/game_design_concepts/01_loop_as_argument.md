@@ -14,14 +14,18 @@ ordinary language.
 
 - Keep the loop short: present text, cut, resolve, audit, continue.
 - Make every round produce visible evidence: truth markers, player markers,
-  token strip, pay, cost, net, and overseer diagnosis.
+  and feedback-card token, economy, and cut-audit rows.
+- Let Wiener provide the short instructional and social diagnosis around that
+  evidence; do not recreate a detached overseer panel or token strip.
 - Treat the economy as part of the lesson, not a score wrapper.
 - Avoid side mechanics that do not change boundary prediction or cost literacy.
 
 ## Example In-Game Expression
 
-- A missed leading-space token boundary produces a missed marker and a cost line.
-- A clean round shows token count and pay without inventing praise.
+- A missed leading-space token boundary produces a missed marker and is filed in
+  the feedback card's cut and economy evidence.
+- A clean round shows resolved chunks, sampled ID evidence, and accounting
+  without inventing praise; Wiener stays terse.
 - Dense strings earn more but expose more ways to produce cost.
 
 ## Playtest Questions

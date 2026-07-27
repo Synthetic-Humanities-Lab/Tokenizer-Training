@@ -37,7 +37,7 @@ Wiener speech, clipping, overlap, or finger occlusion.
 Paste the result-screen Copy Summary output here. If clipboard copy fails and
 the button changes to Save Summary, paste the downloaded text file instead.
 The pasted `Run ID` should match the Session Metadata run ID, and the expected
-post-tutorial Endless run should include `Start: handoff screen` plus a
+post-tutorial Training run should include `Start: handoff screen` plus a
 captured `Round trace` with fixture IDs, categories, tiers, token counts, and
 OK/missed/false counts.
 If present, the copied `Input feel trace:` lines are supporting evidence for
@@ -87,8 +87,8 @@ mechanics without facilitator explanation.
 | Clear Cuts discovered or understood |  |  |
 | Snap positions trusted |  |  |
 | Missed/false review markers understood |  |  |
-| Pay, cost, net, balance, and rank understood |  |  |
-| Tutorial-complete handoff starts Endless without prompting |  |  |
+| Verified credits, rework, net credits, remaining credits, and rank understood |  |  |
+| Tutorial-complete handoff: Start Training selected without prompting |  |  |
 | Dense strings read as higher-risk tokenization |  |  |
 | Degraded AI labor frame noticed through play |  |  |
 | Degraded visual style felt intentional and play invited another round |  |  |
@@ -103,7 +103,7 @@ Fill every answer after play. The evaluator rejects blank answers and bare
 verdict answers such as `pass`, `yes`, `ok`, `fail`, or `ambiguous`. It also
 rejects answers that do not address the specific question. For example, the
 token-boundary answer must describe a split/division/chunk boundary, and the
-economy answer must name pay, cost, or net.
+economy answer must name verified credits, rework, or net credits.
 
 1. What were you trying to do when you swiped?
 
@@ -111,7 +111,7 @@ economy answer must name pay, cost, or net.
 
 3. Name one way tokenization differs from ordinary word reading.
 
-4. What made pay go up or company cost go up?
+4. What made Token Credits increase or rework increase?
 
 5. Did any result feel unfair or caused by input imprecision?
 
@@ -128,7 +128,7 @@ evidence or contradiction text; bare verdicts are rejected by the evaluator.
 Evidence cells like `pass`, `yes`, `ok`, `fail`, or `ambiguous` are still bare
 verdicts. Pass rows must name the observed behavior or concept for that
 criterion: the first swipe and lack of coaching, the specific non-word
-tokenization behavior, the handoff action, pay/cost/net explanation, input trust
+tokenization behavior, the handoff action, verified/rework/net-credit explanation, input trust
 or mistrust, mobile readable surfaces, labor-frame language, engagement plus
 intentional degraded visual style, or copied-summary payload. Record the
 observed action, tester quote, timing, or contradiction.
@@ -139,8 +139,8 @@ behavior.
 | --- | --- | --- |
 | First action completed without outside instruction |  |  |
 | Explains one non-word tokenization behavior |  |  |
-| Starts Endless from tutorial-complete handoff |  |  |
-| Explains pay minus cost equals net |  |  |
+| Selects Start Training from tutorial-complete handoff |  |  |
+| Explains verified credits minus rework equals net credits |  |  |
 | No systematic swipe/snap mistrust |  |  |
 | Mobile readability holds on real device |  |  |
 | Labor frame noticed without being told |  |  |

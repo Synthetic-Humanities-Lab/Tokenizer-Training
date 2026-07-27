@@ -2,7 +2,8 @@
 
 ## Cue List
 
-- `cut`: soft brushed slice impression plus granular click; very short triangle tone with a quick decay.
+- `cut`: one consistent, noise-led paper shear with a low mechanical snap. Broad
+  swipes repeat the same material voice rather than climbing through pitches.
 - `ui`: muted pill-button tap; short sine tone, low gain.
 - `resolve`: gentle AI-card confirmation swell; short smooth tone with restrained gain.
 - `good`: small ascending glassy chime; triangle/sine-like tone with upward pitch movement.
@@ -13,7 +14,11 @@
 
 ## Implementation Notes
 
-Use WebAudio oscillators when no audio assets exist. Prefer sine and triangle waves. Avoid square and sawtooth oscillators because they read as Pong, arcade, or retro terminal feedback.
+Use filtered WebAudio noise plus restrained sine/triangle support when no audio
+assets exist. Route the paper noise and tonal snap through separate filters so
+the slice reads as material contact rather than a tiny melody. Avoid square and
+sawtooth oscillators because they read as Pong, arcade, or retro terminal
+feedback.
 
 Keep all cue durations under the immediate feedback window. Resolution stacks should remain staggered, subtle, and cancellable when the scene exits. Mute behavior and cue sequencing must remain unchanged.
 
@@ -23,6 +28,7 @@ Tests should verify:
 
 - no cue uses square or sawtooth waveforms
 - cut and UI cues remain brief and low gain
+- multi-cut bursts repeat one cut voice with bounded spacing
 - resolution cues remain distinct by pitch or waveform
 - scheduled cue spacing still fits inside the immediate feedback window
 - delayed cues can still be cancelled

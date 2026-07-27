@@ -48,7 +48,7 @@ Wiener speech, clipping, overlap, or finger occlusion.
 Paste the result-screen Copy Summary output here. If clipboard copy fails and
 the button changes to Save Summary, paste the downloaded text file instead.
 The pasted `Run ID` should match the Session Metadata run ID, and the expected
-post-tutorial Endless run should include `Start: handoff screen` plus a
+post-tutorial Training run should include `Start: handoff screen` plus a
 captured `Round trace` with fixture IDs, categories, tiers, token counts, and
 OK/missed/false counts.
 The copied `Input evidence:` line records the browser pointer type seen during
@@ -87,7 +87,7 @@ mechanics without facilitator explanation.
 | Snap positions trusted |  |  |
 | Missed/false review markers understood |  |  |
 | Pay, cost, net, balance, and rank understood |  |  |
-| Tutorial-complete handoff starts Endless without prompting |  |  |
+| Tutorial-complete handoff: Start Training selected without prompting |  |  |
 | Dense strings read as higher-risk tokenization |  |  |
 | Degraded AI labor frame noticed through play |  |  |
 | Degraded visual style felt intentional and play invited another round |  |  |
@@ -138,7 +138,7 @@ behavior.
 | --- | --- | --- |
 | First action completed without outside instruction |  |  |
 | Explains one non-word tokenization behavior |  |  |
-| Starts Endless from tutorial-complete handoff |  |  |
+| Selects Start Training from tutorial-complete handoff |  |  |
 | Explains pay minus cost equals net |  |  |
 | No systematic swipe/snap mistrust |  |  |
 | Mobile readability holds on real device |  |  |

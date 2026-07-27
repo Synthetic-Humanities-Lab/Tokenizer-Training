@@ -1,5 +1,7 @@
 import Phaser from "phaser";
 import { launchModeFromUrl, playtestResetFromUrl } from "../systems/LaunchModeSystem";
+import { createResultsProtocolSeed } from "../systems/ResultsProtocolSystem";
+import { STARTING_TOKEN_CREDITS } from "../systems/ScoringSystem";
 import { StorageSystem } from "../systems/StorageSystem";
 import wienerReferenceUrl from "../assets/wiener-reference.png";
 import { WIENER_TEXTURE_KEY } from "../ui/WienerSprite";
@@ -21,6 +23,11 @@ export class BootScene extends Phaser.Scene {
     }
 
     const launchMode = launchModeFromUrl(href);
+    if (launchMode === "tutorialIntake") {
+      this.startInitialScene("TutorialScene");
+      return;
+    }
+
     if (launchMode === "tutorial") {
       this.startInitialScene("PlayScene", { tutorial: true, startSource: "direct" });
       return;
@@ -50,7 +57,7 @@ export class BootScene extends Phaser.Scene {
       this.startInitialScene("ResultsScene", {
         runId: "tt-results-qa",
         rounds: 0,
-        balance: 40,
+        creditBalance: STARTING_TOKEN_CREDITS,
         accuracy: 0,
         totalCorrectCuts: 0,
         totalMissedCuts: 0,
@@ -58,60 +65,30 @@ export class BootScene extends Phaser.Scene {
         roundTraces: [],
         startSource: "direct",
         inputModality: "none",
-        totalPay: 0,
-        totalCost: 0,
+        totalVerifiedCredits: 0,
+        totalReworkCredits: 0,
         outcome: "quit"
       });
       return;
     }
 
+    if (launchMode === "settingsResetConfirm") {
+      this.startInitialScene("SettingsScene", { resetConfirmation: true });
+      return;
+    }
+
+    if (launchMode === "settings") {
+      this.startInitialScene("SettingsScene");
+      return;
+    }
+
+    if (launchMode === "tokenLog") {
+      this.startInitialScene("TokenLogScene");
+      return;
+    }
+
     if (launchMode === "protocolResults") {
-      this.startInitialScene("ResultsScene", {
-        runId: "tt-protocol-qa",
-        rounds: 7,
-        balance: 12.34,
-        accuracy: 0.625,
-        totalCorrectCuts: 5,
-        totalMissedCuts: 3,
-        totalFalseCuts: 2,
-        roundTraces: [
-          {
-            round: 1,
-            fixtureId: "simple_001",
-            category: "simple_prose",
-            tier: 1,
-            tokenCount: 6,
-            correctCuts: 2,
-            missedCuts: 1,
-            falseCuts: 0
-          },
-          {
-            round: 2,
-            fixtureId: "punct_001",
-            category: "contraction",
-            tier: 2,
-            tokenCount: 5,
-            correctCuts: 2,
-            missedCuts: 1,
-            falseCuts: 1
-          },
-          {
-            round: 3,
-            fixtureId: "dense_001",
-            category: "url",
-            tier: 3,
-            tokenCount: 4,
-            correctCuts: 1,
-            missedCuts: 1,
-            falseCuts: 1
-          }
-        ],
-        startSource: "handoff-screen",
-        inputModality: "touch",
-        totalPay: 21.5,
-        totalCost: 49.75,
-        outcome: "quit"
-      });
+      this.startInitialScene("ResultsScene", createResultsProtocolSeed());
       return;
     }
 

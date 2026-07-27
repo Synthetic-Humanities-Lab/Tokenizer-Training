@@ -22,24 +22,13 @@ export interface ResultsSceneQaSnapshotInput {
   summaryText: string;
   ledgerText: string;
   metricRows?: ResultsMetricQaRow[];
-  copySummaryText: string;
-  copyButtonText: string;
+  playtestSummaryText: string;
+  reviewButtonText: string;
 }
 
 export function resultsSceneQaSnapshot(input: ResultsSceneQaSnapshotInput): GameQaSnapshot {
   const elements: GameQaElement[] = [
     { id: "panel", rect: input.layout.panel },
-    { id: "chrome", rect: input.layout.chrome },
-    {
-      id: "chromeText",
-      text: input.layout.chromeText.text,
-      rect: {
-        x: input.layout.chromeText.x + (input.layout.chrome.width - 14) / 2,
-        y: input.layout.chromeText.y,
-        width: input.layout.chrome.width - 14,
-        height: 16
-      }
-    },
     {
       id: "title",
       text: input.titleText,
@@ -70,10 +59,10 @@ export function resultsSceneQaSnapshot(input: ResultsSceneQaSnapshotInput): Game
       rect: input.layout.metricCards[index]
     })),
     {
-      id: "copySummaryPayload",
-      text: input.copySummaryText
+      id: "playtestSummaryPayload",
+      text: input.playtestSummaryText
     },
-    { id: "copyButton", text: input.copyButtonText, rect: input.layout.copyButton },
+    { id: "reviewButton", text: input.reviewButtonText, rect: input.layout.copyButton },
     { id: "againButton", text: "Run Training Again", rect: input.layout.againButton },
     { id: "menuButton", text: "Return to Menu", rect: input.layout.menuButton }
   ];

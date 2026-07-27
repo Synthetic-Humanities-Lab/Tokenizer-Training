@@ -60,13 +60,16 @@ describe("first-user responsive surface sweep", () => {
 
     expect(withinViewport(layout.card, width, height)).toBe(true);
     expect(contains(layout.card, layout.tutorialButton)).toBe(true);
-    expect(contains(layout.card, layout.endlessButton)).toBe(true);
-    expect(contains(layout.card, layout.soundButton)).toBe(true);
-    expect(overlaps(layout.tutorialButton, layout.endlessButton)).toBe(false);
-    expect(overlaps(layout.endlessButton, layout.soundButton)).toBe(false);
+    expect(contains(layout.card, layout.trainingButton)).toBe(true);
+    expect(contains(layout.card, layout.tokenLogButton)).toBe(true);
+    expect(contains(layout.card, layout.settingsButton)).toBe(true);
+    expect(overlaps(layout.tutorialButton, layout.trainingButton)).toBe(false);
+    expect(overlaps(layout.trainingButton, layout.tokenLogButton)).toBe(false);
+    expect(overlaps(layout.tokenLogButton, layout.settingsButton)).toBe(false);
     expect(hasTouchTarget(layout.tutorialButton)).toBe(true);
-    expect(hasTouchTarget(layout.endlessButton)).toBe(true);
-    expect(hasTouchTarget(layout.soundButton)).toBe(true);
+    expect(hasTouchTarget(layout.trainingButton)).toBe(true);
+    expect(hasTouchTarget(layout.tokenLogButton)).toBe(true);
+    expect(hasTouchTarget(layout.settingsButton)).toBe(true);
   });
 
   it.each(firstUserViewports)("keeps play controls and active/review text separated on $label", ({ width, height }) => {
@@ -133,7 +136,6 @@ describe("first-user responsive surface sweep", () => {
     const layout = computeTutorialCompleteLayout(width, height);
 
     expect(withinViewport(layout.panel, width, height)).toBe(true);
-    expect(contains(layout.panel, layout.chrome)).toBe(true);
     expect(contains(layout.panel, layout.primaryButton)).toBe(true);
     expect(contains(layout.panel, layout.menuButton)).toBe(true);
     expect(overlaps(layout.primaryButton, layout.menuButton)).toBe(false);
@@ -146,7 +148,6 @@ describe("first-user responsive surface sweep", () => {
     const ledger = resultLedgerRect(layout, RESULT_LEDGER_LINE_COUNT);
 
     expect(withinViewport(layout.panel, width, height)).toBe(true);
-    expect(contains(layout.panel, layout.chrome)).toBe(true);
     expect(contains(layout.panel, ledger)).toBe(true);
     expect(contains(layout.panel, layout.copyButton)).toBe(true);
     expect(contains(layout.panel, layout.againButton)).toBe(true);

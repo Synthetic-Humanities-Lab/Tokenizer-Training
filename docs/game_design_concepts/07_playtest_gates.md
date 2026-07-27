@@ -61,3 +61,15 @@ generic, or accidental.
 Evidence to collect: voluntary next-round behavior, comments about wanting to
 continue or stop, and quotes about the visual style, degraded browser frame,
 Wiener, or interface feeling deliberate.
+
+## Gate 8 - Numerical Token Mental Model
+
+Pass condition: in a dedicated unscored probe, at least four of five novices can
+explain that words and tokens can differ, a leading space can belong to the next
+token, and an encoding-qualified token ID is a vocabulary identifier rather than
+a score. Each participant must justify all three answers without coaching.
+
+Evidence to collect: first answers, one-sentence reasons, confidence, independent
+item results, and overall results using `docs/token_comprehension_probe.md`.
+Tutorial cut accuracy and the ordinary handoff observation do not satisfy this
+gate.

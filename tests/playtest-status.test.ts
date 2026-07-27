@@ -86,6 +86,28 @@ describe("playtest status report", () => {
     expect(rendered).toContain("pass needs criterion-specific observed evidence");
   });
 
+  it("does not treat retired Start Endless Training evidence as rollup-ready", () => {
+    const root = mkdtempSync(join(tmpdir(), "mtt-status-retired-handoff-"));
+    const sessionFile = join(root, "session-retired-handoff.md");
+    writeFileSync(
+      sessionFile,
+      filledDesktopSessionNote().replace(
+        "Started Training from tutorial-complete handoff within 2 seconds without coaching.",
+        "Clicked Start Endless Training from tutorial-complete handoff within 2 seconds without coaching."
+      ),
+      "utf8"
+    );
+
+    const report = buildPlaytestStatusReport([sessionFile]);
+    const status = report.statuses[0];
+
+    expect(status.criteriaEvidenceValid).toBe(false);
+    expect(status.readyForRollup).toBe(false);
+    expect(status.criterionIssues).toContain(
+      `${sessionFile}: Selects Start Training from tutorial-complete handoff pass needs criterion-specific observed evidence.`
+    );
+  });
+
   it("does not treat observation and pass-criteria contradictions as rollup-ready", () => {
     const root = mkdtempSync(join(tmpdir(), "mtt-status-contradiction-"));
     const sessionFile = join(root, "session-contradiction.md");
@@ -237,7 +259,7 @@ function filledSessionNoteWithGenericCriterionEvidence(): string {
 
 - Tester ID: P-status
 - Date: 2026-06-07
-- Run ID: mtt-status-001
+- Run ID: tt-status-001
 - Device/browser: Mac Safari desktop
 - Input: mouse
 - Network: same-machine
@@ -250,7 +272,7 @@ function filledSessionNoteWithGenericCriterionEvidence(): string {
 
 \`\`\`text
 Tokenizer Training playtest summary
-Run ID: mtt-status-001
+Run ID: tt-status-001
 Start: handoff screen
 Input: mouse
 Input evidence: browser pointer reported mouse; not mobile-gate evidence
@@ -260,6 +282,7 @@ Best saved: 2 rounds / Cadet
 Round trace:
 1. simple_001 / tutorial / tier 1 / tokens 6 / OK 6 / Missed 0 / False 0
 Input feel trace:
+Input feel fields: first-cut latency, resolve timing after first/last cut, cut batch ownership, release-sample/correction ownership, no-cut acknowledgements, touch-loupe clearance.
 1. samples 5 / responses 6 / first 32ms / resolve-first 420ms / resolve-last 180ms / commit 1 / batch 3 / release-latched 1 / last-source release / adjusted 0 / gesture-samples 5 / owned-cuts 6 / no-cut 0 / near 0 / off 0 / loupe 0 / ready 0 / low-clear 0 / min-clear n/a
 \`\`\`
 
@@ -273,8 +296,8 @@ Input feel trace:
 | Clear Cuts discovered or understood | Tester used Clear Cuts after placing a false cut during review. | pass |
 | Snap positions trusted | Tester said the swipe snap felt precise and did not blame input imprecision. | pass |
 | Missed/false review markers understood | Tester named missed and false review markers as the reason cost increased. | pass |
-| Pay, cost, net, balance, and rank understood | Tester explained that correct cuts add pay while missed or false cuts add cost and reduce net. | pass |
-| Tutorial-complete handoff starts Endless without prompting | Tester clicked the tutorial-complete handoff and started Endless without coaching. | pass |
+| Verified credits, rework, net credits, remaining credits, and rank understood | Tester explained that correct cuts add pay while missed or false cuts add cost and reduce net. | pass |
+| Tutorial-complete handoff: Start Training selected without prompting | Tester clicked the tutorial-complete handoff and started Training without coaching. | pass |
 | Dense strings read as higher-risk tokenization | Tester identified URL punctuation and dense strings as higher-risk tokenization. | pass |
 | Degraded AI labor frame noticed through play | Tester called the AI overseer a supervisor in a payroll audit. | pass |
 | Degraded visual style felt intentional and play invited another round | Tester wanted another round and said the degraded assistant-browser visual style felt intentional, not broken. | pass |
@@ -307,8 +330,8 @@ Input feel trace:
 | --- | --- | --- |
 | First action completed without outside instruction | pass | Looked fine |
 | Explains one non-word tokenization behavior | pass | Tester explained leading space tokenization and punctuation can attach to tokens. |
-| Starts Endless from tutorial-complete handoff | pass | Started Endless from tutorial-complete handoff within 2 seconds without coaching. |
-| Explains pay minus cost equals net | pass | Tester said pay minus cost becomes net. |
+| Selects Start Training from tutorial-complete handoff | pass | Started Training from tutorial-complete handoff within 2 seconds without coaching. |
+| Explains verified credits minus rework equals net credits | pass | Tester said pay minus cost becomes net. |
 | No systematic swipe/snap mistrust | pass | Tester trusted the swipe snap and did not blame input imprecision. |
 | Mobile readability holds on real device | fail | Desktop non-mobile session; mobile readability was not evaluated on a real phone or tablet. |
 | Labor frame noticed without being told | pass | Tester described the AI supervisor, job, payroll, and company cost without being told. |

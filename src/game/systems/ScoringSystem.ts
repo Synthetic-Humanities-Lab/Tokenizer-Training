@@ -1,10 +1,8 @@
 export interface RoundScoreInput {
   truth: number[];
   guesses: number[];
-  tier: number;
   difficultyWeight: number;
-  tokenCount: number;
-  timeRemainingRatio?: number;
+  penaltyScale?: number;
 }
 
 export interface RoundScoreResult {
@@ -12,30 +10,28 @@ export interface RoundScoreResult {
   missedCuts: number[];
   falseCuts: number[];
   accuracy: number;
-  pay: number;
-  companyCost: number;
-  net: number;
+  verifiedTokenIndexes: number[];
+  reworkTokenIndexes: number[];
+  verifiedCredits: number;
+  reworkCredits: number;
+  creditDelta: number;
   tokenCount: number;
+}
+
+export const STARTING_TOKEN_CREDITS = 40;
+export const LOW_TOKEN_CREDIT_THRESHOLD = 10;
+
+export function cutAuditAccuracy(correctCuts: number, missedCuts: number, falseCuts: number): number {
+  const correct = Math.max(0, Math.floor(correctCuts));
+  const missed = Math.max(0, Math.floor(missedCuts));
+  const falsePositive = Math.max(0, Math.floor(falseCuts));
+  const denominator = correct + missed + falsePositive;
+  return denominator === 0 ? 1 : correct / denominator;
 }
 
 function uniqueSorted(values: number[]): number[] {
   return [...new Set(values.filter(Number.isInteger))].sort((a, b) => a - b);
 }
-
-function money(value: number): number {
-  return Number(value.toFixed(2));
-}
-
-const CORRECT_CUT_PAY_BASE = 0.35;
-const CORRECT_CUT_PAY_PER_TIER = 0.12;
-const ACCURACY_BONUS_BASE = 0.8;
-const ACCURACY_BONUS_PER_TIER = 0.35;
-const ACCURACY_BONUS_POWER = 4;
-const TIME_BONUS_MULTIPLIER = 0.2;
-const MISSED_CUT_COST = 2;
-const FALSE_CUT_COST = 1;
-const TOKEN_OVERHEAD_COST = 0.15;
-const TIER_COST_SCALE = 0.16;
 
 export class ScoringSystem {
   scoreRound(input: RoundScoreInput): RoundScoreResult {
@@ -44,22 +40,19 @@ export class ScoringSystem {
     const correctCuts = guesses.filter((guess) => truth.includes(guess));
     const missedCuts = truth.filter((truthBoundary) => !guesses.includes(truthBoundary));
     const falseCuts = guesses.filter((guess) => !truth.includes(guess));
-    const accuracy = truth.length === 0 ? 1 : correctCuts.length / truth.length;
-    const timeMultiplier =
-      1 + Math.max(0, Math.min(1, input.timeRemainingRatio ?? 0)) * TIME_BONUS_MULTIPLIER;
-    const tierWeight = 1 + Math.max(0, input.tier - 1) * TIER_COST_SCALE;
-    const correctCutPay = CORRECT_CUT_PAY_BASE + input.tier * CORRECT_CUT_PAY_PER_TIER;
-    const accuracyBonus = ACCURACY_BONUS_BASE + input.tier * ACCURACY_BONUS_PER_TIER;
-    const tokenOverhead = Math.max(0, input.tokenCount - 5) * TOKEN_OVERHEAD_COST;
-    const pay = money(
-      (correctCuts.length * correctCutPay + accuracyBonus * Math.pow(accuracy, ACCURACY_BONUS_POWER)) *
-        timeMultiplier *
-        input.difficultyWeight
-    );
-    const companyCost = money(
-      (missedCuts.length * MISSED_CUT_COST + falseCuts.length * FALSE_CUT_COST + tokenOverhead) *
-        input.difficultyWeight *
-        tierWeight
+    const accuracy = cutAuditAccuracy(correctCuts.length, missedCuts.length, falseCuts.length);
+    const tokenCount = truth.length + 1;
+    const verifiedTokenIndexes = exactTokenIndexes(truth, guesses);
+    const verifiedTokenSet = new Set(verifiedTokenIndexes);
+    const reworkTokenIndexes = Array.from(
+      { length: tokenCount },
+      (_, tokenIndex) => tokenIndex
+    ).filter((tokenIndex) => !verifiedTokenSet.has(tokenIndex));
+    const penaltyScale = Math.max(1, input.penaltyScale ?? 1);
+    const liabilityScale = Math.max(1, input.difficultyWeight) * penaltyScale;
+    const verifiedCredits = verifiedTokenIndexes.length;
+    const reworkCredits = Math.ceil(
+      (reworkTokenIndexes.length + falseCuts.length) * liabilityScale
     );
 
     return {
@@ -67,10 +60,34 @@ export class ScoringSystem {
       missedCuts,
       falseCuts,
       accuracy,
-      pay,
-      companyCost,
-      net: money(pay - companyCost),
-      tokenCount: input.tokenCount
+      verifiedTokenIndexes,
+      reworkTokenIndexes,
+      verifiedCredits,
+      reworkCredits,
+      creditDelta: verifiedCredits - reworkCredits,
+      tokenCount
     };
   }
+}
+
+export function exactTokenIndexes(truthInput: number[], guessesInput: number[]): number[] {
+  const truth = uniqueSorted(truthInput);
+  const guesses = uniqueSorted(guessesInput);
+  const guessSet = new Set(guesses);
+  const falseCuts = guesses.filter((guess) => !truth.includes(guess));
+
+  return Array.from({ length: truth.length + 1 }, (_, tokenIndex) => tokenIndex).filter(
+    (tokenIndex) => {
+      const leftBoundary = tokenIndex === 0 ? Number.NEGATIVE_INFINITY : truth[tokenIndex - 1];
+      const rightBoundary =
+        tokenIndex === truth.length ? Number.POSITIVE_INFINITY : truth[tokenIndex];
+      const leftIsIntact = tokenIndex === 0 || guessSet.has(leftBoundary);
+      const rightIsIntact = tokenIndex === truth.length || guessSet.has(rightBoundary);
+      const splitByFalseCut = falseCuts.some(
+        (falseCut) => falseCut > leftBoundary && falseCut < rightBoundary
+      );
+
+      return leftIsIntact && rightIsIntact && !splitByFalseCut;
+    }
+  );
 }

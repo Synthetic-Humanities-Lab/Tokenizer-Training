@@ -7,7 +7,7 @@ import {
 } from "../src/game/systems/TutorialCompleteContentSystem";
 
 describe("tutorialCompleteCopy", () => {
-  it("frames a passed tutorial as a handoff into the paid Endless Training loop", () => {
+  it("frames a passed tutorial as a handoff into Training", () => {
     const copy = tutorialCompleteCopy();
 
     expect(copy.status).toBe("passed");
@@ -17,13 +17,14 @@ describe("tutorialCompleteCopy", () => {
     expect(copy.title).not.toMatch(/\bfiled\b/i);
     expect(copy.summary).not.toMatch(/\bfiled\b/i);
     expect(copy.summary).toBe(
-      "Training threshold met. WienerWorks now considers you safe enough for live cost exposure. This should not be confused with trust."
+      "Qualification approved. WienerWorks permits you to begin Machine Replacement Training with a 40 TC account. Production speed remains theoretical."
     );
-    expect(copy.primaryAction).toBe("Start Endless Training");
+    expect(copy.primaryAction).toBe("Start Training");
+    expect(copy.primaryAction).not.toMatch(/\bendless\b/i);
     expect(copy.secondaryAction).toBe("Return to Menu");
   });
 
-  it("fails weak tutorial performance and offers a retry path", () => {
+  it("prioritizes missed cuts in a failed tutorial summary", () => {
     const copy = tutorialCompleteCopy({
       accuracy: TUTORIAL_PASS_ACCURACY - 0.01,
       totalCorrectCuts: 2,
@@ -40,30 +41,62 @@ describe("tutorialCompleteCopy", () => {
     expect(copy.title).not.toMatch(/\bfiled\b/i);
     expect(copy.summary).not.toMatch(/\bfiled\b/i);
     expect(copy.summary).toBe(
-      "Boundary accuracy stayed below the readiness threshold. Retry the tutorial before the mistakes become payroll events. Wiener has preserved the evidence, unnecessarily well."
+      "Boundary accuracy: 20%. Readiness requires 70%. Focus: recover missed boundaries. Qualification denied. Payroll remains unconvinced."
     );
+    expect(copy.summary).not.toContain(copy.primaryAction);
     expect(copy.primaryAction).toBe("Retry Tutorial");
     expect(copy.secondaryAction).toBe("Return to Menu");
   });
 
-  it("penalizes false tutorial cuts instead of passing on recall alone", () => {
-    expect(tutorialPerformanceScore({
+  it("prioritizes false cuts while preserving the cut-audit score formula", () => {
+    const performance = {
       accuracy: 1,
       totalCorrectCuts: 5,
       totalMissedCuts: 0,
       totalFalseCuts: 4
-    })).toBeCloseTo(5 / 9);
-    expect(tutorialCompletionStatus({
+    };
+
+    expect(tutorialPerformanceScore(performance)).toBeCloseTo(5 / 9);
+    expect(tutorialCompletionStatus(performance)).toBe("failed");
+    expect(tutorialCompleteCopy(performance).summary).toBe(
+      "Boundary accuracy: 55%. Readiness requires 70%. Focus: remove false cuts. Qualification denied. Payroll remains unconvinced."
+    );
+  });
+
+  it("names missed and false cuts together when their counts tie", () => {
+    const copy = tutorialCompleteCopy({
+      totalCorrectCuts: 4,
+      totalMissedCuts: 2,
+      totalFalseCuts: 2
+    });
+
+    expect(copy.summary).toBe(
+      "Boundary accuracy: 50%. Readiness requires 70%. Focus: missed boundaries and false cuts. Qualification denied. Payroll remains unconvinced."
+    );
+  });
+
+  it("falls back to boundary evidence when only accuracy is available", () => {
+    const copy = tutorialCompleteCopy({ accuracy: 0.4 });
+
+    expect(copy.summary).toBe(
+      "Boundary accuracy: 40%. Readiness requires 70%. Review the boundary evidence. Qualification denied. Payroll remains unconvinced."
+    );
+  });
+
+  it("floors a failing cut-audit score instead of displaying 70 percent", () => {
+    const performance = {
       accuracy: 1,
-      totalCorrectCuts: 5,
-      totalMissedCuts: 0,
-      totalFalseCuts: 4
-    })).toBe("failed");
-    expect(tutorialCompleteCopy({
-      accuracy: 1,
-      totalCorrectCuts: 5,
-      totalMissedCuts: 0,
-      totalFalseCuts: 4
-    }).primaryAction).toBe("Retry Tutorial");
+      totalCorrectCuts: 699,
+      totalMissedCuts: 301,
+      totalFalseCuts: 0
+    };
+    const copy = tutorialCompleteCopy(performance);
+
+    expect(tutorialPerformanceScore(performance)).toBeCloseTo(0.699);
+    expect(tutorialCompletionStatus(performance)).toBe("failed");
+    expect(copy.summary).toBe(
+      "Boundary accuracy: 69%. Readiness requires 70%. Focus: recover missed boundaries. Qualification denied. Payroll remains unconvinced."
+    );
+    expect(copy.summary).not.toContain("Boundary accuracy: 70%.");
   });
 });

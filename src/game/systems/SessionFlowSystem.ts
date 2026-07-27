@@ -7,6 +7,8 @@ import {
 } from "./ProductIdentitySystem";
 import { WienerSpeechLineSystem } from "./WienerSpeechLineSystem";
 import { sessionStartSummaryLine, type PlaySessionStartSource } from "./SessionStartSystem";
+import type { HighScoreRecord, HighScoreSaveResult } from "./StorageSystem";
+import type { TokenFixture } from "./TokenizerSystem";
 
 export type SessionOutcome = "budget" | "quit";
 
@@ -21,22 +23,29 @@ export interface ResultCopy {
   summary: string;
 }
 
+export type ResultBestPersistence = HighScoreSaveResult | {
+  status: "not-attempted";
+  achieved: null;
+  persisted: HighScoreRecord | null;
+};
+
 export interface ResultLedgerInput {
   runId?: string;
   rounds: number;
-  balance: number;
+  creditBalance: number;
   accuracy: number;
   totalCorrectCuts?: number;
   totalMissedCuts?: number;
   totalFalseCuts?: number;
   startSource?: PlaySessionStartSource;
   inputModality?: PlaytestInputModality;
-  totalPay: number;
-  totalCost: number;
-  costEfficiency: number;
+  totalVerifiedCredits: number;
+  totalReworkCredits: number;
+  creditEfficiency: number;
   rank: string;
-  bestRounds: number;
-  bestRank: string;
+  bestPersistence?: ResultBestPersistence;
+  bestRounds?: number;
+  bestRank?: string;
 }
 
 export interface SessionRoundTrace {
@@ -91,12 +100,18 @@ export interface ResolutionTransitionInput {
   tutorialMode: boolean;
   completedRound: number;
   tutorialRoundCount: number;
-  balance: number;
+  creditBalance: number;
 }
 
 export interface ExitTransitionInput {
   tutorialMode: boolean;
-  balance: number;
+  creditBalance: number;
+}
+
+export interface ActiveTrainingLineInput {
+  creditBalance: number;
+  round: number;
+  fixture?: TokenFixture;
 }
 
 export type SessionTransition =
@@ -108,8 +123,11 @@ export type SessionTransition =
 export class SessionFlowSystem {
   constructor(private readonly wienerSpeechLines = new WienerSpeechLineSystem()) {}
 
-  activeTrainingLine(balance: number): string {
-    return this.wienerSpeechLines.pickForRoundStart({ balance }, { seed: Math.floor(balance) });
+  activeTrainingLine(input: ActiveTrainingLineInput): string {
+    return this.wienerSpeechLines.pickForRoundStart(
+      { creditBalance: input.creditBalance, fixture: input.fixture },
+      { seed: Math.max(0, Math.floor(input.round) - 1) }
+    );
   }
 
   shouldSaveResult(input: ResultPersistenceInput): boolean {
@@ -133,7 +151,7 @@ export class SessionFlowSystem {
         : { type: "nextRound" };
     }
 
-    if (input.balance <= 0) {
+    if (input.creditBalance <= 0) {
       return { type: "results", outcome: "budget" };
     }
 
@@ -145,7 +163,7 @@ export class SessionFlowSystem {
       return { type: "menu" };
     }
 
-    if (input.balance <= 0) {
+    if (input.creditBalance <= 0) {
       return { type: "results", outcome: "budget" };
     }
 
@@ -161,9 +179,9 @@ export class SessionFlowSystem {
     }
 
     return {
-      title: "Budget Exhausted",
+      title: "Token Credits Depleted",
       summary:
-        "Your balance reached zero. Finance has closed the segmentation window and archived the loss. Wiener thanks you for demonstrating why automation was once attractive."
+        "Your account no longer contains enough Token Credits to correct your output. Training access revoked."
     };
   }
 
@@ -171,13 +189,13 @@ export class SessionFlowSystem {
     return [
       ledgerTraceLine(input),
       cutLedgerLine(input),
-      `Pay Earned: ${money(input.totalPay)}`,
-      `Company Cost: ${money(input.totalCost)}`,
-      `Net: ${signedMoney(input.totalPay - input.totalCost)}`,
-      `Balance Recorded: ${money(Math.max(0, input.balance))}`,
-      `Efficiency: ${Math.max(0, input.costEfficiency).toFixed(2)}x`,
+      `Verified: ${signedCredits(input.totalVerifiedCredits)}`,
+      `Rework: ${negativeCredits(input.totalReworkCredits)}`,
+      `Net Credits: ${signedCredits(input.totalVerifiedCredits - input.totalReworkCredits)}`,
+      `Credits Remaining: ${credits(input.creditBalance)}`,
+      `Yield Efficiency: ${Math.max(0, input.creditEfficiency).toFixed(2)}x`,
       `Rank: ${input.rank}`,
-      `Best saved: ${Math.max(0, Math.floor(input.bestRounds))} rounds / ${input.bestRank}`
+      ...bestRecordLines(input, false)
     ].join("\n");
   }
 
@@ -185,11 +203,11 @@ export class SessionFlowSystem {
     return [
       compactLedgerTraceLine(input),
       cutLedgerLine(input).replace("Cuts: ", "Cuts "),
-      `Pay ${money(input.totalPay)} / Cost ${money(input.totalCost)}`,
-      `Net ${signedMoney(input.totalPay - input.totalCost)} / Bal ${money(Math.max(0, input.balance))}`,
-      `Eff ${Math.max(0, input.costEfficiency).toFixed(2)}x`,
+      `Verified ${signedCredits(input.totalVerifiedCredits)} / Rework ${negativeCredits(input.totalReworkCredits)}`,
+      `Net ${signedCredits(input.totalVerifiedCredits - input.totalReworkCredits)} / TC ${credits(input.creditBalance)}`,
+      `Yield ${Math.max(0, input.creditEfficiency).toFixed(2)}x`,
       `Rank ${input.rank}`,
-      `Best ${Math.max(0, Math.floor(input.bestRounds))}r / ${input.bestRank}`
+      ...bestRecordLines(input, true)
     ].join("\n");
   }
 
@@ -197,7 +215,7 @@ export class SessionFlowSystem {
     return [
       PRODUCT_SUMMARY_TITLE,
       playtestRunSummaryLine(input.runId),
-      `Outcome: ${input.outcome}`,
+      `Outcome: ${input.outcome === "budget" ? "token-credits-depleted" : input.outcome}`,
       sessionStartSummaryLine(input.startSource),
       inputModalitySummaryLine(input.inputModality),
       inputModalityEvidenceLine(input.inputModality),
@@ -206,15 +224,63 @@ export class SessionFlowSystem {
       cutSummaryLine(input),
       ...roundTraceLines(input.roundTraces),
       ...inputFeelTraceLines(input.roundTraces),
-      `Pay: ${money(input.totalPay)}`,
-      `Cost: ${money(input.totalCost)}`,
-      `Net: ${signedMoney(input.totalPay - input.totalCost)}`,
-      `Balance: ${money(Math.max(0, input.balance))}`,
-      `Efficiency: ${Math.max(0, input.costEfficiency).toFixed(2)}x`,
+      `Verified: ${signedCredits(input.totalVerifiedCredits)}`,
+      `Rework: ${negativeCredits(input.totalReworkCredits)}`,
+      `Net Credits: ${signedCredits(input.totalVerifiedCredits - input.totalReworkCredits)}`,
+      `Credits Remaining: ${credits(input.creditBalance)}`,
+      `Yield Efficiency: ${Math.max(0, input.creditEfficiency).toFixed(2)}x`,
       `Rank: ${input.rank}`,
-      `Best saved: ${Math.max(0, Math.floor(input.bestRounds))} rounds / ${input.bestRank}`
+      ...bestRecordLines(input, false)
     ].join("\n");
   }
+}
+
+function bestRecordLines(input: ResultLedgerInput, compact: boolean): string[] {
+  const persistence = input.bestPersistence;
+  if (!persistence) {
+    return input.bestRounds !== undefined && input.bestRank !== undefined
+      ? [savedBestLine(input.bestRounds, input.bestRank, compact)]
+      : ["Best saved: none yet"];
+  }
+
+  if (persistence.status === "unavailable") {
+    return [
+      achievedBestLine(persistence.achieved, compact),
+      persistence.persisted
+        ? savedBestLine(persistence.persisted.rounds, persistence.persisted.rank, compact, true)
+        : "Best saved: none yet",
+      "New best was not saved on this device."
+    ];
+  }
+
+  return [
+    persistence.persisted
+      ? savedBestLine(persistence.persisted.rounds, persistence.persisted.rank, compact)
+      : "Best saved: none yet"
+  ];
+}
+
+function achievedBestLine(record: HighScoreRecord, compact: boolean): string {
+  const rounds = Math.max(0, Math.floor(record.rounds));
+  return compact
+    ? `Best achieved ${rounds}r / ${record.rank}`
+    : `Best achieved: ${rounds} rounds / ${record.rank}`;
+}
+
+function savedBestLine(
+  roundsValue: number,
+  rank: string,
+  compact: boolean,
+  explicitSavedLabel = false
+): string {
+  const rounds = Math.max(0, Math.floor(roundsValue));
+  if (compact && explicitSavedLabel) {
+    return `Best saved ${rounds}r / ${rank}`;
+  }
+
+  return compact
+    ? `Best ${rounds}r / ${rank}`
+    : `Best saved: ${rounds} rounds / ${rank}`;
 }
 
 function roundTraceLines(roundTraces: SessionRoundTrace[] | undefined): string[] {
@@ -251,6 +317,7 @@ function inputFeelTraceLines(roundTraces: SessionRoundTrace[] | undefined): stri
 
   return [
     "Input feel trace:",
+    "Input feel fields: first-cut latency, resolve timing after first/last cut, cut batch ownership, release-sample/correction ownership, no-cut acknowledgements, touch-loupe clearance.",
     ...traces.map((trace) => {
       const feel = trace.inputFeel!;
       return [
@@ -290,14 +357,18 @@ function lastCutOwnership(feel: SessionRoundInputFeelTrace): string {
   return feel.cutCount > 0 ? "direct" : "none";
 }
 
-function money(value: number): string {
-  return `$${Math.max(0, value).toFixed(2)}`;
+function credits(value: number): string {
+  return `${Math.max(0, Math.floor(value))} TC`;
 }
 
-function signedMoney(value: number): string {
+function signedCredits(value: number): string {
   const amount = Number.isFinite(value) ? value : 0;
   const sign = amount >= 0 ? "+" : "-";
-  return `${sign}$${Math.abs(amount).toFixed(2)}`;
+  return `${sign}${Math.abs(Math.trunc(amount))} TC`;
+}
+
+function negativeCredits(value: number): string {
+  return `-${Math.max(0, Math.floor(value))} TC`;
 }
 
 function ledgerTraceLine(input: ResultLedgerInput): string {

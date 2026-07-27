@@ -14,6 +14,8 @@ describe("playtest rollup template", () => {
     expect(rollup).toContain("at least 4 of 5");
     expect(rollup).toContain("at least 3 of 5");
     expect(rollup).toContain("Engagement and degraded visual intent observed");
+    expect(rollup).toContain("Selects Start Training from tutorial-complete handoff without outside instruction");
+    expect(rollup).not.toContain("Starts Endless from tutorial-complete handoff");
     expect(rollup).toContain("Strongest evidence that play stayed engaging and the visual style landed");
     expect(rollup).toContain("5 of 5, no systematic complaint");
     expect(rollup).toContain("all mobile sessions");
@@ -81,7 +83,9 @@ describe("playtest rollup template", () => {
     expect(protocol).toContain("criterion-specific");
     expect(protocol).toContain("observed behavior");
     expect(protocol).toContain("One-word evidence cells");
-    expect(protocol).toContain("post-tutorial Endless run must report");
+    expect(protocol).toContain("post-tutorial Training run must report");
+    expect(protocol).toContain("Start Training");
+    expect(protocol).not.toContain("Start Endless Training");
     expect(protocol).toContain("`Start: handoff screen`");
     expect(protocol).toContain("Round trace");
     expect(protocol).toContain("fixture round trace");
@@ -137,7 +141,10 @@ describe("playtest rollup template", () => {
     expect(sessionTemplate).toContain("round trace");
     expect(sessionTemplate).toContain("Save Summary");
     expect(sessionTemplate).toContain("downloaded text file");
-    expect(sessionTemplate).toContain("post-tutorial Endless run should include `Start: handoff screen`");
+    expect(sessionTemplate).toContain("post-tutorial Training run should include `Start: handoff screen`");
+    expect(sessionTemplate).toContain("Tutorial-complete handoff: Start Training selected without prompting");
+    expect(sessionTemplate).toContain("Selects Start Training from tutorial-complete handoff");
+    expect(sessionTemplate).not.toContain("Start Endless Training");
     expect(sessionTemplate).toContain("Input evidence:");
     expect(sessionTemplate).toContain("browser pointer type");
     expect(sessionTemplate).toContain("does not replace `Device/browser`, `Network:");
@@ -167,6 +174,8 @@ describe("playtest rollup template", () => {
     expect(facilitatorCard).toContain("A mobile readability pass must name a concrete artifact");
     expect(facilitatorCard).toContain("emulation, trackpads, and desktop touchscreens do not");
     expect(facilitatorCard).toContain("`Start: handoff screen`");
+    expect(facilitatorCard).toContain("Start Training");
+    expect(facilitatorCard).not.toContain("Start Endless Training");
     expect(facilitatorCard).toContain("errors feel earned and recoverable");
     expect(facilitatorCard).toContain("five principle areas");
     expect(facilitatorCard).toContain("Copy Summary");

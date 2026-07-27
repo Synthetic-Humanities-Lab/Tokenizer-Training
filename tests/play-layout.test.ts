@@ -58,6 +58,9 @@ describe("computePlayLayout", () => {
     expect(overlaps(layout.resolveButton, layout.clearButton)).toBe(false);
     expect(overlaps(layout.clearButton, layout.muteButton)).toBe(false);
     expect(overlaps(layout.exitButton, layout.resolveButton)).toBe(false);
+    expect(layout.clearButton.width).toBe(layout.muteButton.width);
+    expect(layout.exitButton.width).toBe(layout.muteButton.width);
+    expect(layout.resolveButton.width).toBe(layout.muteButton.width);
   });
 
   it("keeps the compact control row usable on narrow portrait widths", () => {
@@ -77,6 +80,26 @@ describe("computePlayLayout", () => {
     expect(layout.clearButton.height).toBe(MIN_TOUCH_TARGET_SIZE);
     expect(layout.muteButton.height).toBe(MIN_TOUCH_TARGET_SIZE);
     expect(layout.exitButton.height).toBe(MIN_TOUCH_TARGET_SIZE);
+    expect(layout.clearButton.width).toBe(layout.muteButton.width);
+    expect(layout.exitButton.width).toBe(layout.muteButton.width);
+    expect(layout.resolveButton.width).toBe(layout.muteButton.width);
+  });
+
+  it("bottom-docks explicit mobile-surface controls even on short phones", () => {
+    const width = 368;
+    const height = 552;
+    const layout = computePlayLayout({ width, height, surfaceProfile: "mobile" });
+
+    expect(layout.compact).toBe(true);
+    expect(compactPlayControlsDockedAtBottom(height, "mobile")).toBe(true);
+    expect(layout.resolveButton.y).toBe(compactPlayControlRowY(height, undefined, "mobile"));
+    expect(edges(layout.resolveButton).bottom).toBe(height - 12);
+    expect(edges(layout.resolveButton).top).toBeGreaterThan(edges(layout.playfield).bottom);
+    expect(edges(layout.clearButton).top).toBeGreaterThan(edges(layout.playfield).bottom);
+    expect(edges(layout.muteButton).top).toBeGreaterThan(edges(layout.playfield).bottom);
+    expect(edges(layout.exitButton).top).toBeGreaterThan(edges(layout.playfield).bottom);
+    expect(overlaps(layout.resolveButton, layout.clearButton)).toBe(false);
+    expect(overlaps(layout.exitButton, layout.resolveButton)).toBe(false);
   });
 
   it("bottom-docks compact controls on normal portrait phones for thumb reach", () => {
@@ -108,6 +131,25 @@ describe("computePlayLayout", () => {
     expect(layout.sentenceEndY).toBe(layout.sentenceActiveY);
   });
 
+  it.each([
+    [320, 568, "browser"],
+    [368, 800, "mobile"],
+    [390, 844, "mobile"]
+  ] as const)("keeps active play readable at %ix%i on %s", (width, height, surfaceProfile) => {
+    const layout = computePlayLayout({ width, height, surfaceProfile });
+    const activeTextPanel = {
+      ...layout.textPanel,
+      y: layout.sentenceActiveY
+    };
+
+    expect(withinViewport(layout.playfield, width, height)).toBe(true);
+    expect(contains(layout.playfield, activeTextPanel)).toBe(true);
+    expect(overlaps(activeTextPanel, layout.resolveButton)).toBe(false);
+    expect(overlaps(activeTextPanel, layout.clearButton)).toBe(false);
+    expect(overlaps(activeTextPanel, layout.muteButton)).toBe(false);
+    expect(overlaps(activeTextPanel, layout.exitButton)).toBe(false);
+  });
+
   it("keeps compact review text in the same static prompt lane", () => {
     const layout = computePlayLayout({ width: 390, height: 844 });
     const reviewTextPanel = {
@@ -120,6 +162,24 @@ describe("computePlayLayout", () => {
     expect(overlaps(reviewTextPanel, layout.resolveButton)).toBe(false);
     expect(overlaps(reviewTextPanel, layout.clearButton)).toBe(false);
     expect(overlaps(reviewTextPanel, layout.muteButton)).toBe(false);
+  });
+
+  it("lifts only the short mobile-surface review prompt to make room for feedback evidence", () => {
+    const layout = computePlayLayout({ width: 368, height: 552, surfaceProfile: "mobile" });
+    const reviewTextPanel = {
+      ...layout.textPanel,
+      y: layout.sentenceReviewY
+    };
+
+    expect(layout.sentenceStartY).toBe(layout.sentenceActiveY);
+    expect(layout.sentenceEndY).toBe(layout.sentenceActiveY);
+    expect(layout.sentenceReviewY).toBeLessThan(layout.sentenceActiveY);
+    expect(layout.sentenceActiveY - layout.sentenceReviewY).toBeGreaterThanOrEqual(32);
+    expect(contains(layout.playfield, reviewTextPanel)).toBe(true);
+    expect(overlaps(reviewTextPanel, layout.resolveButton)).toBe(false);
+    expect(overlaps(reviewTextPanel, layout.clearButton)).toBe(false);
+    expect(overlaps(reviewTextPanel, layout.muteButton)).toBe(false);
+    expect(overlaps(reviewTextPanel, layout.exitButton)).toBe(false);
   });
 
   it("keeps the desktop active prompt static below the HUD and lifts review only for evidence clearance", () => {
@@ -243,24 +303,24 @@ describe("computePlayLayout", () => {
 
     expect(shouldShowPlayHeaderBrand(medium)).toBe(false);
     expect(shouldShowPlayHeaderBrand(wide)).toBe(true);
-    expect(mediumHud.balance.x).toBeGreaterThan(0);
-    expect(mediumHud.pay.x).toBeGreaterThan(mediumHud.balance.x + 120);
-    expect(wideHud.balance.x).toBeGreaterThan(wide.logoWiener.x + wide.logoWiener.width / 2 + 130);
+    expect(mediumHud.credits.x).toBeGreaterThan(0);
+    expect(mediumHud.verified.x).toBeGreaterThan(mediumHud.credits.x + 120);
+    expect(wideHud.credits.x).toBeGreaterThan(wide.logoWiener.x + wide.logoWiener.width / 2 + 130);
   });
 
   it("labels compact endless exit as a quit action, not a direct menu jump", () => {
-    expect(exitButtonLabel(true, true)).toBe("Menu");
+    expect(exitButtonLabel(true, true)).toBe("Exit");
     expect(exitButtonLabel(true, false)).toBe("Exit");
     expect(exitButtonLabel(false, true)).toBe("Exit Tutorial");
     expect(exitButtonLabel(false, false)).toBe("Exit Training");
   });
 
-  it("uses compact text for the clear control on portrait layouts and adds cut count when active", () => {
+  it("uses compact text for the clear control without echoing the staged-cut count", () => {
     expect(clearButtonLabel(true)).toBe("Clear");
     expect(clearButtonLabel(false)).toBe("Clear Cuts");
-    expect(clearButtonLabel(true, 3)).toBe("Clear 3");
-    expect(clearButtonLabel(false, 3)).toBe("Clear 3");
-    expect(clearButtonLabel(false, 3.9)).toBe("Clear 3");
+    expect(clearButtonLabel(true, 3)).toBe("Clear");
+    expect(clearButtonLabel(false, 3)).toBe("Clear Cuts");
+    expect(clearButtonLabel(false, 3.9)).toBe("Clear Cuts");
     expect(clearButtonLabel(false, -2)).toBe("Clear Cuts");
     expect(clearButtonLabel(false, 3, false)).toBe("Clear Cuts");
     expect(clearButtonLabel(true, 3, false)).toBe("Clear");
@@ -271,9 +331,9 @@ describe("computePlayLayout", () => {
     expect(resolveButtonLabel(true)).toBe("Reviewing");
     expect(resolveButtonLabel(false, true)).toBe("Resolve");
     expect(resolveButtonLabel(true, true)).toBe("Review");
-    expect(resolveButtonLabel(false, true, 3)).toBe("Resolve 3");
-    expect(resolveButtonLabel(false, false, 3)).toBe("Resolve 3");
-    expect(resolveButtonLabel(false, false, 3.9)).toBe("Resolve 3");
+    expect(resolveButtonLabel(false, true, 3)).toBe("Resolve");
+    expect(resolveButtonLabel(false, false, 3)).toBe("Resolve");
+    expect(resolveButtonLabel(false, false, 3.9)).toBe("Resolve");
     expect(resolveButtonLabel(false, false, -2)).toBe("Resolve");
     expect(resolveButtonLabel(true, true, 3)).toBe("Review");
   });
@@ -296,7 +356,7 @@ describe("computePlayLayout", () => {
     expect(activeHover.fillColor).not.toBe(active.fillColor);
     expect(activePressed.fillAlpha).toBeGreaterThan(activeHover.fillAlpha);
     expect(activePressed.fillColor).not.toBe(activeHover.fillColor);
-    expect(activeReady.label).toBe("Resolve 3");
+    expect(activeReady.label).toBe("Resolve");
     expect(activeReady.fillColor).not.toBe(active.fillColor);
     expect(activeReady.fillAlpha).toBeGreaterThan(active.fillAlpha);
     expect(activeReadyFresh.readyPulse).toBe(1);
@@ -321,13 +381,13 @@ describe("computePlayLayout", () => {
     const zeroCutPressure = resolveButtonVisualState(false, false, false, false, false, 0, undefined, 0.72);
     const reviewingPressure = resolveButtonVisualState(true, false, false, true, false, 3, undefined, 0.72);
 
-    expect(pressured.label).toBe("Resolve 3");
+    expect(pressured.label).toBe("Resolve");
     expect(pressured.deadlinePressure).toBeCloseTo(0.72);
     expect(pressured.strokeColor).toBe(uiPalette.warning);
     expect(pressured.strokeAlpha).toBeGreaterThan(ready.strokeAlpha);
     expect(pressured.strokeWidth).toBeGreaterThan(ready.strokeWidth);
     expect(pressured.fillAlpha).toBeGreaterThan(ready.fillAlpha);
-    expect(compactPressured.label).toBe("Resolve 2");
+    expect(compactPressured.label).toBe("Resolve");
     expect(compactPressured.deadlinePressure).toBeCloseTo(0.72);
     expect(zeroCutPressure.label).toBe("Resolve");
     expect(zeroCutPressure.deadlinePressure).toBeCloseTo(0.72);
@@ -338,7 +398,7 @@ describe("computePlayLayout", () => {
     expect(reviewingPressure.label).toBe("Reviewing");
   });
 
-  it("decays the resolve-ready pulse without changing the staged cut count", () => {
+  it("decays the resolve-ready pulse without changing the control label", () => {
     expect(RESOLVE_READY_PULSE_MS).toBeGreaterThanOrEqual(300);
     expect(RESOLVE_READY_PULSE_MS).toBeLessThanOrEqual(380);
     expect(resolveReadyPulseStrength(0)).toBe(1);
@@ -351,7 +411,7 @@ describe("computePlayLayout", () => {
 
   it("uses compact resolve text in the portrait control row", () => {
     expect(resolveButtonVisualState(false, false, true).label).toBe("Resolve");
-    expect(resolveButtonVisualState(false, false, true, true, false, 2).label).toBe("Resolve 2");
+    expect(resolveButtonVisualState(false, false, true, true, false, 2).label).toBe("Resolve");
     expect(resolveButtonVisualState(true, false, true).label).toBe("Review");
   });
 

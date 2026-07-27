@@ -34,7 +34,6 @@ describe("computeTutorialCompleteLayout", () => {
 
     expect(layout.compact).toBe(true);
     expect(withinViewport(layout.panel, 390, 844)).toBe(true);
-    expect(contains(layout.panel, layout.chrome)).toBe(true);
     expect(contains(layout.panel, layout.primaryButton)).toBe(true);
     expect(contains(layout.panel, layout.menuButton)).toBe(true);
     expect(layout.primaryButton.x).toBe(layout.panel.x);
@@ -53,12 +52,11 @@ describe("computeTutorialCompleteLayout", () => {
     expect(edges(layout.primaryButton).top).toBeGreaterThan(layout.summary.y + 34);
   });
 
-  it("keeps desktop tutorial-complete chrome and choices aligned", () => {
+  it("keeps desktop tutorial-complete choices aligned", () => {
     const layout = computeTutorialCompleteLayout(1280, 720);
 
     expect(layout.compact).toBe(false);
     expect(layout.panel.width).toBe(680);
-    expect(contains(layout.panel, layout.chrome)).toBe(true);
     expect(contains(layout.panel, layout.primaryButton)).toBe(true);
     expect(contains(layout.panel, layout.menuButton)).toBe(true);
     expect(layout.primaryButton.width).toBe(340);

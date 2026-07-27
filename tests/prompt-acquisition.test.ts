@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  ENDLESS_PROMPT_ACQUISITION_MS,
   PROMPT_ACQUISITION_MS,
   promptAcquisitionVisualState
 } from "../src/game/systems/PromptAcquisitionSystem";
@@ -28,6 +29,23 @@ describe("PromptAcquisitionSystem", () => {
     expect(done.sweepAlpha).toBe(0);
     expect(unset.active).toBe(false);
     expect(unset.progress).toBe(1);
+  });
+
+  it("uses a shorter acquisition beat for timed Training without changing Tutorial", () => {
+    const endlessSettled = promptAcquisitionVisualState({
+      elapsedMs: ENDLESS_PROMPT_ACQUISITION_MS,
+      durationMs: ENDLESS_PROMPT_ACQUISITION_MS
+    });
+    const tutorialStillActive = promptAcquisitionVisualState({
+      elapsedMs: ENDLESS_PROMPT_ACQUISITION_MS,
+      durationMs: PROMPT_ACQUISITION_MS,
+      tutorialMode: true
+    });
+
+    expect(ENDLESS_PROMPT_ACQUISITION_MS).toBeGreaterThanOrEqual(200);
+    expect(ENDLESS_PROMPT_ACQUISITION_MS).toBeLessThanOrEqual(250);
+    expect(endlessSettled.active).toBe(false);
+    expect(tutorialStillActive.active).toBe(true);
   });
 
   it("uses compact sizing and tutorial-specific labels without changing timing", () => {

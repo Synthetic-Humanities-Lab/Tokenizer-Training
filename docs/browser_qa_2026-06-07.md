@@ -1,5 +1,10 @@
 # Browser QA Runtime Pass - 2026-06-07
 
+> **Historical provenance.** This dated record preserves what the 2026-06-07
+> build and QA harness showed. Its strings, IDs, labels, product names, counts,
+> and screenshot descriptions are observations, not current requirements. See
+> `docs/current_surface_contract.md` for the current browser/iOS surface.
+
 This pass used the already-running local dev server at
 `http://127.0.0.1:5178/` and the in-app Browser. It is live runtime evidence
 for route boot, canvas QA export, scene transitions, and one main-verb

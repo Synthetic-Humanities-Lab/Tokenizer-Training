@@ -1,7 +1,20 @@
 import { describe, expect, it } from "vitest";
+import fixturesJson from "../src/game/data/fixtures.json";
 import linesJson from "../src/game/data/wiener_speech_lines.json";
 import { SessionFlowSystem } from "../src/game/systems/SessionFlowSystem";
+import type { HighScoreRecord } from "../src/game/systems/StorageSystem";
+import type { TokenFixture } from "../src/game/systems/TokenizerSystem";
 import { TutorialSystem } from "../src/game/systems/TutorialSystem";
+
+function highScore(rounds: number, rank: string): HighScoreRecord {
+  return {
+    rounds,
+    balance: 0,
+    accuracy: 0.75,
+    rank,
+    updatedAt: "2026-07-18T00:00:00.000Z"
+  };
+}
 
 describe("SessionFlowSystem", () => {
   it("does not count an abandoned active round as completed", () => {
@@ -24,16 +37,16 @@ describe("SessionFlowSystem", () => {
     })).toBe(4);
   });
 
-  it("keeps budget failure distinct from voluntary quit", () => {
+  it("keeps Token Credit depletion distinct from voluntary quit", () => {
     const system = new SessionFlowSystem();
 
-    expect(system.resultCopy("budget").title).toBe("Budget Exhausted");
+    expect(system.resultCopy("budget").title).toBe("Token Credits Depleted");
     expect(system.resultCopy("quit").title).toBe("Training Suspended");
     expect(system.resultCopy("quit").summary).toBe(
       "Session closed by operator request. WienerWorks preserved the usable portion and most of the causes."
     );
     expect(system.resultCopy("budget").summary).toBe(
-      "Your balance reached zero. Finance has closed the segmentation window and archived the loss. Wiener thanks you for demonstrating why automation was once attractive."
+      "Your account no longer contains enough Token Credits to correct your output. Training access revoked."
     );
   });
 
@@ -45,25 +58,34 @@ describe("SessionFlowSystem", () => {
     expect(system.shouldSaveResult({ outcome: "budget", rounds: 0 })).toBe(true);
   });
 
-  it("warns during active endless rounds when balance is low but not exhausted", () => {
+  it("frames ordinary Training as human shift work while preserving the low-credit warning", () => {
     const system = new SessionFlowSystem();
+    const neutralLines = Array.from({ length: 12 }, (_, index) => system.activeTrainingLine({
+      creditBalance: 40,
+      round: index + 1
+    }));
+    const denseFixture = (fixturesJson as TokenFixture[]).find(({ category }) => category === "url");
+    const denseLine = system.activeTrainingLine({ creditBalance: 40, round: 13, fixture: denseFixture });
+    const lowBalanceLine = system.activeTrainingLine({ creditBalance: 10, round: 14 });
 
-    expect(system.activeTrainingLine(40)).toBe(linesJson.categories["play.round_start.neutral"].lines[18]);
-    expect(system.activeTrainingLine(10)).toBe(linesJson.categories["play.round_start.low_balance"].lines[10]);
-    expect(system.activeTrainingLine(10)).not.toContain("Budget Exhausted");
+    expect(new Set(neutralLines).size).toBe(neutralLines.length);
+    expect(neutralLines.every((line) => linesJson.categories["play.round_start.neutral"].lines.includes(line))).toBe(true);
+    expect(linesJson.categories["play.round_start.dense_string"].lines).toContain(denseLine);
+    expect(linesJson.categories["play.round_start.low_balance"].lines).toContain(lowBalanceLine);
+    expect(lowBalanceLine).not.toContain("Token Credits Depleted");
   });
 
-  it("formats termination accounting with pay, cost, balance, rank, and best record", () => {
+  it("formats termination accounting with verified credits, rework, remaining credits, rank, and best record", () => {
     const text = new SessionFlowSystem().resultLedgerText({
       rounds: 7,
-      balance: 12.34,
+      creditBalance: 12.34,
       accuracy: 0.625,
       totalCorrectCuts: 5,
       totalMissedCuts: 3,
       totalFalseCuts: 2,
-      totalPay: 21.5,
-      totalCost: 49.75,
-      costEfficiency: 0.432,
+      totalVerifiedCredits: 21.5,
+      totalReworkCredits: 49.75,
+      creditEfficiency: 0.432,
       rank: "Junior Boundary Clerk",
       bestRounds: 11,
       bestRank: "BPE Adjacent"
@@ -71,13 +93,151 @@ describe("SessionFlowSystem", () => {
 
     expect(text).toContain("Rounds: 7");
     expect(text).toContain("Cuts: OK/M/F 5/3/2 (63%)");
-    expect(text).toContain("Pay Earned: $21.50");
-    expect(text).toContain("Company Cost: $49.75");
-    expect(text).toContain("Net: -$28.25");
-    expect(text).toContain("Balance Recorded: $12.34");
-    expect(text).toContain("Efficiency: 0.43x");
+    expect(text).toContain("Verified: +21 TC");
+    expect(text).toContain("Rework: -49 TC");
+    expect(text).toContain("Net Credits: -28 TC");
+    expect(text).toContain("Credits Remaining: 12 TC");
+    expect(text).toContain("Yield Efficiency: 0.43x");
     expect(text).toContain("Rank: Junior Boundary Clerk");
     expect(text).toContain("Best saved: 11 rounds / BPE Adjacent");
+  });
+
+  it("keeps saved and kept success copy byte-for-byte unchanged", () => {
+    const system = new SessionFlowSystem();
+    const input = {
+      rounds: 7,
+      creditBalance: 12.34,
+      accuracy: 0.625,
+      totalCorrectCuts: 5,
+      totalMissedCuts: 3,
+      totalFalseCuts: 2,
+      totalVerifiedCredits: 21.5,
+      totalReworkCredits: 49.75,
+      creditEfficiency: 0.432,
+      rank: "Junior Boundary Clerk"
+    };
+    const cases = [
+      {
+        status: "saved" as const,
+        achieved: highScore(7, "Junior Boundary Clerk"),
+        persisted: highScore(7, "Junior Boundary Clerk")
+      },
+      {
+        status: "kept" as const,
+        achieved: highScore(11, "BPE Adjacent"),
+        persisted: highScore(11, "BPE Adjacent")
+      }
+    ];
+
+    for (const bestPersistence of cases) {
+      const legacyInput = {
+        ...input,
+        bestRounds: bestPersistence.persisted.rounds,
+        bestRank: bestPersistence.persisted.rank
+      };
+      const persistenceInput = { ...input, bestPersistence };
+
+      expect(system.resultLedgerText(persistenceInput)).toBe(system.resultLedgerText(legacyInput));
+      expect(system.compactResultLedgerText(persistenceInput)).toBe(system.compactResultLedgerText(legacyInput));
+      expect(system.compactResultLedgerText(persistenceInput).split("\n")).toHaveLength(7);
+      expect(system.playtestSummaryText({ outcome: "quit", ...persistenceInput })).toBe(
+        system.playtestSummaryText({ outcome: "quit", ...legacyInput })
+      );
+    }
+  });
+
+  it("separates an unsaved new best from the prior saved best", () => {
+    const system = new SessionFlowSystem();
+    const input = {
+      rounds: 14,
+      creditBalance: 0,
+      accuracy: 0.8,
+      totalVerifiedCredits: 32,
+      totalReworkCredits: 45,
+      creditEfficiency: 0.71,
+      rank: "BPE Adjacent",
+      bestPersistence: {
+        status: "unavailable" as const,
+        achieved: highScore(14, "BPE Adjacent"),
+        persisted: highScore(11, "Junior Boundary Clerk")
+      }
+    };
+
+    expect(system.resultLedgerText(input).split("\n").slice(-3)).toEqual([
+      "Best achieved: 14 rounds / BPE Adjacent",
+      "Best saved: 11 rounds / Junior Boundary Clerk",
+      "New best was not saved on this device."
+    ]);
+    expect(system.compactResultLedgerText(input).split("\n").slice(-3)).toEqual([
+      "Best achieved 14r / BPE Adjacent",
+      "Best saved 11r / Junior Boundary Clerk",
+      "New best was not saved on this device."
+    ]);
+    expect(system.playtestSummaryText({ outcome: "budget", ...input }).split("\n").slice(-3)).toEqual([
+      "Best achieved: 14 rounds / BPE Adjacent",
+      "Best saved: 11 rounds / Junior Boundary Clerk",
+      "New best was not saved on this device."
+    ]);
+  });
+
+  it("reports a failed first best write without calling the candidate saved", () => {
+    const system = new SessionFlowSystem();
+    const input = {
+      rounds: 4,
+      creditBalance: 8,
+      accuracy: 0.75,
+      totalVerifiedCredits: 12,
+      totalReworkCredits: 18,
+      creditEfficiency: 0.67,
+      rank: "Junior Boundary Clerk",
+      bestPersistence: {
+        status: "unavailable" as const,
+        achieved: highScore(4, "Junior Boundary Clerk"),
+        persisted: null
+      }
+    };
+
+    expect(system.resultLedgerText(input).split("\n").slice(-3)).toEqual([
+      "Best achieved: 4 rounds / Junior Boundary Clerk",
+      "Best saved: none yet",
+      "New best was not saved on this device."
+    ]);
+    expect(system.compactResultLedgerText(input).split("\n").slice(-3)).toEqual([
+      "Best achieved 4r / Junior Boundary Clerk",
+      "Best saved: none yet",
+      "New best was not saved on this device."
+    ]);
+    expect(system.playtestSummaryText({ outcome: "quit", ...input }).split("\n").slice(-3)).toEqual([
+      "Best achieved: 4 rounds / Junior Boundary Clerk",
+      "Best saved: none yet",
+      "New best was not saved on this device."
+    ]);
+  });
+
+  it("reports no saved best for a zero-round result with no save attempt or record", () => {
+    const system = new SessionFlowSystem();
+    const input = {
+      rounds: 0,
+      creditBalance: 40,
+      accuracy: 0,
+      totalVerifiedCredits: 0,
+      totalReworkCredits: 0,
+      creditEfficiency: 0,
+      rank: "Regex Intern",
+      bestPersistence: {
+        status: "not-attempted" as const,
+        achieved: null,
+        persisted: null
+      }
+    };
+
+    expect(system.resultLedgerText(input).split("\n").at(-1)).toBe("Best saved: none yet");
+    expect(system.compactResultLedgerText(input).split("\n")).toHaveLength(7);
+    expect(system.compactResultLedgerText(input).split("\n").at(-1)).toBe("Best saved: none yet");
+    expect(system.playtestSummaryText({ outcome: "quit", ...input }).split("\n").at(-1)).toBe(
+      "Best saved: none yet"
+    );
+    expect(system.resultLedgerText(input)).not.toContain("Best saved: 0 rounds / Regex Intern");
   });
 
   it("formats compact trace metadata for visible ledger fallback", () => {
@@ -86,14 +246,14 @@ describe("SessionFlowSystem", () => {
       startSource: "handoff-screen",
       inputModality: "touch",
       rounds: 7,
-      balance: 12.34,
+      creditBalance: 12.34,
       accuracy: 0.625,
       totalCorrectCuts: 5,
       totalMissedCuts: 3,
       totalFalseCuts: 2,
-      totalPay: 21.5,
-      totalCost: 49.75,
-      costEfficiency: 0.432,
+      totalVerifiedCredits: 21.5,
+      totalReworkCredits: 49.75,
+      creditEfficiency: 0.432,
       rank: "Junior Boundary Clerk",
       bestRounds: 11,
       bestRank: "BPE Adjacent"
@@ -110,14 +270,14 @@ describe("SessionFlowSystem", () => {
       startSource: "handoff-screen",
       inputModality: "touch",
       rounds: 7,
-      balance: 12.34,
+      creditBalance: 12.34,
       accuracy: 0.625,
       totalCorrectCuts: 5,
       totalMissedCuts: 3,
       totalFalseCuts: 2,
-      totalPay: 21.5,
-      totalCost: 49.75,
-      costEfficiency: 0.432,
+      totalVerifiedCredits: 21.5,
+      totalReworkCredits: 49.75,
+      creditEfficiency: 0.432,
       rank: "Junior Boundary Clerk",
       bestRounds: 11,
       bestRank: "BPE Adjacent",
@@ -202,13 +362,14 @@ describe("SessionFlowSystem", () => {
     expect(text).toContain("1. simple_001 / simple_prose / tier 1 / tokens 6 / OK 2 / Missed 1 / False 0");
     expect(text).toContain("2. dense_001 / url / tier 3 / tokens 4 / OK 3 / Missed 0 / False 2");
     expect(text).toContain("Input feel trace:");
+    expect(text).toContain("Input feel fields: first-cut latency, resolve timing after first/last cut, cut batch ownership, release-sample/correction ownership, no-cut acknowledgements, touch-loupe clearance.");
     expect(text).toContain("1. samples 5 / responses 2 / first 32ms / resolve-first 420ms / resolve-last 180ms / commit 1 / batch 1 / release-latched 1 / last-source release / adjusted 0 / gesture-samples 5 / owned-cuts 2 / no-cut 0 / near 0 / off 0 / loupe 4 / ready 3 / low-clear 0 / min-clear 42px");
     expect(text).toContain("2. samples 8 / responses 5 / first 44ms / resolve-first 760ms / resolve-last 260ms / commit 1 / batch 3 / release-latched 0 / last-source adjust / adjusted 1 / gesture-samples 8 / owned-cuts 5 / no-cut 2 / near 1 / off 1 / loupe 5 / ready 2 / low-clear 1 / min-clear 27px");
-    expect(text).toContain("Pay: $21.50");
-    expect(text).toContain("Cost: $49.75");
-    expect(text).toContain("Net: -$28.25");
-    expect(text).toContain("Balance: $12.34");
-    expect(text).toContain("Efficiency: 0.43x");
+    expect(text).toContain("Verified: +21 TC");
+    expect(text).toContain("Rework: -49 TC");
+    expect(text).toContain("Net Credits: -28 TC");
+    expect(text).toContain("Credits Remaining: 12 TC");
+    expect(text).toContain("Yield Efficiency: 0.43x");
     expect(text).toContain("Rank: Junior Boundary Clerk");
     expect(text).toContain("Best saved: 11 rounds / BPE Adjacent");
   });
@@ -217,33 +378,33 @@ describe("SessionFlowSystem", () => {
     const text = new SessionFlowSystem().playtestSummaryText({
       outcome: "budget",
       rounds: 3,
-      balance: 46.25,
+      creditBalance: 46.25,
       accuracy: 1,
       totalCorrectCuts: 9,
       totalMissedCuts: 0,
       totalFalseCuts: 0,
-      totalPay: 14.5,
-      totalCost: 8.25,
-      costEfficiency: 1.76,
+      totalVerifiedCredits: 14.5,
+      totalReworkCredits: 8.25,
+      creditEfficiency: 1.76,
       rank: "Temporary Sequence Specialist",
       bestRounds: 3,
       bestRank: "Temporary Sequence Specialist"
     });
 
-    expect(text).toContain("Pay: $14.50");
-    expect(text).toContain("Cost: $8.25");
-    expect(text).toContain("Net: +$6.25");
+    expect(text).toContain("Verified: +14 TC");
+    expect(text).toContain("Rework: -8 TC");
+    expect(text).toContain("Net Credits: +6 TC");
   });
 
   it("does not invent cut-count evidence when a caller omits it", () => {
     const system = new SessionFlowSystem();
     const ledger = system.resultLedgerText({
       rounds: 2,
-      balance: 4,
+      creditBalance: 4,
       accuracy: 0.5,
-      totalPay: 6,
-      totalCost: 8,
-      costEfficiency: 0.75,
+      totalVerifiedCredits: 6,
+      totalReworkCredits: 8,
+      creditEfficiency: 0.75,
       rank: "Regex Intern",
       bestRounds: 0,
       bestRank: "Regex Intern"
@@ -251,11 +412,11 @@ describe("SessionFlowSystem", () => {
     const summary = system.playtestSummaryText({
       outcome: "quit",
       rounds: 2,
-      balance: 4,
+      creditBalance: 4,
       accuracy: 0.5,
-      totalPay: 6,
-      totalCost: 8,
-      costEfficiency: 0.75,
+      totalVerifiedCredits: 6,
+      totalReworkCredits: 8,
+      creditEfficiency: 0.75,
       rank: "Regex Intern",
       bestRounds: 0,
       bestRank: "Regex Intern"
@@ -280,13 +441,13 @@ describe("SessionFlowSystem", () => {
       tutorialMode: true,
       completedRound: tutorialRoundCount - 1,
       tutorialRoundCount,
-      balance: 20
+      creditBalance: 20
     })).toEqual({ type: "nextRound" });
     expect(system.afterResolution({
       tutorialMode: true,
       completedRound: tutorialRoundCount,
       tutorialRoundCount,
-      balance: 20
+      creditBalance: 20
     })).toEqual({ type: "tutorialComplete" });
   });
 
@@ -298,13 +459,13 @@ describe("SessionFlowSystem", () => {
       tutorialMode: true,
       completedRound: tutorialRoundCount - 1,
       tutorialRoundCount,
-      balance: -8.63
+      creditBalance: -8.63
     })).toEqual({ type: "nextRound" });
     expect(system.afterResolution({
       tutorialMode: true,
       completedRound: tutorialRoundCount,
       tutorialRoundCount,
-      balance: -13.86
+      creditBalance: -13.86
     })).toEqual({ type: "tutorialComplete" });
   });
 
@@ -315,8 +476,19 @@ describe("SessionFlowSystem", () => {
       tutorialMode: false,
       completedRound: 7,
       tutorialRoundCount: new TutorialSystem().count(),
-      balance: 0
+      creditBalance: 0
     })).toEqual({ type: "results", outcome: "budget" });
+  });
+
+  it("returns nextRound after the completed fifth Endless round while balance remains positive", () => {
+    const system = new SessionFlowSystem();
+
+    expect(system.afterResolution({
+      tutorialMode: false,
+      completedRound: 5,
+      tutorialRoundCount: new TutorialSystem().count(),
+      creditBalance: 0.01
+    })).toEqual({ type: "nextRound" });
   });
 
   it("keeps tutorial exit and endless exit semantically distinct", () => {
@@ -324,11 +496,11 @@ describe("SessionFlowSystem", () => {
 
     expect(system.exitTransition({
       tutorialMode: true,
-      balance: -20
+      creditBalance: -20
     })).toEqual({ type: "menu" });
     expect(system.exitTransition({
       tutorialMode: false,
-      balance: 12
+      creditBalance: 12
     })).toEqual({ type: "results", outcome: "quit" });
   });
 
@@ -337,7 +509,7 @@ describe("SessionFlowSystem", () => {
 
     expect(system.exitTransition({
       tutorialMode: false,
-      balance: 0
+      creditBalance: 0
     })).toEqual({ type: "results", outcome: "budget" });
   });
 
@@ -350,7 +522,7 @@ describe("SessionFlowSystem", () => {
         tutorialMode: true,
         completedRound,
         tutorialRoundCount,
-        balance: 40
+        creditBalance: 40
       })).toEqual({ type: "nextRound" });
     }
 
@@ -358,11 +530,11 @@ describe("SessionFlowSystem", () => {
       tutorialMode: true,
       completedRound: tutorialRoundCount,
       tutorialRoundCount,
-      balance: 40
+      creditBalance: 40
     })).toEqual({ type: "tutorialComplete" });
     expect(system.exitTransition({
       tutorialMode: false,
-      balance: 18
+      creditBalance: 18
     })).toEqual({ type: "results", outcome: "quit" });
     expect(system.completedRounds({
       outcome: "quit",

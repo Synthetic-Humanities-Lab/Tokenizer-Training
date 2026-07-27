@@ -2,7 +2,7 @@
 
 ## Project
 
-Tokenization Training is a browser-first mobile arcade game about tokenization. The player predicts token boundaries by swiping across text. The game teaches tokenization through speed, surprise, cost, and technical feedback.
+Tokenizer Training is a browser-first mobile arcade game about tokenization. The player predicts token boundaries by swiping across text. The game teaches tokenization through speed, surprise, Token Credit pressure, and technical feedback.
 
 ## Current Goal
 
@@ -11,7 +11,7 @@ Build a polished vertical slice from the existing single-file MVP. Preserve the 
 2. player swipes/cuts predicted token boundaries
 3. actual tokenization resolves
 4. technical/economic/snark feedback appears
-5. endless progression continues until balance reaches zero
+5. Training accelerates until the player's Token Credits are depleted
 
 ## Stack
 
@@ -20,6 +20,14 @@ Prefer browser-first implementation.
 Keep mobile readiness in mind.
 Use pointer input that works for mouse and touch.
 Capacitor may be added later, but do not prioritize native wrappers before the web game is solid.
+
+## Browser/Mobile Interface Work
+
+For mobile UI, layout, shell, safe-area, or touch-input work, cross-reference the browser game before judging the mobile surface. Start with `npm run mobile:crossref:status`; it verifies that current browser/mobile evidence exists, satisfies the contract, and is fresh enough for Codex to use autonomously.
+
+Use `docs/current_surface_contract.md` as the visible browser contract and `docs/mobile_shell.md` for browser/mobile QA routes. The browser surface remains the mechanics and content source; `surface=mobile` may adapt layout, safe areas, and touch reach, but must not fork tokenizer fixtures, scoring, swipe/cut detection, progression, session/results flow, tutorial/endless structure, or persistence.
+
+After mobile-facing changes, refresh browser/mobile evidence when needed, then run `npm run mobile:local`. When narrowing failures, run `npm run mobile:crossref` and `npm run mobile:freshness` directly. If the managed Codex shell cannot launch Playwright Chromium through `npm run mobile:capture`, use the Codex in-app browser against the QA routes in `docs/mobile_shell.md`, then rerun the validators.
 
 ## Tokenization
 
@@ -71,10 +79,11 @@ Tutorial:
 Main mode:
 - endless progression
 - difficulty increases through speed and tokenization complexity
-- player balance starts positive
-- correct cuts earn pay
-- missed/false cuts increase company cost
-- session ends when balance reaches zero
+- player starts Training with 40 Token Credits (`TC`)
+- each exact resolved token earns 1 TC
+- missed boundaries invalidate adjacent tokens and false cuts create additional rework
+- difficulty weight and the progression penalty scale increase rework, not earnings
+- session ends when Token Credits reach zero
 - high score saved locally
 
 ## Testing

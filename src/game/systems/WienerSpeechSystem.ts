@@ -1,12 +1,10 @@
 import {
-  computePlayLayout,
   usesShortLandscapeReviewLayout,
   type LayoutRect
 } from "./PlayLayoutSystem";
 
 export interface WienerSpeechLayout {
   panel: LayoutRect;
-  label: { x: number; y: number; fontSize: number; visible: boolean };
   text: { x: number; y: number; wordWrapWidth: number; fontSize: number };
 }
 
@@ -18,6 +16,7 @@ export interface PetSpeechLayoutInput {
   resolveButton: LayoutRect;
   compact: boolean;
   reviewSpeech: boolean;
+  activeTimerRect?: LayoutRect;
   evidenceRect?: LayoutRect;
 }
 
@@ -30,10 +29,14 @@ export const WIENER_SPEECH_DEFAULT_MAX_LENGTH = 76;
 export const WIENER_SPEECH_COMPACT_MAX_LENGTH = 58;
 export const REVIEW_SPEECH_CLEARANCE_PX = 14;
 export const COMPACT_REVIEW_SPEECH_CLEARANCE_PX = 8;
+export const COMPACT_REVIEW_SPEECH_PET_CLEARANCE_PX = 10;
+export const COMPACT_PET_SPEECH_TOP_SAFE_Y = 128;
+export const ACTIVE_PET_SPEECH_TIMER_CLEARANCE_PX = 8;
+const PET_SPEECH_TOP_SAFE_Y = 112;
 const SHORT_PHONE_HEIGHT = 640;
 
-export function wienerSpeechMaxLength(compact: boolean): number {
-  return compact ? WIENER_SPEECH_COMPACT_MAX_LENGTH : WIENER_SPEECH_DEFAULT_MAX_LENGTH;
+export function wienerSpeechMaxLength(compact: boolean, sticky = false): number {
+  return compact && !sticky ? WIENER_SPEECH_COMPACT_MAX_LENGTH : WIENER_SPEECH_DEFAULT_MAX_LENGTH;
 }
 
 export function wienerSpeechSourceText(value: string, compact: boolean): string {
@@ -42,8 +45,7 @@ export function wienerSpeechSourceText(value: string, compact: boolean): string 
     .replace(/^ROBOT SUPERVISOR:\s*/i, "")
     .replace(/^WIENER:\s*/i, "");
   const tutorialSource = speakerSource
-    .replace(/^TUTORIAL \d+\/\d+ - [^:]+:\s+/, "")
-    .replace(/^TUTORIAL \d+\/\d+ - /, "");
+    .replace(/^TUTORIAL \d+\/\d+\s*[-:]\s*/, "");
   if (!compact) {
     return tutorialSource;
   }
@@ -81,70 +83,28 @@ export function wienerSpeechDurationMs(value: string, options: WienerSpeechDurat
   return Math.round(Math.max(minMs, Math.min(maxMs, readingMs)));
 }
 
-export function computeWienerSpeechLayout(
-  viewport: { width: number; height: number },
-  textPanel: LayoutRect,
-  compact: boolean
-): WienerSpeechLayout {
-  const width = Math.min(compact ? viewport.width - 32 : 520, Math.max(260, textPanel.width * 0.72));
-  const defaultHeight = compact ? 62 : 58;
-  const tightHeight = 38;
-  const margin = 14;
-  const playLayout = compact ? computePlayLayout(viewport) : undefined;
-  const controlBottom = playLayout ? playLayout.resolveButton.y + playLayout.resolveButton.height / 2 : 0;
-  const textTop = textPanel.y - textPanel.height / 2;
-  const textBottom = textPanel.y + textPanel.height / 2;
-  const controlsAboveText = controlBottom <= textTop;
-  const minTop = compact && controlsAboveText ? controlBottom + 2 : margin;
-  const fullTop = textTop - defaultHeight - 10;
-  const tightTop = textTop - tightHeight - 2;
-  const tight = compact && fullTop < minTop && tightTop >= minTop;
-  const height = tight ? tightHeight : defaultHeight;
-  const preferredY = textTop - height / 2 - (tight ? 2 : 10);
-  const fallbackY = textBottom + height / 2 + 10;
-  const y = preferredY - height / 2 >= minTop
-    ? preferredY
-    : Math.min(viewport.height - height / 2 - margin, fallbackY);
-  const x = Math.max(width / 2 + margin, Math.min(viewport.width - width / 2 - margin, textPanel.x));
-  const labelVisible = !tight;
-
-  return {
-    panel: {
-      x,
-      y,
-      width,
-      height
-    },
-    label: {
-      x: x - width / 2 + 16,
-      y: y - height / 2 + 8,
-      fontSize: compact ? 8 : 9,
-      visible: labelVisible
-    },
-    text: {
-      x: x - width / 2 + 16,
-      y: y - height / 2 + (tight ? 7 : compact ? 24 : 23),
-      wordWrapWidth: tight ? width - 24 : width - 32,
-      fontSize: tight ? 11 : compact ? 12 : 13
-    }
-  };
-}
-
 export function computePetSpeechLayout(input: PetSpeechLayoutInput): WienerSpeechLayout {
   const shortPhone = input.compact && input.viewport.height < SHORT_PHONE_HEIGHT;
   const shortLandscape = !input.compact && usesShortLandscapeReviewLayout(input.viewport);
   const reviewClearance = input.compact ? COMPACT_REVIEW_SPEECH_CLEARANCE_PX : REVIEW_SPEECH_CLEARANCE_PX;
+  const pet = rectEdges(input.petBounds);
   const reviewHeight = input.reviewSpeech
     ? input.compact
       ? shortPhone ? 64 : 76
       : shortLandscape ? 64 : 86
     : input.compact ? 58 : 64;
+  const compactReviewWidth = Math.max(
+    196,
+    Math.min(
+      input.viewport.width - 104,
+      pet.left - COMPACT_REVIEW_SPEECH_PET_CLEARANCE_PX - 14
+    )
+  );
   const baseWidth = input.reviewSpeech && input.compact
-    ? Math.min(input.viewport.width - 36, Math.max(240, input.viewport.width - 68))
+    ? Math.min(input.viewport.width - 36, compactReviewWidth)
     : Math.min(input.compact ? input.viewport.width - 128 : 390, Math.max(260, input.textPanel.width * 0.5));
-  const pet = rectEdges(input.petBounds);
   const preferredX = clamp(
-    pet.left - baseWidth / 2 - (input.compact ? 10 : 18),
+    pet.left - baseWidth / 2 - (input.compact ? COMPACT_REVIEW_SPEECH_PET_CLEARANCE_PX : 18),
     (input.compact ? 14 : 20) + baseWidth / 2,
     input.viewport.width - (input.compact ? 14 : 20) - baseWidth / 2
   );
@@ -157,7 +117,7 @@ export function computePetSpeechLayout(input: PetSpeechLayoutInput): WienerSpeec
     if (input.compact) {
       const controlBottom = input.resolveButton.y + input.resolveButton.height / 2;
       const controlsAboveText = controlBottom <= text.top;
-      const aboveTop = controlsAboveText ? controlBottom + reviewClearance : 112;
+      const aboveTop = controlsAboveText ? controlBottom + reviewClearance : petSpeechTopSafeY(input.compact);
       const aboveBottom = Math.min(text.top - reviewClearance, evidence.top - reviewClearance);
       if (aboveBottom - aboveTop >= reviewHeight) {
         return petSpeechLayout({
@@ -182,7 +142,7 @@ export function computePetSpeechLayout(input: PetSpeechLayoutInput): WienerSpeec
       }
     }
 
-    const topSafe = 112;
+    const topSafe = petSpeechTopSafeY(input.compact);
     if (shortLandscape) {
       const aboveTop = topSafe;
       const aboveBottom = text.top - reviewClearance;
@@ -241,7 +201,7 @@ export function computePetSpeechLayout(input: PetSpeechLayoutInput): WienerSpeec
   if (input.reviewSpeech) {
     const text = rectEdges(input.textPanel);
     const feedback = rectEdges(input.feedback);
-    const topSafe = input.compact ? 112 : 112;
+    const topSafe = petSpeechTopSafeY(input.compact);
     const controlBottom = input.resolveButton.y + input.resolveButton.height / 2;
     const controlsAboveText = controlBottom <= text.top;
     const aboveTop = input.compact && controlsAboveText ? controlBottom + reviewClearance : topSafe;
@@ -273,7 +233,7 @@ export function computePetSpeechLayout(input: PetSpeechLayoutInput): WienerSpeec
   if (!input.reviewSpeech && shortLandscape) {
     const text = rectEdges(input.textPanel);
     const activeClearance = 12;
-    const aboveTop = 112;
+    const aboveTop = petSpeechTopSafeY(input.compact);
     const aboveBottom = text.top - activeClearance;
     if (aboveBottom - aboveTop >= reviewHeight) {
       return petSpeechLayout({
@@ -301,16 +261,28 @@ export function computePetSpeechLayout(input: PetSpeechLayoutInput): WienerSpeec
 
   const controlBottom = input.resolveButton.y + input.resolveButton.height / 2;
   const textTop = input.textPanel.y - input.textPanel.height / 2;
-  const preferredY = Math.max(112, input.petBounds.y - 20);
+  const topSafe = petSpeechTopSafeY(input.compact);
+  const preferredY = Math.max(topSafe, input.petBounds.y - 20);
   const controlsAboveText = controlBottom <= textTop;
-  const minY = input.compact && controlsAboveText ? controlBottom + 8 + reviewHeight / 2 : 112 + reviewHeight / 2;
+  const minY = input.compact && controlsAboveText ? controlBottom + 8 + reviewHeight / 2 : topSafe + reviewHeight / 2;
   const feedbackTop = input.feedback.y - input.feedback.height / 2;
   const maxY = input.compact
     ? textTop - 8 - reviewHeight / 2
     : Math.min(input.viewport.height - reviewHeight / 2 - 16, feedbackTop - 14 - reviewHeight / 2);
-  const y = maxY >= minY
+  const initialY = maxY >= minY
     ? clamp(preferredY, minY, maxY)
     : input.compact ? minY : preferredY;
+  const y = input.activeTimerRect && maxY >= minY
+    ? speechYClearOfActiveTimer({
+        x: preferredX,
+        y: initialY,
+        width: baseWidth,
+        height: reviewHeight,
+        minY,
+        maxY,
+        timer: input.activeTimerRect
+      })
+    : initialY;
 
   return petSpeechLayout({
     x: preferredX,
@@ -319,6 +291,50 @@ export function computePetSpeechLayout(input: PetSpeechLayoutInput): WienerSpeec
     height: reviewHeight,
     compact: input.compact
   });
+}
+
+function speechYClearOfActiveTimer(input: {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  minY: number;
+  maxY: number;
+  timer: LayoutRect;
+}): number {
+  const speech = rectEdges({ x: input.x, y: input.y, width: input.width, height: input.height });
+  const timer = rectEdges(input.timer);
+  const horizontalOverlap = speech.left < timer.right && speech.right > timer.left;
+  const verticalOverlap = speech.top < timer.bottom && speech.bottom > timer.top;
+  if (!horizontalOverlap || !verticalOverlap) {
+    return input.y;
+  }
+
+  const halfHeight = input.height / 2;
+  const aboveMaxY = Math.min(
+    input.maxY,
+    timer.top - ACTIVE_PET_SPEECH_TIMER_CLEARANCE_PX - halfHeight
+  );
+  const belowMinY = Math.max(
+    input.minY,
+    timer.bottom + ACTIVE_PET_SPEECH_TIMER_CLEARANCE_PX + halfHeight
+  );
+  const candidates: number[] = [];
+  if (aboveMaxY >= input.minY) {
+    candidates.push(clamp(input.y, input.minY, aboveMaxY));
+  }
+  if (belowMinY <= input.maxY) {
+    candidates.push(clamp(input.y, belowMinY, input.maxY));
+  }
+
+  if (candidates.length === 0) {
+    return input.y;
+  }
+
+  return candidates.slice(1).reduce(
+    (nearest, candidate) => Math.abs(candidate - input.y) < Math.abs(nearest - input.y) ? candidate : nearest,
+    candidates[0]
+  );
 }
 
 function petSpeechLayout(input: {
@@ -335,12 +351,6 @@ function petSpeechLayout(input: {
       width: input.width,
       height: input.height
     },
-    label: {
-      x: input.x - input.width / 2 + 18,
-      y: input.y - input.height / 2 + 10,
-      fontSize: input.compact ? 8 : 9,
-      visible: false
-    },
     text: {
       x: input.x - input.width / 2 + 18,
       y: input.y - input.height / 2 + 14,
@@ -348,6 +358,10 @@ function petSpeechLayout(input: {
       fontSize: input.compact ? 12 : 13
     }
   };
+}
+
+function petSpeechTopSafeY(compact: boolean): number {
+  return compact ? COMPACT_PET_SPEECH_TOP_SAFE_Y : PET_SPEECH_TOP_SAFE_Y;
 }
 
 function rectEdges(rect: LayoutRect) {

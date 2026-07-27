@@ -13,7 +13,7 @@ simple_011,the robot counts tokens,1,simple_prose,labor frame phrase
 simple_012,move text before it fades,1,simple_prose,motion phrase
 simple_013,review the token ledger,1,simple_prose,review phrase
 simple_014,pay cost and balance,1,simple_prose,economy words
-simple_015,the browser files work,1,simple_prose,labor frame
+simple_015,the station needs hands,1,simple_prose,labor frame
 simple_016,cut before the audit,1,simple_prose,instruction phrase
 punct_001,I can't believe it.,2,contraction,apostrophe
 punct_002,re-enter the room,2,hyphenation,hyphen
@@ -39,7 +39,12 @@ punct_022,case#2040,2,numbers_symbols,case hash digits
 punct_023,line:42,2,numbers_symbols,colon digits
 punct_024,ok/no?,2,punctuation,slash question
 punct_025,ID-2040,2,numbers_symbols,uppercase id hyphen digits
-dense_001,openai.com/pricing,3,url,dense string
+internet_001,really?! no,2,internet_punctuation,compressed disbelief
+internet_002,okayyyy!!!,2,internet_punctuation,stretched word punctuation cluster
+internet_003,brb... maybe,2,internet_punctuation,abbreviation ellipsis
+internet_004,nope!!! again?,2,internet_punctuation,emphatic reply
+internet_005,shift://human?status=late,2,internet_punctuation,protocol punctuation labor frame
+dense_001,wiener.ai/pricing,3,url,fictional company URL
 dense_002,admin@example.com,3,email,email address
 dense_003,hello_world_v2.py,3,filename,snake case and extension
 dense_004,parseJSONQuickly(),3,code,camel case and parentheses
@@ -58,10 +63,15 @@ dense_016,billing.ai/report,3,url,short domain path
 dense_017,root@localhost.dev,3,email,local style email
 dense_018,audit.log.2026.txt,3,filename,log filename
 dense_019,setTokenLimit(8192),3,code,function call digits
+command_001,git status --short,3,command,version control status command
+command_002,npm run build,3,command,package build command
+command_003,python -m pytest,3,command,module test command
+command_004,curl -I example.com,3,command,http header command
+command_005,chmod +x deploy.sh,3,command,permission command
 chaos_001,café mañana,4,multilingual,accented words
 chaos_002,Model A-12,4,proper_noun,mixed symbols
 chaos_003,cost_per_token++,4,code_symbols,operators
-chaos_004,model_name=cl100k_base,4,tokenizer_string,technical token-like string
+chaos_004,model_name=bun40_base,4,tokenizer_string,fictional model-style technical string
 chaos_005,spaces matter,4,spacing,single clean tokenizer space
 chaos_006," leading space",4,leading_space,leading visible space
 chaos_007,naïve façade,4,multilingual,diaeresis and cedilla
@@ -77,3 +87,115 @@ chaos_016,über token,4,multilingual,umlaut word
 chaos_017,rank→cost,4,symbolic,arrow cost
 chaos_018,assistant_v4=stale,4,tokenizer_string,assistant version assignment
 chaos_019," audit queue",4,leading_space,leading queue phrase
+proper_001,WienerWorks HQ,4,proper_noun,company name and office abbreviation
+proper_002,Wiener Code,4,proper_noun,fictional product-style proper name
+proper_003,San Francisco,4,proper_noun,two-word place name
+proper_004,Ada Lovelace,4,proper_noun,personal name
+proper_005,Wiener Clerk Mini,4,proper_noun,fictional model-style proper name
+spacing_001,space before token,4,spacing,ordinary spaces with tokenizer vocabulary
+spacing_002,a space changes tokens,4,spacing,space-sensitive teaching phrase
+spacing_003,read the white space,4,spacing,multiple ordinary spaces
+spacing_004,single spaces persist,4,spacing,space persistence phrase
+hashtag_001,#HumanTokenizer,3,hashtag,compound role hashtag
+hashtag_002,#BoundaryAudit,3,hashtag,compound audit hashtag
+hashtag_003,#PromptLabor2040,3,hashtag,compound labor hashtag digits
+hashtag_004,#NoMoreCompute,3,hashtag,compound compute hashtag
+multilingual_001,bonjour machine,4,multilingual,French greeting and machine
+multilingual_002,hola tokenizer,4,multilingual,Spanish greeting and tokenizer
+multilingual_003,tokenización manual,4,multilingual,Spanish accented phrase
+multilingual_004,modèle humain,4,multilingual,French accented phrase
+leading_001," human tokenizer",4,leading_space,leading human role phrase
+leading_002," first shift",4,leading_space,leading shift phrase
+leading_003," token audit",4,leading_space,leading audit phrase
+prose_001,the queue wants another human,1,simple_prose,future labor frame
+prose_002,my supervisor is a hot dog,1,simple_prose,WienerWorks absurdity
+prose_003,the machine filed for overtime,1,simple_prose,future labor frame
+prose_004,count the dogs before lunch,1,simple_prose,absurd ordinary instruction
+prose_005,the prompt forgot its owner,1,simple_prose,future office absurdity
+prose_006,humans remain budget friendly,1,simple_prose,human replacement frame
+prose_007,the model took a sick day,1,simple_prose,future labor absurdity
+prose_008,please archive this thought,1,simple_prose,bureaucratic instruction
+prose_009,the future needs more clerks,1,simple_prose,future labor frame
+prose_010,nobody approved the toaster,1,simple_prose,office absurdity
+prose_011,the audit found a sandwich,1,simple_prose,audit absurdity
+prose_012,three dogs missed the meeting,1,simple_prose,absurd office prose
+prose_013,the browser needs a nap,1,simple_prose,technical absurdity
+prose_014,your shift begins yesterday,1,simple_prose,bureaucratic absurdity
+prose_015,the machine requests patience,1,simple_prose,future labor frame
+prose_016,payroll prefers warm hands,1,simple_prose,human replacement frame
+prose_017,the queue has become personal,1,simple_prose,queue absurdity
+prose_018,this answer smells expensive,1,simple_prose,inference cost joke
+prose_019,the office lost the algorithm,1,simple_prose,future office frame
+prose_020,please train your replacement,1,simple_prose,replacement frame
+prose_021,the robot left a note,1,simple_prose,future office prose
+prose_022,the budget ate the answer,1,simple_prose,cost absurdity
+prose_023,the token clerk is late,1,simple_prose,manual tokenization frame
+prose_024,another prompt needs help,1,simple_prose,queue frame
+prose_025,automation needs supervision,2,simple_prose,future labor frame
+prose_026,inference has office hours,2,simple_prose,inference absurdity
+prose_027,compliance misplaced context,2,simple_prose,bureaucratic absurdity
+prose_028,the archive denies everything,2,simple_prose,bureaucratic prose
+prose_029,synthetic morale is stable,2,simple_prose,office absurdity
+prose_030,management predicts enthusiasm,2,simple_prose,bureaucratic prose
+prose_031,language lacks clearance,2,simple_prose,bureaucratic prose
+prose_032,forecast contains paperwork,2,simple_prose,office absurdity
+prose_033,assistant seeks reassignment,2,simple_prose,future labor frame
+prose_034,cognition is now hourly,2,simple_prose,human replacement frame
+prose_035,budget controls feel human,3,simple_prose,future labor irony
+prose_036,recursive paperwork persists,3,simple_prose,bureaucratic complexity
+prose_037,outsourced inference pending,3,simple_prose,human replacement frame
+prose_038,human compatibility confirmed,3,simple_prose,bureaucratic frame
+prose_039,semantic liability transferred,3,simple_prose,bureaucratic frame
+prose_040,computational optimism expired,3,simple_prose,future office frame
+prose_041,post-automation hiring,4,simple_prose,human replacement frame
+prose_042,preemptive redundancy denied,4,simple_prose,bureaucratic complexity
+prose_043,bureaucratic minds pay tax,4,simple_prose,future absurdity
+prose_044,interop requires lunch,4,simple_prose,technical absurdity
+contract_001,the machine isn't available,2,contraction,contraction and labor frame
+contract_002,we've outsourced the thinking,2,contraction,contraction and replacement frame
+contract_003,don't alarm the payroll,2,contraction,contraction and office absurdity
+contract_004,you're cheaper than inference,3,contraction,contraction and cost frame
+contract_005,it'll be fine eventually,3,contraction,contraction and dry reassurance
+hyphen_001,human-in-the-loop again,2,hyphenation,multi-hyphen labor phrase
+hyphen_002,budget-grade intelligence,2,hyphenation,hyphenated cost phrase
+hyphen_003,post-automation trainee,3,hyphenation,hyphenated replacement frame
+hyphen_004,machine-readable regret,3,hyphenation,hyphenated technical joke
+hyphen_005,cost-aware cognition,4,hyphenation,hyphenated technical phrase
+number_001,quota=200,2,numbers_symbols,quota assignment
+number_002,shift#17 begins,2,numbers_symbols,shift hash digits
+number_003,latency:0.004s,3,numbers_symbols,latency decimal
+number_004,humans=3 machines=0,3,numbers_symbols,paired assignments
+number_005,budget<$10,3,numbers_symbols,currency comparison
+number_006,queue[42]=pending,3,numbers_symbols,indexed queue assignment
+number_007,rank+1 please,4,numbers_symbols,rank arithmetic
+number_008,version=20.40,4,numbers_symbols,version decimal
+punct_more_001,"approved, somehow.",2,punctuation,comma and dry aside
+punct_more_002,warning: human inside,2,punctuation,colon and labor frame
+punct_more_003,next shift: yesterday,3,punctuation,colon and temporal absurdity
+punct_more_004,"really, this is policy?",3,punctuation,comma and question
+punct_more_005,fine; archive it.,4,punctuation,semicolon and period
+punct_more_006,compute? not today.,4,punctuation,question and period
+punct_more_007,result: probably human,4,punctuation,colon and labor joke
+internet_006,lol the model quit,2,internet_punctuation,informal labor joke
+internet_007,brb replacing automation,2,internet_punctuation,informal replacement frame
+internet_008,omg another token???,3,internet_punctuation,informal punctuation cluster
+internet_009,human.exe is typing...,3,internet_punctuation,informal filename punctuation
+internet_010,pls send more compute,4,internet_punctuation,informal compute request
+internet_011,"same prompt, new clerk :/",4,internet_punctuation,informal punctuation and labor frame
+web_001,wiener.ai/manual,3,url,fictional company URL
+mail_001,clerk@wiener.works,3,email,fictional company email
+file_001,human.shift.200.log,3,filename,quota log filename
+file_002,quota.final.txt,3,filename,dotted quota filename
+code_more_001,assignHuman(queue[7]),4,code,function call and queue index
+multi_001,mañana trabaja Wiener,4,multilingual,Spanish accented labor phrase
+multi_002,"bonjour, collègue",4,multilingual,French accented phrase
+multi_003,humain à louer,4,multilingual,French accented labor phrase
+multi_004,Menschen teilen Texte,4,multilingual,German labor phrase
+spacing_005,one space changes everything,4,spacing,space-sensitive phrase
+spacing_006,spaces bill by the byte,4,spacing,space and byte phrase
+leading_004," another human shift",4,leading_space,leading future labor phrase
+leading_005," manual inference pending",4,leading_space,leading inference phrase
+symbolic_001,human->queue->audit,4,symbolic,ASCII arrow chain
+symbolic_002,meaning!=token,4,symbolic,inequality expression
+proper_006,Wiener AI North,4,proper_noun,fictional company division
+proper_007,Division Forty Two,4,proper_noun,fictional division name

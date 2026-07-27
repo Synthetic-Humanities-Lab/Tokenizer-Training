@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  computeResultMetricTypography,
   computeResultsLayout,
   RESULT_LEDGER_LINE_COUNT,
+  RESULT_METRIC_LABEL_FONT_SIZE,
   resultLedgerRect,
   resultLedgerRowHeight,
   type ResultsLayout
@@ -87,6 +89,24 @@ function estimatedTextBlock(x: number, y: number, text: string, fontSize: number
   };
 }
 
+const LONGEST_RANK = "Temporary Sequence Specialist";
+
+function expectRankTypographyFits(layout: ResultsLayout): void {
+  const rankCard = layout.metricCards.at(-1);
+  expect(rankCard).toBeDefined();
+  if (!rankCard) {
+    return;
+  }
+
+  const typography = computeResultMetricTypography(layout, rankCard, LONGEST_RANK, { maxValueLines: 2 });
+  const estimatedValueHeight = typography.estimatedValueLineCount * typography.valueFontSize * 1.15;
+
+  expect(typography.labelFontSize).toBeGreaterThanOrEqual(11);
+  expect(typography.labelFontSize).toBe(RESULT_METRIC_LABEL_FONT_SIZE);
+  expect(typography.estimatedValueLineCount).toBeLessThanOrEqual(2);
+  expect(typography.valueTopOffset + estimatedValueHeight).toBeLessThanOrEqual(rankCard.height - 2);
+}
+
 describe("computeResultsLayout", () => {
   it("keeps portrait termination actions inside the results panel", () => {
     const layout = computeResultsLayout(390, 844);
@@ -94,7 +114,6 @@ describe("computeResultsLayout", () => {
 
     expect(layout.compact).toBe(true);
     expect(withinViewport(layout.panel, 390, 844)).toBe(true);
-    expect(contains(layout.panel, layout.chrome)).toBe(true);
     expect(contains(layout.panel, layout.copyButton)).toBe(true);
     expect(contains(layout.panel, layout.againButton)).toBe(true);
     expect(contains(layout.panel, layout.menuButton)).toBe(true);
@@ -105,6 +124,9 @@ describe("computeResultsLayout", () => {
     expect(overlaps(layout.againButton, layout.menuButton)).toBe(false);
     expect(overlaps(metrics, layout.copyButton)).toBe(false);
     expect(edges(layout.copyButton).top).toBeGreaterThan(edges(metrics).bottom + 8);
+    expect(layout.metricCards).toHaveLength(5);
+    expect(layout.metricCards[4]?.width).toBeGreaterThan(layout.metricCards[0]?.width ?? 0);
+    expect(layout.metricCards[4]?.x).toBe(layout.panel.x);
   });
 
   it("keeps narrow portrait metric cards comfortably inside the panel", () => {
@@ -115,8 +137,10 @@ describe("computeResultsLayout", () => {
     expect(contains(layout.panel, layout.copyButton)).toBe(true);
     expect(contains(layout.panel, layout.againButton)).toBe(true);
     expect(contains(layout.panel, layout.menuButton)).toBe(true);
-    expect(layout.metricCards).toHaveLength(9);
+    expect(layout.metricCards).toHaveLength(5);
     expect(contains(layout.panel, metrics)).toBe(true);
+    expect(layout.metricCards[4]?.width).toBeGreaterThanOrEqual(layout.panel.width - 48);
+    expect(layout.metricCards[4]?.x).toBe(layout.panel.x);
     expect(layout.againButton.width).toBeLessThanOrEqual(layout.panel.width - 48);
     expect(layout.copyButton.width).toBe(layout.againButton.width);
     expect(layout.menuButton.width).toBe(layout.againButton.width);
@@ -125,31 +149,81 @@ describe("computeResultsLayout", () => {
     expect(edges(layout.copyButton).top).toBeGreaterThan(edges(metrics).bottom + 8);
   });
 
-  it("keeps small-phone chrome, title, summary, and compact ledger text within the panel", () => {
+  it("uses a larger two-by-two compact grid when budget results expose four metrics", () => {
+    const defaultLayout = computeResultsLayout(320, 568);
+    const layout = computeResultsLayout(320, 568, undefined, { metricCount: 4 });
+    const metrics = metricBlock(layout);
+
+    expect(layout.metricCards).toHaveLength(4);
+    expect(contains(layout.panel, metrics)).toBe(true);
+    expect(layout.metricCards[0]?.height).toBeGreaterThan(defaultLayout.metricCards[0]?.height ?? 0);
+    expect(layout.metricCards[3]?.width).toBe(layout.metricCards[0]?.width);
+    expect(layout.metricCards[3]?.x).toBeGreaterThan(layout.panel.x);
+    expect(layout.metricCards[0]?.y).toBe(layout.metricCards[1]?.y);
+    expect(layout.metricCards[2]?.y).toBe(layout.metricCards[3]?.y);
+    expectRankTypographyFits(layout);
+    expect(overlaps(metrics, layout.copyButton)).toBe(false);
+    expect(edges(layout.copyButton).top).toBeGreaterThan(edges(metrics).bottom + 8);
+  });
+
+  it.each([
+    { label: "small phone", width: 320, height: 568 },
+    { label: "short standard phone", width: 368, height: 552 }
+  ])("keeps accessible five-card metrics clear on $label", ({ width, height }) => {
+    const layout = computeResultsLayout(width, height, undefined, { metricCount: 5 });
+    const metrics = metricBlock(layout);
+
+    expect(layout.metricCards).toHaveLength(5);
+    expect(layout.metricCards.every((card) => card.height >= 34)).toBe(true);
+    expect(contains(layout.panel, metrics)).toBe(true);
+    expect(edges(layout.copyButton).top).toBeGreaterThan(edges(metrics).bottom + 8);
+    expectRankTypographyFits(layout);
+  });
+
+  it("keeps both result variants inside a 390x844 safe area", () => {
+    const width = 390;
+    const height = 844;
+    const safeArea = { top: 59, right: 0, bottom: 34, left: 0 };
+
+    for (const metricCount of [4, 5]) {
+      const layout = computeResultsLayout(width, height, safeArea, { metricCount });
+      const panelEdges = edges(layout.panel);
+      const metrics = metricBlock(layout);
+
+      expect(panelEdges.top).toBeGreaterThanOrEqual(safeArea.top);
+      expect(panelEdges.bottom).toBeLessThanOrEqual(height - safeArea.bottom);
+      expect(contains(layout.panel, metrics)).toBe(true);
+      expect(contains(layout.panel, layout.copyButton)).toBe(true);
+      expect(contains(layout.panel, layout.againButton)).toBe(true);
+      expect(contains(layout.panel, layout.menuButton)).toBe(true);
+      expect(edges(layout.copyButton).top).toBeGreaterThan(edges(metrics).bottom + 8);
+      expectRankTypographyFits(layout);
+    }
+  });
+
+  it("keeps small-phone title, summary, and compact ledger text within the panel", () => {
     const width = 320;
     const height = 568;
     const layout = computeResultsLayout(width, height);
     const ledgerText = new SessionFlowSystem().compactResultLedgerText({
       runId: "mtt-protocol-qa",
       rounds: 7,
-      balance: 12.34,
+      creditBalance: 12,
       accuracy: 0.625,
       totalCorrectCuts: 5,
       totalMissedCuts: 3,
       totalFalseCuts: 2,
       startSource: "handoff-screen",
       inputModality: "touch",
-      totalPay: 21.5,
-      totalCost: 49.75,
-      costEfficiency: 0.43,
+      totalVerifiedCredits: 21,
+      totalReworkCredits: 49,
+      creditEfficiency: 0.43,
       rank: "Junior Boundary Clerk",
       bestRounds: 7,
       bestRank: "Junior Boundary Clerk"
     });
     const textAvailableWidth = resultLedgerRect(layout, ledgerText.split("\n").length).width - 28;
 
-    expect(layout.chromeText.text).toBe("wienerworks://audit");
-    expect(estimatedTextWidth(layout.chromeText.text, layout.chromeText.fontSize)).toBeLessThan(layout.chrome.width - 18);
     expect(layout.title.fontSize).toBeLessThanOrEqual(24);
     expect(layout.summary.fontSize).toBeLessThan(17);
     expect(ledgerText.split("\n")).toHaveLength(7);
@@ -174,21 +248,64 @@ describe("computeResultsLayout", () => {
     const title = estimatedTextBlock(
       layout.title.x,
       layout.title.y,
-      "Training Suspended",
+      "Token Credits Depleted",
       layout.title.fontSize,
       layout.title.wordWrapWidth
     );
     const summary = estimatedTextBlock(
       layout.summary.x,
       layout.summary.y,
-      "Session closed by operator request. WienerWorks preserved the usable portion and most of the causes.",
+      "Your account no longer contains enough Token Credits to correct your output. Training access revoked.",
       layout.summary.fontSize,
       layout.summary.wordWrapWidth
     );
 
     expect(overlaps(title, summary)).toBe(false);
     expect(edges(summary).top).toBeGreaterThan(edges(title).bottom + 6);
-    expect(edges(summary).bottom).toBeLessThan(edges(ledgerBlock(layout)).top);
+    expect(edges(summary).bottom).toBeLessThan(edges(metricBlock(layout)).top);
+  });
+
+  it.each([
+    { width: 320, height: 568 },
+    { width: 368, height: 552 }
+  ])("keeps compact result copy in one deliberate vertical group at $width x $height", ({ width, height }) => {
+    const variants = [
+      {
+        title: "Training Suspended",
+        summary:
+          "Session closed by operator request. WienerWorks preserved the usable portion and most of the causes. Review the Token Log to learn which boundaries you missed before resuming."
+      },
+      {
+        title: "Token Credits Depleted",
+        summary:
+          "Your account no longer contains enough Token Credits to correct your output. Training access revoked. Review the Token Log to learn which boundaries you missed before retraining."
+      }
+    ];
+
+    for (const variant of variants) {
+      const metricCount = variant.title === "Token Credits Depleted" ? 4 : 5;
+      const layout = computeResultsLayout(width, height, undefined, { metricCount });
+      const title = estimatedTextBlock(
+        layout.title.x,
+        layout.title.y,
+        variant.title,
+        layout.title.fontSize,
+        layout.title.wordWrapWidth
+      );
+      const summary = estimatedTextBlock(
+        layout.summary.x,
+        layout.summary.y,
+        variant.summary,
+        layout.summary.fontSize,
+        layout.summary.wordWrapWidth
+      );
+      const titleToSummaryGap = edges(summary).top - edges(title).bottom;
+      const summaryToMetricsGap = edges(metricBlock(layout)).top - edges(summary).bottom;
+
+      expect(titleToSummaryGap).toBeGreaterThan(6);
+      expect(titleToSummaryGap).toBeLessThan(40);
+      expect(summaryToMetricsGap).toBeGreaterThan(8);
+    }
   });
 
   it("keeps desktop results chrome, metric cards, and choices aligned", () => {
@@ -198,11 +315,10 @@ describe("computeResultsLayout", () => {
     expect(layout.compact).toBe(false);
     expect(layout.panel.width).toBe(680);
     expect(layout.againButton.width).toBe(280);
-    expect(contains(layout.panel, layout.chrome)).toBe(true);
     expect(contains(layout.panel, layout.copyButton)).toBe(true);
     expect(contains(layout.panel, layout.againButton)).toBe(true);
     expect(contains(layout.panel, layout.menuButton)).toBe(true);
-    expect(layout.metricCards).toHaveLength(9);
+    expect(layout.metricCards).toHaveLength(5);
     expect(contains(layout.panel, metrics)).toBe(true);
     expect(layout.copyButton.x).toBe(layout.againButton.x);
     expect(layout.againButton.x).toBe(layout.menuButton.x);
@@ -210,5 +326,17 @@ describe("computeResultsLayout", () => {
     expect(layout.againButton.y).toBeLessThan(layout.menuButton.y);
     expect(overlaps(metrics, layout.copyButton)).toBe(false);
     expect(edges(layout.copyButton).top).toBeGreaterThan(edges(metrics).bottom + 8);
+    expectRankTypographyFits(layout);
+  });
+
+  it("keeps the four-card desktop budget treatment and longest rank bounded", () => {
+    const layout = computeResultsLayout(1280, 720, undefined, { metricCount: 4 });
+    const metrics = metricBlock(layout);
+
+    expect(layout.compact).toBe(false);
+    expect(layout.metricCards).toHaveLength(4);
+    expect(contains(layout.panel, metrics)).toBe(true);
+    expect(overlaps(metrics, layout.copyButton)).toBe(false);
+    expectRankTypographyFits(layout);
   });
 });

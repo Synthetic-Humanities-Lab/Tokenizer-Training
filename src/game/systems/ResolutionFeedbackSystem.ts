@@ -4,7 +4,7 @@ import type { HapticFeedbackCue } from "./HapticFeedbackSystem";
 export interface ResolutionAudioInput {
   missedCuts: number[];
   falseCuts: number[];
-  balance: number;
+  creditBalance: number;
 }
 
 export interface ResolutionVisualInput {
@@ -284,22 +284,16 @@ function compactLegendLabel(label: string): string {
 
 export class ResolutionFeedbackSystem {
   audioCues(input: ResolutionAudioInput): AudioCue[] {
-    const cues: AudioCue[] = ["resolve"];
-    if (input.missedCuts.length > 0) {
-      cues.push("miss");
-    }
-    if (input.falseCuts.length > 0) {
-      cues.push("falseCut");
-    }
-    cues.push(input.missedCuts.length === 0 && input.falseCuts.length === 0 ? "good" : "bad");
-    if (input.balance <= 10) {
+    const hasErrors = input.missedCuts.length > 0 || input.falseCuts.length > 0;
+    const cues: AudioCue[] = [hasErrors ? "bad" : "good"];
+    if (input.creditBalance <= 10) {
       cues.push("warning");
     }
     return cues;
   }
 
   hapticCue(input: ResolutionAudioInput): HapticFeedbackCue {
-    if (input.balance <= 10) {
+    if (input.creditBalance <= 10) {
       return "warning";
     }
 
@@ -346,9 +340,22 @@ export class ResolutionFeedbackSystem {
   }
 
   reviewAdvanceDelayMs(input: ResolutionReviewDelayInput): number {
-    const baseDelayMs = input.tutorialMode ? 4200 : 2800;
-    const maxDelayMs = input.finalTutorialRound ? 7600 : input.tutorialMode ? 6200 : 4200;
     const errorCount = input.missedCuts.length + input.falseCuts.length;
+    if (!input.tutorialMode) {
+      const tokenExtraMs = Math.max(0, input.tokenCount - 4) * (errorCount === 0 ? 45 : 70);
+      const longTextExtraMs = Math.max(0, input.textLength - 18) * (errorCount === 0 ? 8 : 12);
+      const denseExtraMs = DENSE_REVIEW_CATEGORIES.has(input.category) ? errorCount === 0 ? 100 : 160 : 0;
+      const complexityExtraMs = tokenExtraMs + longTextExtraMs + denseExtraMs;
+
+      if (errorCount === 0) {
+        return Math.min(1450, 1200 + complexityExtraMs);
+      }
+
+      return Math.min(3300, 2200 + complexityExtraMs + errorCount * 180);
+    }
+
+    const baseDelayMs = 4200;
+    const maxDelayMs = input.finalTutorialRound ? 7600 : 6200;
     const tokenExtraMs = Math.max(0, input.tokenCount - 4) * 140;
     const longTextExtraMs = Math.max(0, input.textLength - 18) * 30;
     const denseExtraMs = DENSE_REVIEW_CATEGORIES.has(input.category) ? 450 : 0;

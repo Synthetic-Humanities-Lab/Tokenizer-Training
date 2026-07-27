@@ -25,7 +25,7 @@ const DEFAULT_PROTOCOL = "http";
 const routeParams = [
   { label: "Controlled menu", params: { playtestReset: "1" } },
   { label: "Tutorial start", params: { mode: "tutorial", playtestReset: "1" } },
-  { label: "Endless start", params: { mode: "endless", playtestReset: "1" } },
+  { label: "Training start", params: { mode: "endless", playtestReset: "1" } },
   { label: "Handoff QA", params: { mode: "tutorial-complete", playtestReset: "1" } },
   { label: "Failed Tutorial QA", params: { mode: "tutorial-failed", playtestReset: "1" } },
   { label: "Results QA", params: { mode: "results", playtestReset: "1" } },

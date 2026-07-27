@@ -42,13 +42,10 @@ import {
 } from "../src/game/systems/ActiveCutFeedbackSystem";
 
 describe("shouldShowActiveCutLabels", () => {
-  it("shows active cut labels while the player has made a readable number of cuts", () => {
+  it("suppresses active cut labels so geometry is the only persistent cut evidence", () => {
     expect(ACTIVE_CUT_LABEL_LIMIT).toBeGreaterThan(0);
-    expect(shouldShowActiveCutLabels(0)).toBe(true);
-    expect(shouldShowActiveCutLabels(ACTIVE_CUT_LABEL_LIMIT)).toBe(true);
-  });
-
-  it("suppresses repeated CUT text once dense cutting would clutter the prompt", () => {
+    expect(shouldShowActiveCutLabels(0)).toBe(false);
+    expect(shouldShowActiveCutLabels(ACTIVE_CUT_LABEL_LIMIT)).toBe(false);
     expect(shouldShowActiveCutLabels(ACTIVE_CUT_LABEL_LIMIT + 1)).toBe(false);
     expect(shouldShowActiveCutLabels(14)).toBe(false);
   });
@@ -65,21 +62,20 @@ describe("shouldShowActiveCutLabels", () => {
   });
 
   it("normalizes invalid or fractional counts conservatively", () => {
-    expect(shouldShowActiveCutLabels(-3)).toBe(true);
-    expect(shouldShowActiveCutLabels(ACTIVE_CUT_LABEL_LIMIT + 0.9)).toBe(true);
+    expect(shouldShowActiveCutLabels(-3)).toBe(false);
+    expect(shouldShowActiveCutLabels(ACTIVE_CUT_LABEL_LIMIT + 0.9)).toBe(false);
   });
 
-  it("summarizes staged cuts without implying a quota or correctness", () => {
-    expect(activeCutStatusText(0)).toBe("NO CUTS");
-    expect(activeCutStatusText(3)).toBe("SEGMENTS STAGED: 3");
-    expect(activeCutStatusText(3.9)).toBe("SEGMENTS STAGED: 3");
-    expect(activeCutStatusText(-2)).toBe("NO CUTS");
+  it("keeps staged-cut state available without placing a count label in the playfield", () => {
+    expect(activeCutStatusText(0)).toBe("");
+    expect(activeCutStatusText(3)).toBe("");
+    expect(activeCutStatusText(3.9)).toBe("");
+    expect(activeCutStatusText(-2)).toBe("");
   });
 
-  it("uses a shorter staged-cut status on compact layouts without implying a quota", () => {
-    expect(activeCutStatusText(0, true)).toBe("NO CUTS");
-    expect(activeCutStatusText(3, true)).toBe("STAGED: 3");
-    expect(activeCutStatusText(3, true)).not.toContain("/");
+  it("keeps compact staged-cut state text-free", () => {
+    expect(activeCutStatusText(0, true)).toBe("");
+    expect(activeCutStatusText(3, true)).toBe("");
   });
 
   it("makes the staged-cut status readable and briefly emphatic after count changes", () => {
@@ -91,15 +87,15 @@ describe("shouldShowActiveCutLabels", () => {
 
     expect(ACTIVE_CUT_STATUS_PULSE_MS).toBeGreaterThanOrEqual(220);
     expect(ACTIVE_CUT_STATUS_PULSE_MS).toBeLessThanOrEqual(300);
-    expect(idle.fontSize).toBeGreaterThan(11);
-    expect(idle.fillAlpha).toBeLessThan(fresh.fillAlpha);
-    expect(fresh.pulse).toBe(1);
-    expect(fresh.fillAlpha).toBeGreaterThan(settling.fillAlpha);
-    expect(settling.fillAlpha).toBeGreaterThan(baseline.fillAlpha);
-    expect(fresh.strokeAlpha).toBeGreaterThan(baseline.strokeAlpha);
+    expect(idle.fontSize).toBe(1);
+    expect(idle.fillAlpha).toBe(0);
+    expect(fresh.pulse).toBe(0);
+    expect(fresh.fillAlpha).toBe(0);
+    expect(settling.fillAlpha).toBe(0);
+    expect(fresh.strokeAlpha).toBe(0);
     expect(baseline.pulse).toBe(0);
-    expect(compact.fontSize).toBeLessThanOrEqual(fresh.fontSize);
-    expect(compact.paddingX).toBeLessThan(fresh.paddingX);
+    expect(compact.fontSize).toBe(1);
+    expect(compact.paddingX).toBe(0);
   });
 
   it("decays staged-cut status pulse without changing committed cuts", () => {
@@ -110,7 +106,7 @@ describe("shouldShowActiveCutLabels", () => {
     expect(activeCutStatusPulseStrength(undefined)).toBe(0);
   });
 
-  it("summarizes first-cut response with temporary word badges instead of unexplained counters", () => {
+  it("keeps first-cut response metrics text-free while cut geometry remains available", () => {
     const snap = inputResponseBadgeState({
       firstCutLatencyMs: 32,
       lastCutAgeMs: 24,
@@ -164,29 +160,22 @@ describe("shouldShowActiveCutLabels", () => {
 
     expect(INPUT_RESPONSE_BADGE_MS).toBeGreaterThanOrEqual(560);
     expect(INPUT_RESPONSE_BADGE_MS).toBeLessThanOrEqual(680);
-    expect(snap?.text).toBe("SNAP");
+    expect(snap?.text).toBe("");
     expect(snap?.tone).toBe("snap");
-    expect(tracked?.text).toBe("TRACKED");
+    expect(tracked?.text).toBe("");
     expect(tracked?.tone).toBe("tracked");
-    expect(latched?.text).toBe("LATCHED");
+    expect(latched?.text).toBe("");
     expect(latched?.tone).toBe("latched");
-    expect(chained?.text).toBe("CHAINED");
+    expect(chained?.text).toBe("");
     expect(chained?.tone).toBe("chained");
-    expect(chainedGesture?.text).toBe("CHAINED");
+    expect(chainedGesture?.text).toBe("");
     expect(chainedGesture?.tone).toBe("chained");
-    expect(freshSingleCutAfterPriorChain?.text).toBe("SNAP");
+    expect(freshSingleCutAfterPriorChain?.text).toBe("");
     expect(freshSingleCutAfterPriorChain?.tone).toBe("snap");
-    expect(adjusted?.text).toBe("ADJUSTED");
+    expect(adjusted?.text).toBe("");
     expect(adjusted?.tone).toBe("adjusted");
-    expect(snap?.text).not.toMatch(/\d/);
-    expect(tracked?.text).not.toMatch(/\d/);
-    expect(latched?.text).not.toMatch(/\d/);
-    expect(chained?.text).not.toMatch(/\d/);
-    expect(chainedGesture?.text).not.toMatch(/\d/);
-    expect(freshSingleCutAfterPriorChain?.text).not.toMatch(/\d/);
-    expect(adjusted?.text).not.toMatch(/\d/);
-    expect(fading?.alpha).toBeGreaterThan(0);
-    expect(fading?.alpha).toBeLessThan(snap?.alpha ?? 0);
+    expect(snap?.alpha).toBe(0);
+    expect(fading?.alpha).toBe(0);
     expect(expired).toBeNull();
     expect(inputResponseBadgeState({ firstCutLatencyMs: null, lastCutAgeMs: null })).toBeNull();
   });
@@ -312,6 +301,7 @@ describe("shouldShowActiveCutLabels", () => {
     expect(nearSlot.correctionArrowAlpha).toBeGreaterThan(desktop.correctionArrowAlpha);
     expect(nearSlot.correctionArrowAlpha).toBeLessThan(0.7);
     expect(desktop.alpha).toBeLessThan(1);
+    expect(desktop.alpha).toBeLessThanOrEqual(0.6);
     expect(desktop.yLift).toBeGreaterThan(0);
     expect(compact.fontSize).toBeLessThanOrEqual(desktop.fontSize);
     expect(desktop.scuffLength).toBeGreaterThan(desktop.fontSize);

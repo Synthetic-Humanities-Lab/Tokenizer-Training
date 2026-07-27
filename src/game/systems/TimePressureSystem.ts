@@ -3,6 +3,7 @@ export interface TimeWarningInput {
   resolving: boolean;
   warningPlayed: boolean;
   timeRemainingMs: number;
+  durationMs?: number;
   thresholdMs?: number;
 }
 
@@ -32,10 +33,12 @@ export interface TimerPressureVisualState {
 }
 
 export const DEFAULT_TIME_WARNING_THRESHOLD_MS = 2000;
+export const MIN_TIME_WARNING_THRESHOLD_MS = 550;
+export const TIME_WARNING_DURATION_RATIO = 0.25;
 export const TIME_WARNING_PULSE_MS = 520;
 
 export function shouldPlayTimeWarning(input: TimeWarningInput): boolean {
-  const thresholdMs = input.thresholdMs ?? DEFAULT_TIME_WARNING_THRESHOLD_MS;
+  const thresholdMs = input.thresholdMs ?? timeWarningThresholdMs(input.durationMs);
 
   return !input.tutorialMode &&
     !input.resolving &&
@@ -46,7 +49,7 @@ export function shouldPlayTimeWarning(input: TimeWarningInput): boolean {
 
 export function timerPressureVisualState(input: TimerPressureVisualInput): TimerPressureVisualState {
   const ratio = normalizedTimeRatio(input.timeRemainingMs, input.durationMs);
-  const thresholdMs = input.thresholdMs ?? DEFAULT_TIME_WARNING_THRESHOLD_MS;
+  const thresholdMs = input.thresholdMs ?? timeWarningThresholdMs(input.durationMs);
   const warningActive = !input.tutorialMode &&
     !input.resolving &&
     !input.paused &&
@@ -72,6 +75,17 @@ export function timerPressureVisualState(input: TimerPressureVisualInput): Timer
     deadlineGateInsetRatio: warningActive ? 0.055 + urgency * 0.085 + pulseStrength * 0.018 : 0,
     deadlineGateStrokeWidth: warningActive ? 1.3 + urgency * 1.2 : 0
   };
+}
+
+export function timeWarningThresholdMs(durationMs?: number): number {
+  if (!Number.isFinite(durationMs) || (durationMs ?? 0) <= 0) {
+    return DEFAULT_TIME_WARNING_THRESHOLD_MS;
+  }
+
+  return Math.min(
+    DEFAULT_TIME_WARNING_THRESHOLD_MS,
+    Math.max(MIN_TIME_WARNING_THRESHOLD_MS, Math.round((durationMs ?? 0) * TIME_WARNING_DURATION_RATIO))
+  );
 }
 
 function normalizedTimeRatio(timeRemainingMs: number, durationMs: number): number {

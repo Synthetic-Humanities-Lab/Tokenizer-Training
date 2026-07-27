@@ -23,6 +23,47 @@ const qaRouteParams = [
     params: { mode: "tutorial", playtestReset: "1", qaViewport: "320x568", qaFreezeElapsedMs: "6200" }
   },
   {
+    label: "Desktop frozen endless active pinned fixture",
+    params: {
+      mode: "endless",
+      playtestReset: "1",
+      qaViewport: "1280x720",
+      qaFreezeElapsedMs: "6200",
+      qaFixtureId: "simple_001"
+    }
+  },
+  {
+    label: "Mobile-surface small-phone frozen tutorial active",
+    params: {
+      surface: "mobile",
+      mode: "tutorial",
+      playtestReset: "1",
+      qaViewport: "368x552",
+      qaFreezeElapsedMs: "6200"
+    }
+  },
+  {
+    label: "Mobile-surface small-phone frozen endless active pinned fixture",
+    params: {
+      surface: "mobile",
+      mode: "endless",
+      playtestReset: "1",
+      qaViewport: "368x552",
+      qaFreezeElapsedMs: "6200",
+      qaFixtureId: "simple_001"
+    }
+  },
+  {
+    label: "Mobile-surface portrait frozen tutorial active",
+    params: {
+      surface: "mobile",
+      mode: "tutorial",
+      playtestReset: "1",
+      qaViewport: "390x844",
+      qaFreezeElapsedMs: "6200"
+    }
+  },
+  {
     label: "Desktop handoff QA",
     params: { mode: "tutorial-complete", playtestReset: "1", qaViewport: "1280x720" }
   },
@@ -31,12 +72,51 @@ const qaRouteParams = [
     params: { mode: "tutorial-failed", playtestReset: "1", qaViewport: "1280x720" }
   },
   {
+    label: "Small-phone handoff QA",
+    params: { mode: "tutorial-complete", playtestReset: "1", qaViewport: "320x568" }
+  },
+  {
+    label: "Small-phone failed tutorial QA",
+    params: { mode: "tutorial-failed", playtestReset: "1", qaViewport: "320x568" }
+  },
+  {
+    label: "Mobile-surface tall handoff QA",
+    params: { surface: "mobile", mode: "tutorial-complete", playtestReset: "1", qaViewport: "368x800" }
+  },
+  {
+    label: "Mobile-surface tall failed tutorial QA",
+    params: { surface: "mobile", mode: "tutorial-failed", playtestReset: "1", qaViewport: "368x800" }
+  },
+  {
+    label: "Small-phone semantic Token Log QA",
+    params: {
+      mode: "token-log",
+      semanticUi: "visible",
+      playtestReset: "1",
+      qaViewport: "320x568"
+    }
+  },
+  {
+    label: "Mobile-surface tall semantic Token Log QA",
+    params: {
+      surface: "mobile",
+      mode: "token-log",
+      semanticUi: "visible",
+      playtestReset: "1",
+      qaViewport: "368x800"
+    }
+  },
+  {
     label: "Portrait protocol results QA",
     params: { mode: "protocol-results", playtestReset: "1", qaViewport: "390x844" }
   },
   {
     label: "Small-phone protocol results QA",
     params: { mode: "protocol-results", playtestReset: "1", qaViewport: "320x568" }
+  },
+  {
+    label: "Mobile-surface small-phone protocol results QA",
+    params: { surface: "mobile", mode: "protocol-results", playtestReset: "1", qaViewport: "368x552" }
   }
 ] as const;
 
@@ -80,6 +160,8 @@ export function renderPlaytestQaLinks(options: PlaytestLinkRenderOptions): strin
     "Capture notes:",
     "  qaViewport fixes the internal Phaser canvas size.",
     "  qaFreezeElapsedMs freezes active PlayScene motion for repeatable canvas capture.",
+    "  qaFixtureId pins endless/main-mode QA to one tokenizer fixture for browser/mobile comparison.",
+    "  qaHoldReview=1 can hold internal endless review only while capturing evidence.",
     "  These links still do not prove physical touch readability or player comprehension.",
     "",
     ...sections

@@ -43,23 +43,47 @@ describe("menuSceneQaSnapshot", () => {
       copy: menuCopy(),
       highScoreRounds: 6,
       highScoreRank: "BPE Adjacent",
-      soundButtonText: "Sound: Off"
+      muted: true,
+      storageQaState: {
+        storageAvailable: true,
+        highScoreStorageKey: "tokenizer-training.high-score",
+        mutedStorageKey: "tokenizer-training.muted",
+        highScoreRaw: "{\"rounds\":6}",
+        mutedRaw: "true",
+        highScorePresent: true,
+        mutedPresent: true,
+        legacyHighScorePresent: false,
+        legacyMutedPresent: false
+      }
     });
 
     expect(snapshot.scene).toBe("MenuScene");
     expect(snapshot.compact).toBe(true);
     expect(snapshot.state).toMatchObject({
       highScoreRounds: 6,
-      highScoreRank: "BPE Adjacent",
-      muted: true
+      highScoreRank: "Regex Intern",
+      muted: true,
+      storageAvailable: true,
+      highScoreStorageKey: "tokenizer-training.high-score",
+      mutedStorageKey: "tokenizer-training.muted",
+      highScoreRaw: "{\"rounds\":6}",
+      mutedRaw: "true",
+      highScorePresent: true,
+      mutedPresent: true
     });
     expect(element(snapshot.elements, "companyMark").text).toBe("Welcome to WienerWorks");
     expect(element(snapshot.elements, "title").text).toBe("Tokenizer Training");
-    expect(element(snapshot.elements, "premise").text).toContain("Predict token boundaries");
-    expect(element(snapshot.elements, "tutorialButton").text).toBe("Begin Tutorial");
-    expect(element(snapshot.elements, "endlessButton").text).toBe("Endless Training");
-    expect(element(snapshot.elements, "soundButton").text).toBe("Sound: Off");
-    expect(element(snapshot.elements, "bestRecord").text).toContain("BPE Adjacent / 6 rounds");
+    expect(snapshot.elements.find((entry) => entry.id === "moduleLabel")).toBeUndefined();
+    expect(snapshot.elements.find((entry) => entry.id === "premise")).toBeUndefined();
+    expect(snapshot.elements.find((entry) => entry.id === "mobileStatus")).toBeUndefined();
+    expect(element(snapshot.elements, "tutorialButton").text).toBe("Tutorial");
+    expect(element(snapshot.elements, "trainingButton").text).toBe("Training");
+    expect(element(snapshot.elements, "tokenLogButton").text).toBe("Token Log");
+    expect(element(snapshot.elements, "settingsButton").text).toBe("Settings");
+    expect(snapshot.elements.find((entry) => entry.id === "soundButton")).toBeUndefined();
+    expect(element(snapshot.elements, "bestRecord").text).toBe(
+      "BEST RANK\nRegex Intern\n6 rounds"
+    );
     expect(snapshot.elements.find((entry) => entry.id === "logo")).toBeUndefined();
     expect(snapshot.elements.find((entry) => entry.id === "workOrderPanel")).toBeUndefined();
     for (const entry of snapshot.elements) {
@@ -79,7 +103,7 @@ describe("menuSceneQaSnapshot", () => {
       copy: menuCopy(),
       highScoreRounds: 0,
       highScoreRank: "Regex Intern",
-      soundButtonText: "Sound: On"
+      muted: false
     });
 
     expect(snapshot.compact).toBe(false);
@@ -90,15 +114,47 @@ describe("menuSceneQaSnapshot", () => {
     });
     expect(element(snapshot.elements, "title").text).toBe("Tokenizer Training");
     expect(element(snapshot.elements, "companyMark").text).toBe("Welcome to WienerWorks");
-    expect(element(snapshot.elements, "moduleLabel").text).toContain("Human Segmentation Division");
+    expect(snapshot.elements.find((entry) => entry.id === "moduleLabel")).toBeUndefined();
+    expect(snapshot.elements.find((entry) => entry.id === "premise")).toBeUndefined();
     expect(snapshot.elements.find((entry) => entry.id === "chromeText")).toBeUndefined();
     expect(snapshot.elements.find((entry) => entry.id === "logo")).toBeUndefined();
     expect(snapshot.elements.find((entry) => entry.id === "workOrderPanel")).toBeUndefined();
-    expect(element(snapshot.elements, "soundButton").text).toBe("Sound: On");
+    expect(element(snapshot.elements, "trainingButton").text).toBe("Training");
+    expect(element(snapshot.elements, "tokenLogButton").text).toBe("Token Log");
+    expect(element(snapshot.elements, "settingsButton").text).toBe("Settings");
+    expect(snapshot.elements.find((entry) => entry.id === "soundButton")).toBeUndefined();
     for (const entry of snapshot.elements) {
       if (entry.rect) {
         expect(withinViewport(entry.rect, width, height), entry.id).toBe(true);
       }
     }
+  });
+
+  it("exposes the mobile best record line for browser/native cross-reference", () => {
+    const width = 368;
+    const height = 800;
+    const snapshot = menuSceneQaSnapshot({
+      width,
+      height,
+      layout: computeMenuLayout(width, height, { top: 59, right: 0, bottom: 34, left: 0 }, "mobile"),
+      copy: menuCopy(),
+      highScoreRounds: 7,
+      highScoreRank: "Regex Intern",
+      muted: false
+    });
+    const bestRecord = element(snapshot.elements, "bestRecord");
+
+    expect(snapshot.compact).toBe(true);
+    expect(snapshot.state).toMatchObject({
+      highScoreRounds: 7,
+      highScoreRank: "Regex Intern"
+    });
+    expect(bestRecord.visible).toBe(true);
+    expect(bestRecord.text).toBe("BEST RANK\nRegex Intern\n7 rounds");
+    expect(snapshot.elements.find((entry) => entry.id === "moduleLabel")).toBeUndefined();
+    expect(snapshot.elements.find((entry) => entry.id === "premise")).toBeUndefined();
+    expect(snapshot.elements.find((entry) => entry.id === "mobileStatus")).toBeUndefined();
+    expect(element(snapshot.elements, "settingsButton").text).toBe("Settings");
+    expect(withinViewport(bestRecord.rect!, width, height)).toBe(true);
   });
 });

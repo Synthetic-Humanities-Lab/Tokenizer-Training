@@ -1,5 +1,5 @@
 export type HudImpactTone = "gain" | "loss";
-export type HudImpactTarget = "balance" | "pay" | "cost";
+export type HudImpactTarget = "credits" | "verified" | "rework";
 
 export interface HudImpactVisualInput {
   net: number;
@@ -31,11 +31,11 @@ export function hudImpactTone(net: number): HudImpactTone | null {
 export function hudImpactTargets(net: number): HudImpactTarget[] {
   const tone = hudImpactTone(net);
   if (tone === "gain") {
-    return ["balance", "pay"];
+    return ["credits", "verified"];
   }
 
   if (tone === "loss") {
-    return ["balance", "cost"];
+    return ["credits", "rework"];
   }
 
   return [];
@@ -44,11 +44,11 @@ export function hudImpactTargets(net: number): HudImpactTarget[] {
 export function hudImpactLabelTarget(net: number): HudImpactTarget | null {
   const tone = hudImpactTone(net);
   if (tone === "gain") {
-    return "pay";
+    return "verified";
   }
 
   if (tone === "loss") {
-    return "cost";
+    return "rework";
   }
 
   return null;
@@ -60,7 +60,7 @@ export function hudImpactDeltaText(net: number): string {
   }
 
   const sign = net > 0 ? "+" : "-";
-  return `NET ${sign}$${Math.abs(net).toFixed(2)}`;
+  return `NET ${sign}${Math.abs(Math.trunc(net))} TC`;
 }
 
 export function hudImpactVisualState(input: HudImpactVisualInput): HudImpactVisualState {

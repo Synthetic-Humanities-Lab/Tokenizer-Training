@@ -107,7 +107,7 @@ firewall or VPN isolation is not blocking Vite before copying metadata.
 ## Deep Links
 
 - `?mode=tutorial` starts directly in Tutorial.
-- `?mode=endless` starts directly in Endless Training.
+- `?mode=endless` starts directly in Training.
 - `?mode=tutorial-complete` starts directly at the tutorial handoff screen for QA.
 - `?mode=results` starts directly at a zero-round results screen for QA.
 - `?mode=protocol-results` starts directly at a representative post-handoff

@@ -142,7 +142,11 @@ export function writeGameQaSnapshot(
     if (options.deferCanvasCapture === false) {
       writeGameQaCanvasCapture(projectedSnapshot, { documentRef, enabled: true });
     } else if (documentRef.hidden) {
-      globalThis.setTimeout(() => writeGameQaCanvasCapture(projectedSnapshot, { documentRef, enabled: true }), 0);
+      globalThis.setTimeout(() => {
+        if (gameQaSnapshotIsCurrent(projectedSnapshot, documentRef)) {
+          writeGameQaCanvasCapture(projectedSnapshot, { documentRef, enabled: true });
+        }
+      }, 0);
     } else {
       deferGameQaCanvasCapture(projectedSnapshot, { documentRef, enabled: true });
     }
@@ -215,13 +219,21 @@ export function deferGameQaCanvasCapture(
     return;
   }
 
-  const capture = () => writeGameQaCanvasCapture(snapshot, { documentRef, enabled: true });
+  const capture = () => {
+    if (gameQaSnapshotIsCurrent(snapshot, documentRef)) {
+      writeGameQaCanvasCapture(snapshot, { documentRef, enabled: true });
+    }
+  };
   if (typeof globalThis.requestAnimationFrame === "function") {
     globalThis.requestAnimationFrame(() => globalThis.requestAnimationFrame(capture));
     return;
   }
 
   globalThis.setTimeout(capture, 0);
+}
+
+function gameQaSnapshotIsCurrent(snapshot: GameQaSnapshot, documentRef: Document): boolean {
+  return documentRef.getElementById(GAME_QA_SNAPSHOT_ID)?.textContent === JSON.stringify(snapshot);
 }
 
 export function writeGameQaCanvasCapture(

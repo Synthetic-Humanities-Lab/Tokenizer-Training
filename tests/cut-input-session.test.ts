@@ -208,6 +208,65 @@ describe("CutInputSessionSystem", () => {
     expect(second.addedCuts).toEqual([]);
   });
 
+  it("allows following-word false cuts in free training mode after a space-run cut", () => {
+    const system = new CutInputSessionSystem();
+    const first = system.applySample({
+      bounds,
+      currentCuts: [],
+      point: { x: 90, y: 20 },
+      text: "the cat",
+      viewportWidth: 390,
+      spaceRunAssist: false
+    });
+    system.endGesture();
+    const second = system.applySample({
+      bounds,
+      currentCuts: first.cuts,
+      point: { x: 150, y: 20 },
+      text: "the cat",
+      viewportWidth: 390,
+      spaceRunAssist: false
+    });
+    system.endGesture();
+    const third = system.applySample({
+      bounds,
+      currentCuts: second.cuts,
+      point: { x: 181, y: 20 },
+      text: "the cat",
+      viewportWidth: 390,
+      spaceRunAssist: false
+    });
+
+    expect(first.cuts).toEqual([3]);
+    expect(second.cuts).toEqual([3, 5]);
+    expect(second.addedCuts).toEqual([5]);
+    expect(third.cuts).toEqual([3, 5, 6]);
+    expect(third.addedCuts).toEqual([6]);
+  });
+
+  it("keeps tutorial space-run assist as the default behavior", () => {
+    const system = new CutInputSessionSystem();
+    const first = system.applySample({
+      bounds,
+      currentCuts: [],
+      point: { x: 112, y: 20 },
+      text: "the cat",
+      viewportWidth: 390
+    });
+    system.endGesture();
+    const second = system.applySample({
+      bounds,
+      currentCuts: first.cuts,
+      point: { x: 150, y: 20 },
+      text: "the cat",
+      viewportWidth: 390
+    });
+
+    expect(first.cuts).toEqual([3]);
+    expect(second.cuts).toEqual([3]);
+    expect(second.addedCuts).toEqual([]);
+  });
+
   it("does not add farther following-word cuts after a space-run cut in the same gesture", () => {
     const system = new CutInputSessionSystem();
     const first = system.applySample({

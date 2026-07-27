@@ -57,8 +57,8 @@ intentional rather than broken.
 | --- | --- | --- | --- | --- |
 | First tutorial action without outside instruction | at least 4 of 5 |  |  |  |
 | Explains one non-word tokenization behavior after tutorial | at least 4 of 5 |  |  |  |
-| Starts Endless from tutorial-complete handoff without outside instruction | at least 4 of 5 |  |  |  |
-| Explains pay minus cost equals net after a review state | at least 4 of 5 |  |  |  |
+| Selects Start Training from tutorial-complete handoff without outside instruction | at least 4 of 5 |  |  |  |
+| Explains verified credits minus rework equals net credits after a review state | at least 4 of 5 |  |  |  |
 | No systematic swipe/snap mistrust | 5 of 5, no systematic complaint |  |  |  |
 | Mobile readability holds on real device | all mobile sessions |  |  |  |
 | Degraded AI labor frame noticed without being told | at least 3 of 5 |  |  |  |

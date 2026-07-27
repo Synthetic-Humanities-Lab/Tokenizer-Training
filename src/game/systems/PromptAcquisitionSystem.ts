@@ -1,9 +1,11 @@
 export const PROMPT_ACQUISITION_MS = 420;
+export const ENDLESS_PROMPT_ACQUISITION_MS = 240;
 
 export interface PromptAcquisitionVisualInput {
   elapsedMs?: number | null;
   compact?: boolean;
   tutorialMode?: boolean;
+  durationMs?: number;
 }
 
 export interface PromptAcquisitionVisualState {
@@ -28,8 +30,11 @@ export function promptAcquisitionVisualState(
     : Number.isFinite(input.elapsedMs)
       ? Math.max(0, input.elapsedMs ?? 0)
       : PROMPT_ACQUISITION_MS;
-  const progress = Math.max(0, Math.min(1, elapsedMs / PROMPT_ACQUISITION_MS));
-  const active = elapsedMs < PROMPT_ACQUISITION_MS;
+  const durationMs = Number.isFinite(input.durationMs)
+    ? Math.max(1, input.durationMs ?? PROMPT_ACQUISITION_MS)
+    : PROMPT_ACQUISITION_MS;
+  const progress = Math.max(0, Math.min(1, elapsedMs / durationMs));
+  const active = elapsedMs < durationMs;
   const attack = Math.min(1, progress / 0.22);
   const decay = Math.pow(1 - progress, 1.65);
 

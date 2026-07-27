@@ -225,8 +225,7 @@ export class SwipeCutSystem {
     const slots: BoundarySlot[] = [];
 
     for (let index = 1; index < displayLength; index += 1) {
-      const previousGrapheme = graphemes[index - 1];
-      if (isBlankLikeSeparator(previousGrapheme)) {
+      if (graphemes[index - 1] === " ") {
         continue;
       }
 
@@ -303,15 +302,8 @@ export class SwipeCutSystem {
 
   private playableBoundaryIndexes(text: string): number[] {
     const graphemes = splitGraphemes(text);
-    const indexes: number[] = [];
-
-    for (let index = 1; index < graphemes.length; index += 1) {
-      if (!isBlankLikeSeparator(graphemes[index - 1])) {
-        indexes.push(index);
-      }
-    }
-
-    return indexes;
+    return Array.from({ length: Math.max(0, graphemes.length - 1) }, (_, index) => index + 1)
+      .filter((index) => graphemes[index - 1] !== " ");
   }
 
   private boundaryXFromGraphemes(bounds: BoundaryBounds, graphemes: string[], boundary: number): number | null {
@@ -324,21 +316,17 @@ export class SwipeCutSystem {
   }
 
   private visualBoundaryOffset(graphemes: string[], boundary: number): number {
-    if (!isBlankLikeSeparator(graphemes[boundary])) {
+    if (graphemes[boundary] !== " ") {
       return boundary;
     }
 
     let runLength = 0;
-    for (let index = boundary; index < graphemes.length && graphemes[index] === graphemes[boundary]; index += 1) {
+    for (let index = boundary; index < graphemes.length && graphemes[index] === " "; index += 1) {
       runLength += 1;
     }
 
     return boundary + runLength / 2;
   }
-}
-
-function isBlankLikeSeparator(value: string | undefined): boolean {
-  return value === " " || value === "_";
 }
 
 function rangesOverlap(aMin: number, aMax: number, bMin: number, bMax: number): boolean {

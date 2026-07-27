@@ -1,3 +1,5 @@
+import { cutAuditAccuracy } from "./ScoringSystem";
+
 export interface TutorialCompleteCopy {
   status: TutorialCompleteStatus;
   chromePath: string;
@@ -26,7 +28,9 @@ export function tutorialPerformanceScore(performance: TutorialCompletePerformanc
 
   if (hasCutAudit) {
     const denominator = correctCuts + missedCuts + falseCuts;
-    return denominator > 0 ? correctCuts / denominator : normalizedAccuracy(performance.accuracy);
+    return denominator > 0
+      ? cutAuditAccuracy(correctCuts, missedCuts, falseCuts)
+      : normalizedAccuracy(performance.accuracy);
   }
 
   return normalizedAccuracy(performance.accuracy);
@@ -43,8 +47,7 @@ export function tutorialCompleteCopy(performance: TutorialCompletePerformance = 
       status,
       chromePath: "wienerworks://tutorial-failed",
       title: "Tutorial Failed",
-      summary:
-        "Boundary accuracy stayed below the readiness threshold. Retry the tutorial before the mistakes become payroll events. Wiener has preserved the evidence, unnecessarily well.",
+      summary: tutorialFailureSummary(performance),
       primaryAction: "Retry Tutorial",
       secondaryAction: "Return to Menu"
     };
@@ -55,10 +58,45 @@ export function tutorialCompleteCopy(performance: TutorialCompletePerformance = 
     chromePath: "wienerworks://tutorial-cleared",
     title: "Tutorial Cleared",
     summary:
-      "Training threshold met. WienerWorks now considers you safe enough for live cost exposure. This should not be confused with trust.",
-    primaryAction: "Start Endless Training",
+      "Qualification approved. WienerWorks permits you to begin Machine Replacement Training with a 40 TC account. Production speed remains theoretical.",
+    primaryAction: "Start Training",
     secondaryAction: "Return to Menu"
   };
+}
+
+function tutorialFailureSummary(performance: TutorialCompletePerformance): string {
+  const readinessPercent = Math.floor(TUTORIAL_PASS_ACCURACY * 100);
+  const accuracyPercent = Math.min(
+    Math.floor(tutorialPerformanceScore(performance) * 100),
+    readinessPercent - 1
+  );
+
+  return `Boundary accuracy: ${accuracyPercent}%. Readiness requires ${readinessPercent}%. ${tutorialFailureCorrection(performance)} Qualification denied. Payroll remains unconvinced.`;
+}
+
+function tutorialFailureCorrection(performance: TutorialCompletePerformance): string {
+  const correctCuts = finiteCount(performance.totalCorrectCuts);
+  const missedCuts = finiteCount(performance.totalMissedCuts);
+  const falseCuts = finiteCount(performance.totalFalseCuts);
+
+  if (
+    correctCuts === undefined ||
+    missedCuts === undefined ||
+    falseCuts === undefined ||
+    missedCuts + falseCuts === 0
+  ) {
+    return "Review the boundary evidence.";
+  }
+
+  if (missedCuts > falseCuts) {
+    return "Focus: recover missed boundaries.";
+  }
+
+  if (falseCuts > missedCuts) {
+    return "Focus: remove false cuts.";
+  }
+
+  return "Focus: missed boundaries and false cuts.";
 }
 
 function finiteCount(value: number | undefined): number | undefined {

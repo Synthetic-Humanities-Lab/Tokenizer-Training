@@ -3,6 +3,8 @@ import {
   HapticFeedbackSystem,
   MAX_CUT_CONFIRMATION_HAPTIC_PULSES,
   cutConfirmationHapticPattern,
+  hapticFeedbackCapability,
+  hapticFeedbackCapabilityLabel,
   hapticFeedbackPatterns,
   hapticModalityCanPlay,
   type HapticNavigatorLike
@@ -37,7 +39,7 @@ describe("HapticFeedbackSystem", () => {
 
   it("plays haptics through navigator vibration when available and enabled", () => {
     const vibrate = vi.fn(() => true);
-    const haptics = new HapticFeedbackSystem(false, { vibrate });
+    const haptics = new HapticFeedbackSystem(false, { navigator: { vibrate } });
 
     expect(haptics.play("cut", "touch")).toBe(true);
     expect(vibrate).toHaveBeenCalledWith(12);
@@ -51,7 +53,7 @@ describe("HapticFeedbackSystem", () => {
 
   it("plays cut bursts through the same modality and mute gates", () => {
     const vibrate = vi.fn(() => true);
-    const haptics = new HapticFeedbackSystem(false, { vibrate });
+    const haptics = new HapticFeedbackSystem(false, { navigator: { vibrate } });
 
     expect(haptics.playCutBurst(3, "touch")).toBe(true);
     expect(vibrate).toHaveBeenCalledWith([7, 12, 7, 12, 7]);
@@ -61,13 +63,13 @@ describe("HapticFeedbackSystem", () => {
 
   it("does not vibrate for mouse, unsupported browsers, muted output, or thrown browser errors", () => {
     const vibrate = vi.fn(() => true);
-    expect(new HapticFeedbackSystem(false, { vibrate }).play("cut", "mouse")).toBe(false);
+    expect(new HapticFeedbackSystem(false, { navigator: { vibrate } }).play("cut", "mouse")).toBe(false);
     expect(vibrate).not.toHaveBeenCalled();
 
     expect(new HapticFeedbackSystem(false, {}).play("cut", "touch")).toBe(false);
 
     const mutedNavigator = { vibrate: vi.fn(() => true) };
-    const muted = new HapticFeedbackSystem(true, mutedNavigator);
+    const muted = new HapticFeedbackSystem(true, { navigator: mutedNavigator });
     expect(muted.play("cut", "touch")).toBe(false);
     expect(mutedNavigator.vibrate).not.toHaveBeenCalled();
     muted.setMuted(false);
@@ -79,6 +81,49 @@ describe("HapticFeedbackSystem", () => {
         throw new Error("blocked");
       })
     };
-    expect(new HapticFeedbackSystem(false, throwingNavigator).play("miss", "touch")).toBe(false);
+    expect(new HapticFeedbackSystem(false, { navigator: throwingNavigator }).play("miss", "touch")).toBe(false);
+  });
+
+  it("prefers the bounded native cue bridge and sends capped cut repeats", () => {
+    const postMessage = vi.fn();
+    const vibrate = vi.fn(() => true);
+    const haptics = new HapticFeedbackSystem(false, {
+      navigator: { vibrate },
+      native: { available: true, handler: { postMessage } }
+    });
+
+    expect(haptics.play("warning", "touch")).toBe(true);
+    expect(postMessage).toHaveBeenCalledWith({ cue: "warning", repeats: 1 });
+    expect(haptics.playCutBurst(99, "touch")).toBe(true);
+    expect(postMessage).toHaveBeenCalledWith({ cue: "cut", repeats: 4 });
+    expect(vibrate).not.toHaveBeenCalled();
+  });
+
+  it("falls back to browser vibration if the native message handler rejects a cue", () => {
+    const vibrate = vi.fn(() => true);
+    const haptics = new HapticFeedbackSystem(false, {
+      navigator: { vibrate },
+      native: {
+        available: true,
+        handler: { postMessage: vi.fn(() => { throw new Error("bridge stopped"); }) }
+      }
+    });
+
+    expect(haptics.play("clear", "touch")).toBe(true);
+    expect(vibrate).toHaveBeenCalledWith([6, 14, 6]);
+  });
+
+  it("reports consumer-facing capability from the route that can actually play", () => {
+    const native = hapticFeedbackCapability({
+      native: { available: true, handler: { postMessage: vi.fn() } }
+    });
+    const browser = hapticFeedbackCapability({ navigator: { vibrate: vi.fn(() => true) } });
+    const unavailable = hapticFeedbackCapability({ native: { available: false, handler: { postMessage: vi.fn() } } });
+
+    expect(native).toEqual({ available: true, route: "native" });
+    expect(browser).toEqual({ available: true, route: "browser" });
+    expect(unavailable).toEqual({ available: false, route: "unavailable" });
+    expect(hapticFeedbackCapabilityLabel(native)).toBe("Haptics: Available");
+    expect(hapticFeedbackCapabilityLabel(unavailable)).toBe("Haptics: Unavailable");
   });
 });

@@ -8,6 +8,7 @@ import {
   validateWienerSpeechLinesV2,
   type WienerSpeechLinesV2
 } from "../src/game/systems/WienerSpeechLineSystem";
+import { WIENER_SPEECH_DEFAULT_MAX_LENGTH } from "../src/game/systems/WienerSpeechSystem";
 import type { RoundScoreResult } from "../src/game/systems/ScoringSystem";
 
 function scoreWith(overrides: Partial<RoundScoreResult> = {}): RoundScoreResult {
@@ -16,9 +17,11 @@ function scoreWith(overrides: Partial<RoundScoreResult> = {}): RoundScoreResult 
     missedCuts: [],
     falseCuts: [],
     accuracy: 1,
-    pay: 2,
-    companyCost: 0,
-    net: 2,
+    verifiedTokenIndexes: [0, 1, 2],
+    reworkTokenIndexes: [],
+    verifiedCredits: 3,
+    reworkCredits: 0,
+    creditDelta: 3,
     tokenCount: 3,
     ...overrides
   };
@@ -84,6 +87,32 @@ describe("WienerSpeechLineSystem", () => {
     expect(schema.categories.bad).toBeUndefined();
   });
 
+  it("keeps retired endless labels out of player-visible runtime speech", () => {
+    const retiredLine = Object.values(linesJson.categories)
+      .flatMap(({ lines }) => lines)
+      .find((line) => /\bendless (?:mode|training)\b/i.test(line));
+
+    expect(retiredLine).toBeUndefined();
+  });
+
+  it("keeps deterministic tutorial copy out of the random speech pool", () => {
+    const staleTutorialCategories = Object.keys(linesJson.categories)
+      .filter((categoryName) => categoryName.startsWith("tutorial."));
+
+    expect(staleTutorialCategories).toEqual([]);
+  });
+
+  it("keeps every Training resolution line inside the visible sticky bubble budget", () => {
+    const resolutionLines = Object.entries(linesJson.categories)
+      .filter(([categoryName]) => categoryName.startsWith("play.resolve."))
+      .flatMap(([, categoryValue]) => categoryValue.lines);
+
+    expect(resolutionLines.length).toBeGreaterThan(0);
+    for (const line of resolutionLines) {
+      expect(line.length, line).toBeLessThanOrEqual(WIENER_SPEECH_DEFAULT_MAX_LENGTH);
+    }
+  });
+
   it("selects category lines deterministically by seed", () => {
     const system = new WienerSpeechLineSystem();
     const first = system.pick("play.resolve.missed", { seed: 0, remember: false });
@@ -142,23 +171,23 @@ describe("WienerSpeechLineSystem", () => {
     expect(system.categoryForResolve(scoreWith({ falseCuts: [4] }))).toBe("play.resolve.false_cut");
     expect(system.categoryForResolve(scoreWith({ missedCuts: [7], falseCuts: [4] }))).toBe("play.resolve.mixed");
     expect(system.categoryForResolve(scoreWith({ missedCuts: [7], falseCuts: [1, 2, 3] }))).toBe("play.resolve.overcut");
-    expect(system.categoryForRoundStart({ balance: 10 })).toBe("play.round_start.low_balance");
-    expect(system.categoryForRoundStart({ balance: 40 })).toBe("play.round_start.neutral");
+    expect(system.categoryForRoundStart({ creditBalance: 10 })).toBe("play.round_start.low_balance");
+    expect(system.categoryForRoundStart({ creditBalance: 40 })).toBe("play.round_start.neutral");
     expect(system.categoryForRoundStart({
-      balance: 40,
+      creditBalance: 40,
       fixture: {
         id: "dense",
-        text: "openai.com/pricing",
+        text: "wiener.ai/pricing",
         category: "url",
         tier: 3,
-        token_count: 4,
-        token_ids: [1, 2, 3, 4],
-        token_strings: ["open", "ai", ".com", "/pricing"],
-        token_byte_spans: [[0, 4], [4, 6], [6, 10], [10, 18]],
+        token_count: 5,
+        token_ids: [17043, 804, 41483, 45772, 10332],
+        token_strings: ["wi", "ener", ".ai", "/pr", "icing"],
+        token_byte_spans: [[0, 2], [2, 6], [6, 9], [9, 12], [12, 17]],
         graphemes: [],
         grapheme_byte_spans: [],
-        boundary_positions: [4, 6, 10],
-        boundary_byte_positions: [4, 6, 10],
+        boundary_positions: [2, 6, 9, 12],
+        boundary_byte_positions: [2, 6, 9, 12],
         difficulty_weight: 1,
         notes: "test",
         tokenizer: "cl100k_base"

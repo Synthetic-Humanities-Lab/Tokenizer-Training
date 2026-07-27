@@ -151,7 +151,8 @@ export interface NoCutGestureReleaseInput {
 }
 
 export function shouldShowActiveCutLabels(cutCount: number): boolean {
-  return Math.max(0, Math.floor(cutCount)) <= ACTIVE_CUT_LABEL_LIMIT;
+  void cutCount;
+  return false;
 }
 
 export function activeCutLabelsHaveRoom(cutXs: number[], minGap = ACTIVE_CUT_LABEL_MIN_GAP): boolean {
@@ -173,14 +174,9 @@ export function activeCutLabelMinGap(compact = false): number {
 }
 
 export function activeCutStatusText(cutCount: number, compact = false): string {
-  const normalizedCutCount = Math.max(0, Math.floor(cutCount));
-  if (normalizedCutCount === 0) {
-    return "NO CUTS";
-  }
-
-  const label = compact ? "STAGED" : "SEGMENTS STAGED";
-
-  return `${label}: ${normalizedCutCount}`;
+  void cutCount;
+  void compact;
+  return "";
 }
 
 export function activeCutStatusBadgeStyle(
@@ -188,17 +184,18 @@ export function activeCutStatusBadgeStyle(
   compact = false,
   ageMs?: number
 ): ActiveCutStatusBadgeStyle {
-  const normalizedCutCount = Math.max(0, Math.floor(cutCount));
-  const pulse = normalizedCutCount > 0 ? activeCutStatusPulseStrength(ageMs) : 0;
+  void cutCount;
+  void compact;
+  void ageMs;
 
   return {
-    fontSize: compact ? 12 : 13,
-    paddingX: compact ? 8 : 10,
-    paddingY: compact ? 3 : 4,
-    fillAlpha: normalizedCutCount > 0 ? 0.56 + pulse * 0.14 : 0.18,
-    strokeAlpha: normalizedCutCount > 0 ? 0.54 + pulse * 0.22 : 0.22,
-    strokeWidth: 1 + pulse * 0.5,
-    pulse
+    fontSize: 1,
+    paddingX: 0,
+    paddingY: 0,
+    fillAlpha: 0,
+    strokeAlpha: 0,
+    strokeWidth: 0,
+    pulse: 0
   };
 }
 
@@ -224,9 +221,9 @@ export function inputResponseBadgeState(
           : "tracked";
 
   return {
-    text: inputResponseBadgeText(tone),
+    text: "",
     tone,
-    alpha,
+    alpha: 0,
     fontSize: compact ? 10 : 11,
     paddingX: compact ? 7 : 8,
     paddingY: compact ? 2 : 3,
@@ -383,10 +380,10 @@ export function noCutFeedbackStyle(compact = false, reason: NoCutFeedbackReason 
   const nearSlot = reason === "near-slot";
 
   return {
-    alpha: nearSlot ? compact ? 0.86 : 0.9 : compact ? 0.78 : 0.82,
+    alpha: nearSlot ? compact ? 0.64 : 0.68 : compact ? 0.56 : 0.6,
     durationMs: nearSlot ? compact ? 320 : NEAR_SLOT_NO_CUT_FEEDBACK_MS : compact ? 220 : NO_CUT_FEEDBACK_MS,
     yLift: nearSlot ? compact ? 9 : 11 : compact ? 7 : 9,
-    fontSize: nearSlot ? compact ? 11 : 12 : compact ? 10 : 11,
+    fontSize: nearSlot ? compact ? 10 : 11 : compact ? 9 : 10,
     scuffLength: compact ? 22 : 28,
     scuffWidth: compact ? 2.5 : 3,
     scuffAlpha: compact ? 0.42 : 0.48,
@@ -506,7 +503,7 @@ export function armedCutPreviewStyle(
   const strength = armedCutPreviewStrength(distancePx, previewDistancePx);
   const snapStrength = snapDistancePx === undefined ? 0 : armedCutSnapStrength(distancePx, snapDistancePx);
   const snapReady = snapDistancePx !== undefined && distancePx <= snapDistancePx && strength > 0;
-  const snapBonus = snapReady ? 0.24 + snapStrength * 0.18 : 0;
+  const snapBonus = snapReady ? 0.34 + snapStrength * 0.24 : 0;
 
   return {
     strength,
@@ -514,14 +511,14 @@ export function armedCutPreviewStyle(
     snapStrength,
     rectWidth: ARMED_CUT_PREVIEW_RECT_WIDTH,
     guideWidth: (compact ? 16 : 18) + strength * (compact ? 4 : 6) + snapBonus * (compact ? 5 : 7),
-    guideAlpha: snapReady ? 0.18 + strength * 0.1 + snapStrength * 0.08 : 0.08 + strength * 0.1,
+    guideAlpha: snapReady ? 0.22 + strength * 0.12 + snapStrength * 0.1 : 0.08 + strength * 0.1,
     lineWidth: (compact ? 1.5 : 1.75) + strength * (compact ? 0.7 : 0.9) + snapBonus * (compact ? 1.3 : 1.6),
-    lineAlpha: snapReady ? 0.56 + snapStrength * 0.24 : 0.2 + strength * 0.28,
+    lineAlpha: snapReady ? 0.64 + snapStrength * 0.26 : 0.2 + strength * 0.28,
     targetRadius: (compact ? 3 : 4) + strength * (compact ? 2 : 3) + snapBonus * (compact ? 4 : 5),
-    targetAlpha: snapReady ? 0.54 + snapStrength * 0.24 : 0.12 + strength * 0.18,
+    targetAlpha: snapReady ? 0.62 + snapStrength * 0.24 : 0.12 + strength * 0.18,
     tickLength: (compact ? 6 : 7) + strength * (compact ? 3 : 4) + snapBonus * (compact ? 5 : 7),
-    latchLength: snapReady ? (compact ? 12 : 15) + snapStrength * (compact ? 7 : 9) : 0,
-    latchAlpha: snapReady ? 0.5 + snapStrength * 0.36 : 0,
-    latchWidth: snapReady ? (compact ? 2.25 : 2.75) + snapStrength * 1.25 : 0
+    latchLength: snapReady ? (compact ? 14 : 17) + snapStrength * (compact ? 8 : 10) : 0,
+    latchAlpha: snapReady ? 0.58 + snapStrength * 0.36 : 0,
+    latchWidth: snapReady ? (compact ? 2.65 : 3.05) + snapStrength * 1.25 : 0
   };
 }

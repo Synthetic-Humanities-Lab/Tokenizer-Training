@@ -1,22 +1,23 @@
 import type { RoundScoreResult } from "./ScoringSystem";
 import type { TokenFixture } from "./TokenizerSystem";
-import { tokenSplitLine } from "./TokenDisplaySystem";
+import { tokenEvidenceLine } from "./TokenDisplaySystem";
 import { WienerSpeechLineSystem } from "./WienerSpeechLineSystem";
 
 export interface FeedbackSummary {
   technical: string;
+  nextPredictionCue: string;
+  tokenCount: number;
   tokenSplit: string;
-  economy: string;
-  economyTone: EconomyTone;
+  creditLedger: string;
+  creditBreakdown: string;
+  creditDelta: string;
+  creditTone: CreditTone;
   audit: string;
+  auditCompact: string;
   wienerSpeech: string;
 }
 
-export interface FeedbackContext {
-  balanceAfter?: number;
-}
-
-export type EconomyTone = "gain" | "loss" | "neutral";
+export type CreditTone = "gain" | "loss" | "neutral";
 
 const denseCategories = new Set(["url", "email", "filename", "code", "hashtag", "tokenizer_string"]);
 const punctuationCategories = new Set(["punctuation", "internet_punctuation"]);
@@ -25,14 +26,25 @@ const symbolicCategories = new Set(["code_symbols", "symbolic"]);
 export class FeedbackSystem {
   constructor(private readonly wienerSpeechLines = new WienerSpeechLineSystem()) {}
 
-  summarize(fixture: TokenFixture, score: RoundScoreResult, context: FeedbackContext = {}): FeedbackSummary {
+  summarize(fixture: TokenFixture, score: RoundScoreResult): FeedbackSummary {
+    const technical = this.classifyIssue(fixture, score);
+
+    const creditBreakdown =
+      `VERIFIED +${score.verifiedCredits} TC   REWORK -${score.reworkCredits} TC`;
+    const creditDelta = `NET ${this.formatSignedCredits(score.creditDelta)}`;
+
     return {
-      technical: this.classifyIssue(fixture, score),
+      technical,
+      nextPredictionCue: this.nextPredictionCue(score),
+      tokenCount: fixture.token_strings.length,
       tokenSplit: this.tokenSplitLine(fixture),
-      economy: `Pay $${score.pay.toFixed(2)} - Cost $${score.companyCost.toFixed(2)} = Net ${this.formatSigned(score.net)}`,
-      economyTone: this.economyTone(score.net),
-      audit: this.auditLine(score, context),
-      wienerSpeech: this.pickWienerSpeechLine(score, context)
+      creditLedger: `${creditBreakdown}   ${creditDelta}`,
+      creditBreakdown,
+      creditDelta,
+      creditTone: this.creditTone(score.creditDelta),
+      audit: this.auditLine(score),
+      auditCompact: this.auditLine(score),
+      wienerSpeech: this.pickWienerSpeechLine(score)
     };
   }
 
@@ -86,7 +98,7 @@ export class FeedbackSystem {
     }
 
     if (score.falseCuts.length > score.missedCuts.length) {
-      return "Over-segmentation increased token load.";
+      return "Extra cuts increased rework.";
     }
 
     if (score.missedCuts.length > 0) {
@@ -96,71 +108,45 @@ export class FeedbackSystem {
     return "Sequence entered in ragged form.";
   }
 
-  private pickWienerSpeechLine(score: RoundScoreResult, context: FeedbackContext): string {
-    void context;
+  nextPredictionCue(score: RoundScoreResult): string {
+    if (score.missedCuts.length === 0 && score.falseCuts.length === 0) {
+      return "Next: carry the confirmed route into the next prediction.";
+    }
+
+    if (score.missedCuts.length > 0 && score.falseCuts.length > 0) {
+      return "Next: compare MISS and FALSE before the next prediction.";
+    }
+
+    if (score.missedCuts.length > 0) {
+      return "Next: inspect each MISS before the next prediction.";
+    }
+
+    return "Next: remove unconfirmed cuts before the next prediction.";
+  }
+
+  private pickWienerSpeechLine(score: RoundScoreResult): string {
     const seed = score.correctCuts.length + score.missedCuts.length + score.falseCuts.length;
     return this.wienerSpeechLines.pickForResolve(score, { seed });
   }
 
   private tokenSplitLine(fixture: TokenFixture): string {
-    return tokenSplitLine(fixture.token_strings);
+    return tokenEvidenceLine(fixture.token_strings);
   }
 
-  private auditLine(score: RoundScoreResult, context: FeedbackContext): string {
+  private auditLine(score: RoundScoreResult): string {
     return [
-      `Boundary audit: OK ${score.correctCuts.length}`,
-      `Missed ${score.missedCuts.length}`,
-      `False ${score.falseCuts.length}`,
-      `Tokens ${score.tokenCount}`,
-      this.balanceImpactLine(context),
-      `Cost drivers: ${this.costDriverLine(score)}`
-    ].filter((part): part is string => part !== undefined).join(" / ");
+      `OK ${score.correctCuts.length}`,
+      `MISS ${score.missedCuts.length}`,
+      `FALSE ${score.falseCuts.length}`
+    ].join("          ");
   }
 
-  private costDriverLine(score: RoundScoreResult): string {
-    const drivers: string[] = [];
-    if (score.missedCuts.length > 0) {
-      drivers.push("missed");
-    }
-
-    if (score.falseCuts.length > 0) {
-      drivers.push("false");
-    }
-
-    if (score.tokenCount > 5) {
-      drivers.push("token load");
-    }
-
-    return drivers.length > 0 ? drivers.join(", ") : "none";
-  }
-
-  private formatSigned(value: number): string {
+  private formatSignedCredits(value: number): string {
     const sign = value >= 0 ? "+" : "-";
-    return `${sign}$${Math.abs(value).toFixed(2)}`;
+    return `${sign}${Math.abs(Math.trunc(value))} TC`;
   }
 
-  private formatMoney(value: number): string {
-    return `$${Math.max(0, value).toFixed(2)}`;
-  }
-
-  private balanceImpactLine(context: FeedbackContext): string | undefined {
-    if (!Number.isFinite(context.balanceAfter)) {
-      return undefined;
-    }
-
-    const balanceAfter = context.balanceAfter ?? 0;
-    if (balanceAfter <= 0) {
-      return `Balance ${this.formatMoney(balanceAfter)} closed`;
-    }
-
-    if (balanceAfter <= 10) {
-      return `Balance ${this.formatMoney(balanceAfter)} low`;
-    }
-
-    return `Balance ${this.formatMoney(balanceAfter)}`;
-  }
-
-  private economyTone(value: number): EconomyTone {
+  private creditTone(value: number): CreditTone {
     if (value > 0) {
       return "gain";
     }

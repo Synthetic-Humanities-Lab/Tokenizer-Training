@@ -80,6 +80,44 @@ describe("TouchAimLoupeSystem", () => {
     expect((state.rect?.x ?? 0) + TOUCH_AIM_LOUPE_WIDTH / 2).toBeLessThanOrEqual(380);
   });
 
+  it("keeps the compact loupe generously clear of a finger over the text", () => {
+    const state = touchAimLoupeState({
+      compact: true,
+      inputModality: "touch",
+      viewport: { width: 390, height: 844 },
+      pointer: { x: 130, y: 300 },
+      text: "the cat",
+      textBounds: { x: 195, y: 300, width: 260, height: 32 },
+      slot
+    });
+
+    expect(state.visible).toBe(true);
+    expect(state.pointerClearancePx).toBeGreaterThanOrEqual(48);
+    expect(state.occlusionSafe).toBe(true);
+  });
+
+  it("keeps the compact loupe readable on the small-phone QA playfield", () => {
+    const state = touchAimLoupeState({
+      compact: true,
+      inputModality: "touch",
+      viewport: { width: 368, height: 552 },
+      pointer: { x: 98.43, y: 316 },
+      text: "the cat sat on the mat",
+      textBounds: { x: 184, y: 316, width: 251, height: 17.27 },
+      slot: {
+        ...slot,
+        x: 98.43,
+        yMax: 73.27
+      },
+      snapReady: true
+    });
+
+    expect(state.visible).toBe(true);
+    expect(state.pointerClearancePx).toBeGreaterThanOrEqual(48);
+    expect(state.occlusionSafe).toBe(true);
+    expect(state.snapReady).toBe(true);
+  });
+
   it("moves below the text when top-edge clamping would put the loupe under the finger", () => {
     const state = touchAimLoupeState({
       compact: true,

@@ -1,13 +1,18 @@
 export type LaunchMode =
   | "menu"
+  | "tutorialIntake"
   | "tutorial"
   | "endless"
   | "tutorialComplete"
   | "tutorialFailed"
   | "results"
-  | "protocolResults";
+  | "protocolResults"
+  | "settings"
+  | "settingsResetConfirm"
+  | "tokenLog";
 
 const TUTORIAL_ALIASES = new Set(["tutorial", "training", "guided"]);
+const TUTORIAL_INTAKE_ALIASES = new Set(["tutorial-intake", "clock-in", "intake"]);
 const ENDLESS_ALIASES = new Set(["endless", "play", "shift"]);
 const TUTORIAL_COMPLETE_ALIASES = new Set([
   "tutorial-complete",
@@ -23,6 +28,9 @@ const TUTORIAL_COMPLETE_ALIASES = new Set([
 ]);
 const TUTORIAL_FAILED_ALIASES = new Set(["tutorial-failed", "tutorialfailed", "failed-tutorial"]);
 const RESULTS_ALIASES = new Set(["results", "result", "summary", "results-qa"]);
+const SETTINGS_ALIASES = new Set(["settings", "options"]);
+const SETTINGS_RESET_CONFIRM_ALIASES = new Set(["settings-reset-confirm"]);
+const TOKEN_LOG_ALIASES = new Set(["token-log", "tokenlog", "tokens", "archive"]);
 const PROTOCOL_RESULTS_ALIASES = new Set([
   "protocol-results",
   "results-protocol",
@@ -85,6 +93,10 @@ function normalizedMode(value: string | null): LaunchMode | undefined {
     return "tutorial";
   }
 
+  if (TUTORIAL_INTAKE_ALIASES.has(normalized)) {
+    return "tutorialIntake";
+  }
+
   if (ENDLESS_ALIASES.has(normalized)) {
     return "endless";
   }
@@ -99,6 +111,18 @@ function normalizedMode(value: string | null): LaunchMode | undefined {
 
   if (RESULTS_ALIASES.has(normalized)) {
     return "results";
+  }
+
+  if (SETTINGS_RESET_CONFIRM_ALIASES.has(normalized)) {
+    return "settingsResetConfirm";
+  }
+
+  if (SETTINGS_ALIASES.has(normalized)) {
+    return "settings";
+  }
+
+  if (TOKEN_LOG_ALIASES.has(normalized)) {
+    return "tokenLog";
   }
 
   if (PROTOCOL_RESULTS_ALIASES.has(normalized)) {

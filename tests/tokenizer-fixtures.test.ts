@@ -3,10 +3,12 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import fixturesJson from "../src/game/data/fixtures.json";
 import {
+  createBuildTimeTokenizerAdapter,
   generateFixture,
   generateFixturesFromCsv,
   parseSeedCsv,
-  UnsafeFixtureError
+  UnsafeFixtureError,
+  type BuildTimeTokenizerAdapter
 } from "../scripts/generate-token-fixtures";
 import {
   reconstructFixture,
@@ -17,15 +19,17 @@ import {
 import { SwipeCutSystem } from "../src/game/systems/SwipeCutSystem";
 
 const fixtures = fixturesJson as TokenFixture[];
+const buildTimeTokenizer = createBuildTimeTokenizerAdapter();
 
 describe("tokenizer fixtures", () => {
-  it("matches the seed CSV ids", () => {
+  it("matches regenerated cl100k_base fixtures exactly", () => {
     const csv = readFileSync(resolve("data/seed_strings.csv"), "utf8");
     const seeds = parseSeedCsv(csv);
-    const generated = generateFixturesFromCsv(csv);
+    const generated = generateFixturesFromCsv(csv, buildTimeTokenizer);
 
     expect(generated.map((fixture) => fixture.id)).toEqual(seeds.map((seed) => seed.id));
     expect(fixtures.map((fixture) => fixture.id)).toEqual(seeds.map((seed) => seed.id));
+    expect(generated).toEqual(fixtures);
   });
 
   it("reconstructs every source string", () => {
@@ -123,10 +127,10 @@ describe("tokenizer fixtures", () => {
   });
 
   it("rejects unsafe real-tokenizer candidates before they reach runtime fixtures", () => {
-    const emojiReasons = rejectedReasons("emoji_split", "mañana 😂");
-    const combiningReasons = rejectedReasons("combining_split", "e\u0301clair test");
-    const doubleSpaceReasons = rejectedReasons("double_space", "spaces  matter");
-    const standaloneSeparatorReasons = rejectedReasons("standalone_separator", "invoice_final_04.csv");
+    const emojiReasons = rejectedReasons("emoji_split", "mañana 😂", buildTimeTokenizer);
+    const combiningReasons = rejectedReasons("combining_split", "e\u0301clair test", buildTimeTokenizer);
+    const doubleSpaceReasons = rejectedReasons("double_space", "spaces  matter", buildTimeTokenizer);
+    const standaloneSeparatorReasons = rejectedReasons("standalone_separator", "invoice_final_04.csv", buildTimeTokenizer);
 
     expect(emojiReasons).toContain("token byte boundary 11 falls inside a grapheme");
     expect(combiningReasons).toContain("token byte boundary 1 falls inside a grapheme");
@@ -164,7 +168,7 @@ describe("tokenizer fixtures", () => {
     expect(validation.ok).toBe(true);
   });
 
-  it("keeps enough fixture variety for a first user playtest", () => {
+  it("meets the 200-sentence quota and requested content mix", () => {
     const byTier = new Map<number, number>();
     const byCategory = new Map<string, number>();
     for (const fixture of fixtures) {
@@ -172,20 +176,45 @@ describe("tokenizer fixtures", () => {
       byCategory.set(fixture.category, (byCategory.get(fixture.category) ?? 0) + 1);
     }
 
-    expect(fixtures.length).toBeGreaterThanOrEqual(76);
-    expect(byTier.get(1)).toBeGreaterThanOrEqual(16);
-    expect(byTier.get(2)).toBeGreaterThanOrEqual(22);
-    expect(byTier.get(3)).toBeGreaterThanOrEqual(19);
-    expect(byTier.get(4)).toBeGreaterThanOrEqual(19);
-    expect(byCategory.size).toBeGreaterThanOrEqual(18);
-    for (const category of ["url", "email", "filename", "code", "hashtag", "multilingual", "leading_space"]) {
-      expect(byCategory.get(category)).toBeGreaterThanOrEqual(2);
+    const countCategories = (categories: readonly string[]): number =>
+      categories.reduce((total, category) => total + (byCategory.get(category) ?? 0), 0);
+
+    expect(fixtures).toHaveLength(200);
+    expect(new Set(fixtures.map(({ text }) => text))).toHaveLength(200);
+    expect(Object.fromEntries(byTier)).toEqual({ 1: 40, 2: 50, 3: 50, 4: 60 });
+    expect(countCategories(["simple_prose"])).toBe(60);
+    expect(countCategories([
+      "contraction",
+      "hyphenation",
+      "numbers_symbols",
+      "punctuation",
+      "internet_punctuation"
+    ])).toBe(60);
+    expect(countCategories([
+      "url",
+      "email",
+      "filename",
+      "code",
+      "hashtag",
+      "command",
+      "code_symbols",
+      "tokenizer_string"
+    ])).toBe(40);
+    expect(countCategories([
+      "multilingual",
+      "spacing",
+      "leading_space",
+      "symbolic",
+      "proper_noun"
+    ])).toBe(40);
+  });
+
+  it("keeps every fixture to one mobile line and fictionalizes model-company brands", () => {
+    for (const fixture of fixtures) {
+      expect(fixture.text).not.toMatch(/[\r\n]/);
+      expect(Array.from(fixture.text).length).toBeLessThanOrEqual(30);
+      expect(fixture.text).not.toMatch(/openai|chatgpt|claude|gpt-?4/i);
     }
-    expect(byCategory.get("numbers_symbols")).toBeGreaterThanOrEqual(9);
-    expect(byCategory.get("punctuation")).toBeGreaterThanOrEqual(7);
-    expect(byCategory.get("symbolic")).toBeGreaterThanOrEqual(3);
-    expect(byCategory.get("tokenizer_string")).toBeGreaterThanOrEqual(4);
-    expect(byCategory.get("command")).toBeGreaterThanOrEqual(1);
   });
 
   it("selects from the highest available tier during endless progression", () => {
@@ -210,6 +239,30 @@ describe("tokenizer fixtures", () => {
 
     expect(fixture.id).not.toBe(previous?.id);
     expect(fixture.category).not.toBe(previous?.category);
+  });
+
+  it("rotates complete sentences across the opening Training rounds", () => {
+    const system = new TokenizerSystem(fixtures);
+    const recentIds: string[] = [];
+    const recentCategories: string[] = [];
+    const selected: TokenFixture[] = [];
+
+    for (let round = 1; round <= 3; round += 1) {
+      const previous = selected.at(-1);
+      const fixture = system.pickFixture(round, {
+        tierCap: 1,
+        previousId: previous?.id,
+        previousCategory: previous?.category,
+        recentIds,
+        recentCategories
+      });
+      selected.push(fixture);
+      recentIds.push(fixture.id);
+      recentCategories.push(fixture.category);
+    }
+
+    expect(new Set(selected.map(({ id }) => id)).size).toBe(3);
+    expect(new Set(selected.map(({ text }) => text)).size).toBe(3);
   });
 
   it("avoids recent category repeats when a fresh category exists in the tier pool", () => {
@@ -254,9 +307,108 @@ describe("tokenizer fixtures", () => {
     expect(fixture.category).toBe("simple_prose");
     expect(["simple_001", "simple_002", "simple_003", "simple_004"]).not.toContain(fixture.id);
   });
+
+  it("excludes completed run fixtures while unseen eligible fixtures remain", () => {
+    const system = new TokenizerSystem(fixtures);
+    const tierOneIds = fixtures.filter(({ tier }) => tier === 1).map(({ id }) => id);
+    const fixture = system.pickFixture(20, {
+      tierCap: 1,
+      excludeIds: tierOneIds.slice(0, -1)
+    });
+
+    expect(fixture.id).toBe(tierOneIds.at(-1));
+  });
+
+  it("prioritizes a due failed fixture even after the difficulty tier advances", () => {
+    const system = new TokenizerSystem(fixtures);
+    const failed = fixtures.find(({ tier }) => tier === 1);
+    expect(failed).toBeDefined();
+
+    const fixture = system.pickFixture(10, {
+      tierCap: 3,
+      preferredIds: [failed!.id],
+      excludeIds: [failed!.id],
+      preferHighestTier: true
+    });
+
+    expect(fixture.id).toBe(failed!.id);
+  });
+
+  it("prioritizes a due retry even when a new session has not unlocked its tier", () => {
+    const system = new TokenizerSystem(fixtures);
+    const failed = fixtures.find(({ tier }) => tier === 4);
+    expect(failed).toBeDefined();
+
+    const fixture = system.pickFixture(1, {
+      tierCap: 1,
+      preferredIds: [failed!.id],
+      excludeIds: [failed!.id],
+      allowTierOverflowWhenExhausted: true
+    });
+
+    expect(fixture.id).toBe(failed!.id);
+  });
+
+  it("advances to the nearest unseen tier before repeating mastered opening material", () => {
+    const system = new TokenizerSystem(fixtures);
+    const tierOneIds = fixtures.filter(({ tier }) => tier === 1).map(({ id }) => id);
+
+    const fixture = system.pickFixture(1, {
+      tierCap: 1,
+      excludeIds: tierOneIds,
+      allowTierOverflowWhenExhausted: true
+    });
+
+    expect(fixture.tier).toBe(2);
+    expect(tierOneIds).not.toContain(fixture.id);
+  });
+
+  it("does not repeat a clean sentence across the first thirty Training rounds", () => {
+    const system = new TokenizerSystem(fixtures);
+    const selected: TokenFixture[] = [];
+
+    for (let round = 1; round <= 30; round += 1) {
+      const previous = selected.at(-1);
+      const fixture = system.pickFixture(round, {
+        tierCap: round >= 13 ? 4 : round >= 8 ? 3 : round >= 4 ? 2 : 1,
+        previousId: previous?.id,
+        previousCategory: previous?.category,
+        recentIds: selected.slice(-4).map(({ id }) => id),
+        recentCategories: selected.slice(-4).map(({ category }) => category),
+        excludeIds: selected.map(({ id }) => id),
+        preferHighestTier: true
+      });
+      selected.push(fixture);
+    }
+
+    expect(new Set(selected.map(({ id }) => id)).size).toBe(selected.length);
+  });
+
+  it("can fill the entire quota once before falling back to mastered material", () => {
+    const system = new TokenizerSystem(fixtures);
+    const selected: TokenFixture[] = [];
+
+    for (let round = 1; round <= fixtures.length; round += 1) {
+      const tierCap = round >= 13 ? 4 : round >= 8 ? 3 : round >= 4 ? 2 : 1;
+      const previous = selected.at(-1);
+      selected.push(system.pickFixture(round, {
+        tierCap,
+        previousId: previous?.id,
+        previousCategory: previous?.category,
+        recentIds: selected.slice(-4).map(({ id }) => id),
+        recentCategories: selected.slice(-4).map(({ category }) => category),
+        excludeIds: selected.map(({ id }) => id),
+        preferHighestTier: tierCap < 4,
+        allowTierOverflowWhenExhausted: true
+      }));
+    }
+
+    expect(new Set(selected.map(({ id }) => id))).toHaveLength(200);
+    expect(new Set(selected.map(({ text }) => text))).toHaveLength(200);
+  });
 });
 
-function rejectedReasons(id: string, text: string): string[] {
+function rejectedReasons(id: string, text: string, adapter: BuildTimeTokenizerAdapter): string[] {
   try {
     generateFixture({
       id,
@@ -264,7 +416,7 @@ function rejectedReasons(id: string, text: string): string[] {
       tier: 4,
       category: "unsafe_test",
       notes: "test-only unsafe fixture"
-    });
+    }, adapter);
   } catch (error) {
     expect(error).toBeInstanceOf(UnsafeFixtureError);
     return (error as UnsafeFixtureError).reasons;

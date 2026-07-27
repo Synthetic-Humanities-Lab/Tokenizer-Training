@@ -15,6 +15,13 @@ describe("launchModeFromUrl", () => {
     expect(launchModeFromUrl("http://127.0.0.1:5173/?mode=training")).toBe("tutorial");
   });
 
+  it("accepts the tutorial intake route without changing direct tutorial launches", () => {
+    expect(launchModeFromUrl("http://127.0.0.1:5173/?mode=tutorial-intake")).toBe("tutorialIntake");
+    expect(launchModeFromUrl("http://127.0.0.1:5173/?mode=clock-in")).toBe("tutorialIntake");
+    expect(launchModeFromUrl("http://127.0.0.1:5173/?mode=intake")).toBe("tutorialIntake");
+    expect(launchModeFromUrl("http://127.0.0.1:5173/?mode=tutorial")).toBe("tutorial");
+  });
+
   it("accepts endless launch aliases from query params", () => {
     expect(launchModeFromUrl("http://127.0.0.1:5173/?mode=endless")).toBe("endless");
     expect(launchModeFromUrl("http://127.0.0.1:5173/?mode=play")).toBe("endless");
@@ -49,6 +56,14 @@ describe("launchModeFromUrl", () => {
     expect(launchModeFromUrl("http://127.0.0.1:5173/?mode=results-handoff")).toBe("protocolResults");
   });
 
+  it("accepts the reset-confirmation native QA route without broad settings aliases", () => {
+    expect(launchModeFromUrl("http://127.0.0.1:5173/?mode=settings-reset-confirm")).toBe(
+      "settingsResetConfirm"
+    );
+    expect(launchModeFromUrl("http://127.0.0.1:5173/?mode=settings")).toBe("settings");
+    expect(launchModeFromUrl("http://127.0.0.1:5173/?mode=options")).toBe("settings");
+  });
+
   it("uses hash params when query mode is absent", () => {
     expect(launchModeFromUrl("http://127.0.0.1:5173/#mode=tutorial")).toBe("tutorial");
     expect(launchModeFromUrl("http://127.0.0.1:5173/#mode=endless")).toBe("endless");
@@ -75,6 +90,9 @@ describe("launchModeFromUrl", () => {
     expect(launchModeFromUrl("http://127.0.0.1:5173/?mode=results&playtestReset=1")).toBe("results");
     expect(launchModeFromUrl("http://127.0.0.1:5173/?mode=protocol-results&playtestReset=1")).toBe(
       "protocolResults"
+    );
+    expect(launchModeFromUrl("http://127.0.0.1:5173/?mode=settings-reset-confirm&playtestReset=1")).toBe(
+      "settingsResetConfirm"
     );
   });
 });

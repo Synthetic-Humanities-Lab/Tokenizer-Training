@@ -18,25 +18,58 @@ function writePlayQaSnapshotMethod(source: string): string {
   )?.[0] ?? "";
 }
 
+function completeSliceGestureMethod(source: string): string {
+  return source.match(
+    /private completeSliceGesture\(pointer\?: Phaser\.Input\.Pointer, canceled = false\): void \{[\s\S]+?\n  \}/
+  )?.[0] ?? "";
+}
+
 describe("PlayScene input lifecycle", () => {
+  it("refreshes the countdown HUD during every active frame", () => {
+    const source = readRepoFile("src/game/scenes/PlayScene.ts");
+    const updateMethod = source.match(/  update\(time: number\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+
+    expect(updateMethod).toContain("const now = this.activeNowMs(time);");
+    expect(updateMethod).toContain("this.updateHud(now);");
+    expect(updateMethod.indexOf("this.updateHud(now);")).toBeGreaterThan(
+      updateMethod.indexOf("this.updateSentenceMotion(now);")
+    );
+    expect(updateMethod.indexOf("this.updateHud(now);")).toBeLessThan(
+      updateMethod.indexOf("this.updateTimerVisual(now);")
+    );
+  });
+
+  it("renders every compact play-control label at the same readable size", () => {
+    const source = readRepoFile("src/game/scenes/PlayScene.ts");
+    const controls = source.slice(
+      source.indexOf("this.resolveButton ="),
+      source.indexOf("this.bindPlayControls();")
+    );
+
+    expect(controls.match(/fontSize: "15px"/g)).toHaveLength(4);
+    expect(controls).not.toContain('fontSize: "12px"');
+  });
+
   it("clears active swipe gesture state when mobile browsers end input outside the canvas", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
 
     expect(source).toContain('this.input.on("pointerup", this.handlePointerGestureEnd, this);');
-    expect(source).toContain('this.input.on("pointerupoutside", this.handlePointerGestureEnd, this);');
-    expect(source).toContain('this.input.on("gameout", this.handlePointerGestureEnd, this);');
+    expect(source).toContain('this.input.on("pointerupoutside", this.handlePointerGestureCancel, this);');
+    expect(source).toContain('this.input.on("gameout", this.handlePointerGameOut, this);');
     expect(source).toContain('this.input.off("pointerup", this.handlePointerGestureEnd, this);');
-    expect(source).toContain('this.input.off("pointerupoutside", this.handlePointerGestureEnd, this);');
-    expect(source).toContain('this.input.off("gameout", this.handlePointerGestureEnd, this);');
+    expect(source).toContain('this.input.off("pointerupoutside", this.handlePointerGestureCancel, this);');
+    expect(source).toContain('this.input.off("gameout", this.handlePointerGameOut, this);');
+    expect(source).toContain("private handlePointerGameOut(): void {");
+    expect(source).toContain("const owner = this.playInputRouter.cancelAll();");
   });
 
   it("samples the final pointer-up position before clearing a swipe gesture", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
-    const pointerMethod = source.match(/private handlePointer\(pointer: Phaser\.Input\.Pointer\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
-    const endMethod = source.match(/private handlePointerGestureEnd\(pointer\?: Phaser\.Input\.Pointer\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+    const pointerMethod = source.match(/private handlePointer\(pointer: Phaser\.Input\.Pointer, canStartSlice: boolean\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+    const endMethod = completeSliceGestureMethod(source);
 
     expect(pointerMethod).toContain("this.applyPointerCutSample(point);");
-    expect(endMethod).toContain("if (!this.resolving && this.currentFixture && this.lastPointerPoint && pointer) {");
+    expect(endMethod).toContain("if (!canceled && !this.resolving && this.currentFixture && this.lastPointerPoint && pointer) {");
     expect(endMethod).toContain("const observedModality = inputModalityFromPointer(pointer);");
     expect(endMethod).toContain("this.inputModality = mergeInputModality(this.inputModality, observedModality);");
     expect(endMethod).toContain('this.applyPointerCutSample({ x: pointer.x, y: pointer.y }, { releaseSample: true });');
@@ -51,7 +84,7 @@ describe("PlayScene input lifecycle", () => {
   it("records input-feel metrics from samples, release cuts, and no-cut acknowledgements", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
     const sampleMethod = applyPointerCutSampleMethod(source);
-    const endMethod = source.match(/private handlePointerGestureEnd\(pointer\?: Phaser\.Input\.Pointer\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+    const endMethod = completeSliceGestureMethod(source);
     const qaMethod = writePlayQaSnapshotMethod(source);
     const traceMethod = source.match(/private recordRoundTrace\(fixture: TokenFixture, score: RoundScoreResult\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const qaSystemSource = readRepoFile("src/game/systems/PlaySceneQaSystem.ts");
@@ -169,6 +202,7 @@ describe("PlayScene input lifecycle", () => {
     expect(sampleMethod).toContain("const showSlotHints = this.shouldShowSlotHints();");
     expect(sampleMethod).toContain("const slots = this.swipe.buildPlayableSlots(bounds, this.currentFixture.text, showSlotHints);");
     expect(sampleMethod).toContain("hinted: showSlotHints,");
+    expect(sampleMethod).toContain("spaceRunAssist: false,");
     expect(sampleMethod).toContain("playableSlots: slots");
     expect(sampleMethod).toContain("this.renderArmedCutPreview(point, { slots });");
     expect(previewMethod).toContain("const slots = options.slots ?? this.swipe.buildPlayableSlots");
@@ -231,25 +265,43 @@ describe("PlayScene input lifecycle", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
     const pauseMethod = source.match(/private pauseActiveRoundForFocusLoss\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const resumeMethod = source.match(/private resumeActiveRoundAfterFocusReturn\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
-    const cancelMethod = source.match(/private cancelTransientGestureStateForFocusLoss\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+    const resumeReviewMethod = source.match(/private resumeReviewAfterFocusReturn\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+    const pauseReviewTimersMethod = source.match(/private setReviewTimersPaused\(paused: boolean\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+    const cancelMethod = source.match(/private resetTransientSliceState\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const startRoundMethod = source.match(/private startRound\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const shutdownMethod = source.match(/private shutdownScene\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
 
     expect(source).toContain("private focusPauseRequested = false;");
+    expect(source).toContain("private reviewFocusPausedAtMs: number | null = null;");
     expect(source).toContain('globalThis.document?.addEventListener("visibilitychange", this.handleVisibilityChange);');
     expect(source).toContain('this.browserWindow()?.addEventListener("blur", this.handleWindowBlur);');
     expect(source).toContain('this.browserWindow()?.addEventListener("focus", this.handleWindowFocus);');
+    expect(source).toContain('this.browserWindow()?.addEventListener(NATIVE_APP_PAUSE_EVENT, this.handleNativeAppPause);');
+    expect(source).toContain('this.browserWindow()?.addEventListener(NATIVE_APP_RESUME_EVENT, this.handleNativeAppResume);');
     expect(source).toContain('globalThis.document?.removeEventListener("visibilitychange", this.handleVisibilityChange);');
     expect(source).toContain('this.browserWindow()?.removeEventListener("blur", this.handleWindowBlur);');
     expect(source).toContain('this.browserWindow()?.removeEventListener("focus", this.handleWindowFocus);');
+    expect(source).toContain('this.browserWindow()?.removeEventListener(NATIVE_APP_PAUSE_EVENT, this.handleNativeAppPause);');
+    expect(source).toContain('this.browserWindow()?.removeEventListener(NATIVE_APP_RESUME_EVENT, this.handleNativeAppResume);');
     expect(pauseMethod).toContain("this.focusPauseRequested = true;");
     expect(pauseMethod).toContain("this.motion.pause(this.sentenceMotion, now)");
-    expect(pauseMethod).toContain("this.cancelTransientGestureStateForFocusLoss();");
+    expect(pauseMethod).toContain("this.resetTransientSliceState();");
+    expect(pauseMethod).toContain("this.reviewFocusPausedAtMs = this.baseNowMs();");
+    expect(pauseMethod).toContain("this.setReviewTimersPaused(true);");
+    expect(pauseMethod).toContain("this.audio.cancelPending();");
     expect(pauseMethod).toContain("this.updateHud(now);");
     expect(pauseMethod).toContain("this.updateTimerVisual(now);");
     expect(pauseMethod).toContain("this.writePlayQaSnapshot();");
     expect(resumeMethod).toContain("this.focusPauseRequested = false;");
     expect(resumeMethod).toContain("this.motion.resume(this.sentenceMotion, now)");
+    expect(resumeMethod).toContain("this.resumeReviewAfterFocusReturn();");
+    expect(resumeReviewMethod).toContain("this.pendingReviewReveal.feedbackAtMs += hiddenDurationMs;");
+    expect(resumeReviewMethod).toContain("this.tutorialReviewReadyAtMs += hiddenDurationMs;");
+    expect(resumeReviewMethod).toContain("this.endlessReviewReadyAtMs += hiddenDurationMs;");
+    expect(resumeReviewMethod).toContain("this.setReviewTimersPaused(false);");
+    expect(pauseReviewTimersMethod).toContain("this.feedbackAdvanceTimer.paused = paused;");
+    expect(pauseReviewTimersMethod).toContain("this.wienerSpeechTimer.paused = paused;");
+    expect(pauseReviewTimersMethod).toContain("timer.paused = paused");
     expect(startRoundMethod).toContain("this.focusPauseRequested = globalThis.document?.hidden ?? false;");
     expect(startRoundMethod).toContain("this.pauseActiveRoundForFocusLoss();");
     expect(cancelMethod).toContain("this.cutInput.endGesture();");
@@ -263,6 +315,8 @@ describe("PlayScene input lifecycle", () => {
     expect(pauseMethod).not.toContain("this.setWienerSpeech");
     expect(resumeMethod).not.toContain("this.scoring.scoreRound");
     expect(resumeMethod).not.toContain("this.setWienerSpeech");
+    expect(resumeReviewMethod).not.toContain("this.scoring.scoreRound");
+    expect(resumeReviewMethod).not.toContain("this.setWienerSpeech");
     expect(shutdownMethod.indexOf("this.unregisterFocusPauseListeners();")).toBeGreaterThan(-1);
     expect(shutdownMethod.indexOf("this.focusPauseRequested = false;")).toBeGreaterThan(
       shutdownMethod.indexOf("this.unregisterFocusPauseListeners();")
@@ -309,6 +363,25 @@ describe("PlayScene input lifecycle", () => {
     expect(resolveMethod).not.toContain("this.showTokenStrip");
   });
 
+  it("stages valid QA cuts after layout and holds split IDs without review occlusion", () => {
+    const source = readRepoFile("src/game/scenes/PlayScene.ts");
+    const startRoundMethod = source.match(/private startRound\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+    const stageMethod = source.match(/private stageQaRound\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+    const resolveMethod = source.match(/private resolveRound\(trigger: RoundResolveTrigger = "manual"\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+    const splitMethod = source.match(/private animateResolvedTextPieces\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+
+    expect(startRoundMethod.indexOf("this.stageQaRound();")).toBeGreaterThan(
+      startRoundMethod.indexOf("this.updateTimerVisual(now);")
+    );
+    expect(stageMethod).toContain("cut <= 0 || cut >= length");
+    expect(stageMethod).toContain("this.currentCuts = [...cuts].sort((a, b) => a - b);");
+    expect(stageMethod).toContain('this.resolveRound("manual");');
+    expect(resolveMethod).toContain("this.qaControls.holdReview || this.qaControls.holdSplit");
+    expect(resolveMethod).toContain("this.feedbackCard.hide();");
+    expect(splitMethod).toContain("if (this.qaControls.holdSplit)");
+    expect(splitMethod).toContain("this.tweens.killTweensOf(piece);");
+  });
+
   it("services pending review reveals during resolving frames so compact review cannot stall hidden", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
     const updateMethod = source.match(/update\(time: number\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
@@ -317,12 +390,11 @@ describe("PlayScene input lifecycle", () => {
 
     expect(source).toContain("interface PendingReviewReveal");
     expect(source).toContain("private pendingReviewReveal?: PendingReviewReveal;");
-    expect(updateMethod).toContain("if (this.resolving) {\n      this.updatePendingReviewReveal();\n      this.updateTutorialReviewReady();\n      return;\n    }");
+    expect(updateMethod).toContain("if (this.resolving) {\n      this.updatePendingReviewReveal();\n      this.updateTutorialReviewReady();\n      this.updateEndlessReviewReady();\n      return;\n    }");
     expect(fallbackMethod).toContain("now >= pending.feedbackAtMs");
     expect(fallbackMethod).toContain("this.revealReviewFeedback(pending);");
-    expect(feedbackMethod.indexOf("this.scheduleTutorialReviewReady();")).toBeLessThan(
-      feedbackMethod.indexOf("this.setWienerSpeech(pending.resolutionLine, {")
-    );
+    expect(feedbackMethod).toContain("this.scheduleTutorialReviewReady();");
+    expect(feedbackMethod).toContain("this.setWienerSpeech(pending.resolutionLine");
     expect(feedbackMethod).toContain("this.pendingReviewReveal = undefined;");
     expect(source).not.toContain("private revealReviewEvidence");
     expect(source).not.toContain("private updateSegmentationEvidenceReveal");
@@ -343,8 +415,7 @@ describe("PlayScene input lifecycle", () => {
     const resolveMethod = source.match(/private resolveRound\(trigger: RoundResolveTrigger = "manual"\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const qaMethod = writePlayQaSnapshotMethod(source);
 
-    expect(source).toContain("score: RoundScoreResult;");
-    expect(resolveMethod).toContain("score,");
+    expect(source).not.toContain("score: RoundScoreResult;");
     expect(qaMethod).toContain("const feedbackQa = this.feedbackCard.qaState();");
     expect(qaMethod).toContain("feedbackTokenSplitText: feedbackQa.tokenSplit");
     expect(qaMethod).toContain("feedbackTokenSplitRect: feedbackQa.tokenSplitRect");
@@ -373,6 +444,10 @@ describe("PlayScene input lifecycle", () => {
     expect(splitMethod).toContain("delay: plan.delayMs");
     expect(splitMethod).toContain("duration: plan.durationMs");
     expect(splitMethod).not.toContain("piecePlans.length - 1");
+    expect(splitMethod).toContain("tokenStrings: this.currentFixture.token_strings");
+    expect(splitMethod).toContain("tokenIds: this.currentFixture.token_ids");
+    expect(splitMethod).toContain("if (plan.tokenId !== undefined)");
+    expect(splitMethod).toContain("`ID ${plan.tokenId}`");
   });
 
   it("destroys falling split pieces after their visual fall completes", () => {
@@ -573,35 +648,43 @@ describe("PlayScene input lifecycle", () => {
 
   it("gives bottom controls immediate pressed-state feedback before release actions", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
-    const createMethod = source.match(/create\(data: PlaySceneData\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+    const bindControlsMethod = source.match(/private bindPlayControls\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const resolveStateMethod = source.match(/private applyResolveButtonVisualState\(hovered: boolean, pressed = false\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const clearStateMethod = source.match(/private applyClearButtonVisualState\(hovered: boolean, pressed = false\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const clearActionableMethod = source.match(/private clearButtonActionable\(\): boolean \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const clearMethod = source.match(/private clearPlayerCuts\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
-    const advanceReviewMethod = source.match(/private advanceTutorialReview\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+    const advanceReviewMethod = source.match(/private advanceReview\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+    const endlessCanAdvanceReviewMethod = source.match(/private endlessReviewCanAdvance\(\): boolean \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const canAdvanceReviewMethod = source.match(/private tutorialReviewCanAdvance\(\): boolean \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const markReviewMethod = source.match(/private markTutorialReviewReady\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const scheduleReviewMethod = source.match(/private scheduleTutorialReviewReady\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const updateReviewMethod = source.match(/private updateTutorialReviewReady\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const qaMethod = writePlayQaSnapshotMethod(source);
 
-    expect(createMethod).toContain('this.resolveButton.on("pointerdown", () => this.handleResolvePointerDown());');
-    expect(createMethod).toContain('this.resolveButton.on("pointerup", () => this.handleResolvePointerUp());');
-    expect(createMethod).toContain('this.clearButton.on("pointerdown", () => this.applyClearButtonVisualState(true, true));');
-    expect(createMethod).toContain('this.muteButton.on("pointerdown", () => this.muteButton.setFillStyle(buttonVisual.pressFill, buttonVisual.pressAlpha));');
-    expect(createMethod).toContain('this.exitButton.on("pointerdown", () => this.exitButton.setFillStyle(buttonVisual.pressFill, buttonVisual.pressAlpha));');
-    expect(resolveStateMethod).toContain("const ready = this.tutorialReviewCanAdvance();");
-    expect(resolveStateMethod).toContain('ready ? finalRound ? "Finish" : "Continue" : "Review"');
+    expect(bindControlsMethod.match(/bindPlayControlActivation\(\{/g)).toHaveLength(4);
+    expect(bindControlsMethod).toContain('controlId: "resolve"');
+    expect(bindControlsMethod).toContain('onPress: () => this.handleResolvePointerDown()');
+    expect(bindControlsMethod).toContain('onActivate: () => this.handleResolvePointerUp()');
+    expect(bindControlsMethod).toContain('controlId: "clear"');
+    expect(bindControlsMethod).toContain('onPress: () => this.applyClearButtonVisualState(true, true)');
+    expect(bindControlsMethod).toContain('onActivate: () => this.clearPlayerCuts()');
+    expect(bindControlsMethod).toContain('controlId: "mute"');
+    expect(bindControlsMethod).toContain('onActivate: () => this.toggleMute()');
+    expect(bindControlsMethod).toContain('controlId: "exit"');
+    expect(bindControlsMethod).toContain('onActivate: () => this.exitToMenu()');
+    expect(resolveStateMethod).toContain("const ready = this.reviewCanAdvance();");
+    expect(resolveStateMethod).toContain('finalTutorialRound ? "Finish" : "Continue" : "Next"');
     expect(resolveStateMethod).toContain("resolveButtonVisualState(");
     expect(resolveStateMethod).toContain("ready,");
     expect(resolveStateMethod).toContain("pressed,");
     expect(resolveStateMethod).toContain("this.currentCuts.length");
-    expect(advanceReviewMethod).toContain("if (!this.tutorialReviewCanAdvance())");
+    expect(advanceReviewMethod).toContain("if (!this.reviewCanAdvance())");
     expect(source).toContain("private resolvePointerDownCanAdvanceReview = true;");
     expect(source).toContain("private tutorialReviewReadyAtMs: number | null = null;");
+    expect(source).toContain("private endlessReviewReadyAtMs: number | null = null;");
     expect(source).toContain("TUTORIAL_REVIEW_CONTINUE_DWELL_MS");
     expect(source).toContain("private handleResolvePointerDown(): void {");
-    expect(source).toContain("this.resolvePointerDownCanAdvanceReview =\n      !this.tutorialMode || !this.resolving || this.tutorialReviewCanAdvance();");
+    expect(source).toContain("this.resolvePointerDownCanAdvanceReview =\n      !this.resolving || this.reviewCanAdvance();");
     expect(source).toContain("private handleResolvePointerUp(): void {");
     expect(source).toContain("this.handleResolveButton({ canAdvanceReview });");
     expect(source).toContain("if (options.canAdvanceReview === false) {\n        this.updateResolveButtonState();\n        return;\n      }");
@@ -613,6 +696,8 @@ describe("PlayScene input lifecycle", () => {
     expect(canAdvanceReviewMethod).toContain("this.updateTutorialReviewReady();");
     expect(canAdvanceReviewMethod).toContain("return this.tutorialReviewReady;");
     expect(canAdvanceReviewMethod).not.toContain("feedbackCard.isVisible()");
+    expect(endlessCanAdvanceReviewMethod).toContain("this.updateEndlessReviewReady();");
+    expect(endlessCanAdvanceReviewMethod).toContain("return this.endlessReviewReady;");
     expect(qaMethod).toContain("tutorialReviewReady: this.tutorialReviewCanAdvance()");
     expect(qaMethod).toContain("tutorialReviewDwellRemainingMs");
     expect(qaMethod).toContain("clearButtonActionable: this.clearButtonActionable()");
@@ -661,7 +746,7 @@ describe("PlayScene input lifecycle", () => {
 
   it("renders mouse and pen hover snap previews without staging input or seeding release feedback", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
-    const pointerMethod = source.match(/private handlePointer\(pointer: Phaser\.Input\.Pointer\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+    const pointerMethod = source.match(/private handlePointer\(pointer: Phaser\.Input\.Pointer, canStartSlice: boolean\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const hoverMethod = source.match(/private renderHoverCutPreview\(point: Point, modality: PlaytestInputModality\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const previewMethod = source.match(/private renderArmedCutPreview\(point: Point, options: \{ trackGesturePreview\?: boolean; slots\?: BoundarySlot\[\] \} = \{\}\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
 
@@ -690,7 +775,7 @@ describe("PlayScene input lifecycle", () => {
     expect(previewMethod).toContain("this.armedPreviewReady = style?.snapReady ?? false;");
     expect(previewMethod).toContain("const previewColor = preview.snapReady ? uiPalette.amber : uiPalette.blueGrey;");
     expect(previewMethod).toContain("const targetColor = preview.snapReady ? uiPalette.amber : uiPalette.blueGrey;");
-    expect(previewMethod).toContain("if (preview.snapReady && preview.latchLength > 0) {");
+    expect(previewMethod).toContain("if (!this.compactLayout && preview.snapReady && preview.latchLength > 0) {");
     expect(previewMethod).toContain("preview.latchWidth + 2");
     expect(previewMethod).toContain("uiPalette.amberLight");
     expect(previewMethod).toContain("preview.latchAlpha");
@@ -703,8 +788,9 @@ describe("PlayScene input lifecycle", () => {
     const noCutMethod = source.match(/private playNoCutFeedback\(point\?: Point, preview\?: NoCutPreviewSnapshot\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const toggleMethod = source.match(/private toggleMute\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
 
-    expect(source).toContain('import { HapticFeedbackSystem } from "../systems/HapticFeedbackSystem";');
-    expect(source).toContain("private readonly haptics = new HapticFeedbackSystem(this.audio.isMuted());");
+    expect(source).toContain('import { hapticFeedbackCapability, HapticFeedbackSystem } from "../systems/HapticFeedbackSystem";');
+    expect(source).toContain("private readonly haptics = new HapticFeedbackSystem();");
+    expect(source).toContain("readHapticPreferenceRuntime(this.registry)");
     expect(sampleMethod).toContain('this.audio.play("ui");');
     expect(sampleMethod).toContain('this.haptics.play("confirm", this.inputModality);');
     expect(sampleMethod.indexOf('this.haptics.play("confirm", this.inputModality);')).toBeGreaterThan(
@@ -724,13 +810,10 @@ describe("PlayScene input lifecycle", () => {
     );
     expect(sampleMethod).not.toContain('this.audio.play("cut");');
     expect(sampleMethod).not.toContain('this.audio.play("clear");');
-    expect(noCutMethod).toContain('this.audio.play("miss");');
-    expect(noCutMethod).toContain('this.haptics.play("miss", this.inputModality);');
-    expect(noCutMethod.indexOf('this.haptics.play("miss", this.inputModality);')).toBeGreaterThan(
-      noCutMethod.indexOf('this.audio.play("miss");')
-    );
+    expect(noCutMethod).not.toContain('this.audio.play("miss");');
+    expect(noCutMethod).not.toContain('this.haptics.play("miss", this.inputModality);');
     expect(noCutMethod).not.toContain("this.scoring.scoreRound");
-    expect(toggleMethod).toContain("this.haptics.setMuted(muted);");
+    expect(toggleMethod).not.toContain("this.haptics");
   });
 
   it("acknowledges same-gesture adjacent-slot corrections without adding pet speech or scoring", () => {
@@ -741,21 +824,13 @@ describe("PlayScene input lifecycle", () => {
     expect(sampleMethod).toContain("const responseCutCount = feedbackAddedCuts.length + correctionCutCount;");
     expect(sampleMethod).toContain("cutCount: responseCutCount");
     expect(sampleMethod).toContain("correction: correctionCutCount > 0");
-    expect(sampleMethod.indexOf("this.inputFeelMetrics.recordCutsAdded({")).toBeLessThan(
-      sampleMethod.indexOf("if (feedbackAddedCuts.length > 0) {")
-    );
+    expect(sampleMethod).not.toContain("wienerCutReaction");
     expect(sampleMethod).toContain("this.playCutCorrectionFeedback(result.replacedCuts, result.addedCuts);");
     expect(sampleMethod).toContain("if (correctionCutCount > 0) {");
     expect(sampleMethod).toContain('this.haptics.play("confirm", this.inputModality);');
     expect(sampleMethod).toContain("this.audio.playSequence(cutConfirmationAudioCues(responseCutCount), CUT_CONFIRMATION_CUE_SPACING_MS);");
     expect(sampleMethod).toContain("this.playTextCutImpact(Math.max(1, responseCutCount));");
-    expect(sampleMethod.indexOf("this.playPetReaction(wienerCutReaction(feedbackAddedCuts.length));")).toBeGreaterThan(
-      sampleMethod.indexOf("if (feedbackAddedCuts.length > 0) {")
-    );
-    expect(sampleMethod.indexOf("this.playPetReaction(wienerCutReaction(feedbackAddedCuts.length));")).toBeLessThan(
-      sampleMethod.indexOf("this.audio.playSequence(cutConfirmationAudioCues(responseCutCount), CUT_CONFIRMATION_CUE_SPACING_MS);")
-    );
-    expect(sampleMethod).not.toContain("wienerCutReaction(responseCutCount)");
+    expect(sampleMethod).not.toContain("this.playPetReaction");
     expect(sampleMethod).not.toContain("this.scoring.scoreRound");
   });
 
@@ -786,10 +861,10 @@ describe("PlayScene input lifecycle", () => {
     expect(qaMethod).toContain("cutCorrectionFeedbackRect: this.cutCorrectionFeedbackRect");
   });
 
-  it("renders chained multi-cut swipes as a transient rail without changing cut rules", () => {
+  it("keeps chained multi-cut swipes in the cut geometry instead of stacking a second rail", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
     const sampleMethod = applyPointerCutSampleMethod(source);
-    const endMethod = source.match(/private handlePointerGestureEnd\(pointer\?: Phaser\.Input\.Pointer\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+    const endMethod = completeSliceGestureMethod(source);
     const chainMethod = source.match(/private playChainSwipeFeedback\(cuts: number\[\]\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const clearMethod = source.match(/private clearChainSwipeFeedback\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const qaMethod = writePlayQaSnapshotMethod(source);
@@ -797,21 +872,8 @@ describe("PlayScene input lifecycle", () => {
     expect(source).toContain("chainSwipeFeedbackStyle");
     expect(source).toContain("private chainSwipeFeedbackGraphics!: Phaser.GameObjects.Graphics;");
     expect(source).toContain("private chainSwipeFeedbackRect?: GameQaRect;");
-    expect(sampleMethod).toContain("if (feedbackAddedCuts.length >= 2) {");
-    expect(sampleMethod).toContain("this.playChainSwipeFeedback(feedbackAddedCuts);");
-    expect(endMethod).toContain("if (!this.resolving && releasePulseCuts.length >= 2) {\n      this.playChainSwipeFeedback(releasePulseCuts);\n    }");
-    expect(endMethod.indexOf("this.playChainSwipeFeedback(releasePulseCuts);")).toBeGreaterThan(
-      endMethod.indexOf("this.inputFeelMetrics.endGesture();")
-    );
-    expect(endMethod.indexOf("this.playChainSwipeFeedback(releasePulseCuts);")).toBeLessThan(
-      endMethod.indexOf("this.trailFadeTween?.stop();")
-    );
-    expect(sampleMethod.indexOf("this.playChainSwipeFeedback(feedbackAddedCuts);")).toBeGreaterThan(
-      sampleMethod.indexOf("this.playPetReaction(wienerCutReaction(feedbackAddedCuts.length));")
-    );
-    expect(sampleMethod.indexOf("this.playChainSwipeFeedback(feedbackAddedCuts);")).toBeLessThan(
-      sampleMethod.indexOf("this.audio.playSequence(cutConfirmationAudioCues(responseCutCount), CUT_CONFIRMATION_CUE_SPACING_MS);")
-    );
+    expect(sampleMethod).not.toContain("this.playChainSwipeFeedback(feedbackAddedCuts);");
+    expect(endMethod).not.toContain("this.playChainSwipeFeedback(releasePulseCuts);");
     expect(chainMethod).toContain("const style = chainSwipeFeedbackStyle(cuts.length, this.compactLayout);");
     expect(chainMethod).toContain("this.swipe.boundaryX(bounds, this.currentFixture!.text, cut)");
     expect(chainMethod).toContain("this.chainSwipeFeedbackGraphics.lineBetween(minX, bridgeY, maxX, bridgeY);");
@@ -852,6 +914,18 @@ describe("PlayScene input lifecycle", () => {
       resolveMethod.indexOf("this.audio.playSequence(this.resolutionFeedback.audioCues(resolutionFeedbackInput));")
     );
     expect(resolveMethod.match(/this\.scoring\.scoreRound/g)?.length).toBe(1);
+  });
+
+  it("aggregates results accuracy with false cuts included in the audit denominator", () => {
+    const source = readRepoFile("src/game/scenes/PlayScene.ts");
+    const endSessionMethod = source.match(/private endSession\(outcome: SessionOutcome\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+    const tutorialPerformanceMethod = source.match(/private tutorialCompletePerformance\(\): TutorialCompletePerformance \{[\s\S]+?\n  \}/)?.[0] ?? "";
+
+    expect(source).toMatch(/import\s+\{[\s\S]*?cutAuditAccuracy,[\s\S]*?ScoringSystem,[\s\S]*?\}\s+from "\.\.\/systems\/ScoringSystem"/);
+    expect(endSessionMethod).toContain("cutAuditAccuracy(this.totalCorrect, this.totalMissed, this.totalFalse)");
+    expect(endSessionMethod).not.toContain("this.totalCorrect / this.totalPossible");
+    expect(tutorialPerformanceMethod).toContain("cutAuditAccuracy(this.totalCorrect, this.totalMissed, this.totalFalse)");
+    expect(tutorialPerformanceMethod).not.toContain("this.totalCorrect / this.totalPossible");
   });
 
   it("plays and clears a labelled resolve commit beat for submitted and empty resolves without changing scoring", () => {
@@ -916,7 +990,7 @@ describe("PlayScene input lifecycle", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
     const feedbackSource = readRepoFile("src/game/systems/ActiveCutFeedbackSystem.ts");
     const sampleMethod = applyPointerCutSampleMethod(source);
-    const endMethod = source.match(/private handlePointerGestureEnd\(pointer\?: Phaser\.Input\.Pointer\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+    const endMethod = completeSliceGestureMethod(source);
     const noCutMethod = source.match(/private playNoCutFeedback\(point\?: Point, preview\?: NoCutPreviewSnapshot\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
 
     expect(source).toContain("interface NoCutPreviewSnapshot");
@@ -960,7 +1034,8 @@ describe("PlayScene input lifecycle", () => {
     expect(noCutMethod).toContain("targets: this.noCutFeedbackText");
     expect(noCutMethod).toContain("this.noCutFeedbackScuffTween = this.tweens.add");
     expect(noCutMethod).toContain("targets: this.noCutFeedbackGraphics");
-    expect(noCutMethod).toContain('this.audio.play("miss");');
+    expect(noCutMethod).not.toContain('this.audio.play("miss");');
+    expect(noCutMethod).not.toContain('this.haptics.play("miss", this.inputModality);');
     expect(noCutMethod).not.toContain('this.audio.play("cut")');
     expect(noCutMethod).not.toContain('this.audio.play("clear")');
     expect(noCutMethod).not.toContain('this.audio.play("resolve")');
@@ -972,7 +1047,7 @@ describe("PlayScene input lifecycle", () => {
   it("refreshes the staged-cut pulse on release so successful swipes settle visibly", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
     const sampleMethod = applyPointerCutSampleMethod(source);
-    const endMethod = source.match(/private handlePointerGestureEnd\(pointer\?: Phaser\.Input\.Pointer\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+    const endMethod = completeSliceGestureMethod(source);
 
     expect(source).toContain("private gestureAddedCuts = new Set<number>();");
     expect(source).toContain("private gestureReleaseSampleCuts = new Set<number>();");
@@ -998,9 +1073,10 @@ describe("PlayScene input lifecycle", () => {
   it("treats swipes across already staged cuts as audible confirmation rather than failed gestures", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
     const sampleMethod = applyPointerCutSampleMethod(source);
-    const endMethod = source.match(/private handlePointerGestureEnd\(pointer\?: Phaser\.Input\.Pointer\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+    const endMethod = completeSliceGestureMethod(source);
     const existingTouchMethod = source.match(/private existingCutsTouchedByPointer\([\s\S]+?\n  \}/)?.[0] ?? "";
     const clearMethod = source.match(/private clearPlayerCuts\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+    const resetMethod = source.match(/private resetTransientSliceState\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const resolveMethod = source.match(/private resolveRound\(trigger: RoundResolveTrigger = "manual"\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
 
     expect(source).toContain("private gestureTouchedExistingCuts = new Set<number>();");
@@ -1029,16 +1105,18 @@ describe("PlayScene input lifecycle", () => {
     expect(existingTouchMethod).toContain("this.swipe.boundariesCrossedBySegment(slots, lastPoint, point, snapDistance)");
     expect(existingTouchMethod).toContain("return [...touchedCuts].sort((a, b) => a - b);");
     expect(endMethod).toContain("this.gestureTouchedExistingCuts.clear();");
-    expect(clearMethod).toContain("this.gestureReleaseSampleCuts.clear();");
-    expect(clearMethod).toContain("this.gestureTouchedExistingCuts.clear();");
+    expect(clearMethod).toContain("this.resetTransientSliceState();");
+    expect(resetMethod).toContain("this.gestureReleaseSampleCuts.clear();");
+    expect(resetMethod).toContain("this.gestureTouchedExistingCuts.clear();");
     expect(resolveMethod).toContain("this.gestureReleaseSampleCuts.clear();");
     expect(resolveMethod).toContain("this.gestureTouchedExistingCuts.clear();");
     expect(sampleMethod).not.toContain('this.audio.play("miss");\n      this.haptics.play("confirm"');
     expect(sampleMethod).not.toContain("this.scoring.scoreRound");
-    expect(sampleMethod).not.toContain("this.setWienerSpeech");
+    expect(sampleMethod).toContain("previousCutCount === 0 && this.currentCuts.length > 0");
+    expect(sampleMethod).toContain("this.tutorial.firstCutFollowUpFor(this.round - 1)");
   });
 
-  it("ties the touch aim loupe accent to snap-ready preview state without changing cuts", () => {
+  it("keeps touch aim metrics while suppressing the detached loupe card", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
     const previewMethod = source.match(/private renderArmedCutPreview\(point: Point[\s\S]+?\n  \}/)?.[0] ?? "";
     const loupeMethod = source.match(/private renderTouchAimLoupe\(state: TouchAimLoupeState\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
@@ -1049,15 +1127,15 @@ describe("PlayScene input lifecycle", () => {
     expect(source).toContain("private touchAimLoupePointerClearancePx: number | null = null;");
     expect(source).toContain('private touchAimLoupePlacement: TouchAimLoupePlacement = "hidden";');
     expect(previewMethod).toContain("snapReady: style?.snapReady ?? false");
-    expect(loupeMethod).toContain("this.touchAimLoupeSnapReady = state.snapReady;");
-    expect(loupeMethod).toContain("this.touchAimLoupePointerClearancePx = state.pointerClearancePx;");
-    expect(loupeMethod).toContain("this.touchAimLoupePlacement = state.placement;");
+    expect(loupeMethod).toContain("this.touchAimLoupeBoundary = null;");
+    expect(loupeMethod).toContain("this.touchAimLoupeRect = undefined;");
+    expect(loupeMethod).toContain("this.touchAimLoupeSnapReady = false;");
+    expect(loupeMethod).toContain("this.touchAimLoupePointerClearancePx = null;");
+    expect(loupeMethod).toContain('this.touchAimLoupePlacement = "hidden";');
     expect(loupeMethod).toContain("this.inputFeelMetrics.recordTouchAimLoupe({");
-    expect(loupeMethod).toContain("const accentColor = state.snapReady ? uiPalette.amber : uiPalette.blueGrey;");
-    expect(loupeMethod).toContain("const style = touchAimLoupeVisualStyle(state.snapReady);");
-    expect(loupeMethod).toContain("style.centerLineWidth");
-    expect(loupeMethod).toContain("style.railAlpha");
-    expect(loupeMethod).toContain("if (state.snapReady) {");
+    expect(loupeMethod).toContain("this.touchAimLoupeText.setVisible(false);");
+    expect(loupeMethod).not.toContain("fillRoundedRect(left, top, rect.width, rect.height");
+    expect(loupeMethod).not.toContain("this.touchAimLoupeText.setText(state.text);");
     expect(loupeMethod).not.toContain("this.currentCuts");
     expect(loupeMethod).not.toContain("this.scoring.scoreRound");
     expect(clearMethod).toContain("this.touchAimLoupeSnapReady = false;");
@@ -1089,12 +1167,13 @@ describe("PlayScene input lifecycle", () => {
     expect(source).toContain("this.noCutFeedbackText?.setVisible(false);");
     expect(source).toContain("this.noCutFeedbackReason = undefined;");
     expect(source).toContain("this.noCutFeedbackDirection = undefined;");
-    expect(source.match(/this\.gestureNoCutPreview = undefined;/g)?.length).toBeGreaterThanOrEqual(4);
+    expect(source.match(/this\.gestureNoCutPreview = undefined;/g)?.length).toBeGreaterThanOrEqual(3);
+    expect(source).toContain("private resetTransientSliceState(): void");
   });
 
   it("anchors the pet idle bob to current layout so review placement cannot drift into feedback", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
-    const layoutPetMethod = source.match(/private layoutPetWiener\(layout: ReturnType<typeof computePlayLayout>\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
+    const layoutPetMethod = source.match(/private layoutPetWiener\([\s\S]+?\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const restartBobMethod = source.match(/private restartPetIdleBob\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const shutdownMethod = source.match(/private shutdownScene\(\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
 
@@ -1126,7 +1205,7 @@ describe("PlayScene input lifecycle", () => {
     expect(shutdownMethod).toContain("this.clearPetIdleBob();");
   });
 
-  it("clears stale prompt speech before review evidence appears", () => {
+  it("clears stale prompt speech before replacing it with review speech", () => {
     const source = readRepoFile("src/game/scenes/PlayScene.ts");
     const resolveMethod = source.match(/private resolveRound\(trigger: RoundResolveTrigger = "manual"\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";
     const revealFeedbackMethod = source.match(/private revealReviewFeedback\(pending: PendingReviewReveal\): void \{[\s\S]+?\n  \}/)?.[0] ?? "";

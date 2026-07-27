@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  ACTIVE_PET_SPEECH_TIMER_CLEARANCE_PX,
+  COMPACT_PET_SPEECH_TOP_SAFE_Y,
   COMPACT_REVIEW_SPEECH_CLEARANCE_PX,
+  COMPACT_REVIEW_SPEECH_PET_CLEARANCE_PX,
   computePetSpeechLayout,
-  computeWienerSpeechLayout,
   REVIEW_SPEECH_CLEARANCE_PX,
+  WIENER_SPEECH_DEFAULT_MAX_LENGTH,
   wienerBriefLine,
   wienerSpeechDurationMs,
   wienerSpeechMaxLength,
@@ -11,8 +14,9 @@ import {
 } from "../src/game/systems/WienerSpeechSystem";
 import { computePlayLayout, type LayoutRect } from "../src/game/systems/PlayLayoutSystem";
 import { resolutionAuditLegendPromptOffsetY } from "../src/game/systems/ResolutionFeedbackSystem";
-import { TUTORIAL_ROUND_DURATION_MS, TutorialSystem } from "../src/game/systems/TutorialSystem";
+import { TutorialSystem } from "../src/game/systems/TutorialSystem";
 import { computeFeedbackCardLayout } from "../src/game/ui/FeedbackCard";
+import { computeHudLayout } from "../src/game/ui/Hud";
 
 function edges(rect: LayoutRect) {
   return {
@@ -89,7 +93,7 @@ describe("WienerSpeechSystem", () => {
     expect(line).toBe("TUTORIAL 1/10 - Swipe orange targets; pale guides show legal slots;...");
   });
 
-  it("keeps compact tutorial toasts as complete short instructions when possible", () => {
+  it("strips only the tutorial counter without discarding instructional text before a colon", () => {
     const source = wienerSpeechSourceText(
       "TUTORIAL 1/10 - Slot guides: Learn legal cut positions before guessing token boundaries. Pale guides are legal slots.",
       true
@@ -100,8 +104,18 @@ describe("WienerSpeechSystem", () => {
     );
 
     expect(source).not.toContain("TUTORIAL 1/10");
-    expect(line).toBe("Learn legal cut positions before guessing token boundaries.");
-    expect(line.endsWith("...")).toBe(false);
+    expect(source).toBe("Slot guides: Learn legal cut positions before guessing token boundaries.");
+    expect(line).toBe("Slot guides: Learn legal cut positions before guessing token boundaries.");
+  });
+
+  it("gives sticky compact tutorial speech the full bubble copy budget", () => {
+    expect(wienerSpeechMaxLength(true, true)).toBe(WIENER_SPEECH_DEFAULT_MAX_LENGTH);
+    expect(
+      wienerSpeechSourceText(
+        "TUTORIAL 1/10 - Before models read, text becomes tokens: reusable chunks, not always words.",
+        false
+      )
+    ).toBe("Before models read, text becomes tokens: reusable chunks, not always words.");
   });
 
   it("strips Wiener speaker prefixes before shortening near-action toasts", () => {
@@ -113,28 +127,27 @@ describe("WienerSpeechSystem", () => {
   it("keeps every tutorial near-action toast within compact wrap capacity", () => {
     const tutorial = new TutorialSystem();
     const maxLength = wienerSpeechMaxLength(true);
-    const layout = computeWienerSpeechLayout(
-      { width: 390, height: 844 },
-      { x: 195, y: 650, width: 358, height: 96 },
-      true
+    const viewport = { width: 390, height: 844 };
+    const playLayout = computePlayLayout(viewport);
+    const speechLayout = computePetSpeechLayout({
+      viewport,
+      textPanel: { ...playLayout.textPanel, y: playLayout.sentenceStartY },
+      petBounds: playLayout.petWienerSlot,
+      feedback: computeFeedbackCardLayout(viewport.width, viewport.height, playLayout.contentPanel),
+      resolveButton: playLayout.resolveButton,
+      compact: playLayout.compact,
+      reviewSpeech: false
+    });
+    const maxCharsPerLine = Math.floor(
+      speechLayout.text.wordWrapWidth / (speechLayout.text.fontSize * 0.62)
     );
-    const maxCharsPerLine = Math.floor(layout.text.wordWrapWidth / (layout.text.fontSize * 0.62));
 
-    tutorial.all().forEach((_, index) => {
-      for (const prompt of [
-        tutorial.activePromptFor(index),
-        tutorial.introPromptFor(index),
-        tutorial.mechanicsPromptFor(index),
-        tutorial.bytePromptFor(index),
-        tutorial.tokenIdPromptFor(index),
-        tutorial.rulePromptFor(index),
-        tutorial.followupPromptFor(index)
-      ]) {
-        const line = wienerBriefLine(wienerSpeechSourceText(prompt, true), maxLength);
+    Array.from({ length: tutorial.count() }, (_, index) => index).forEach((index) => {
+      const prompt = tutorial.activePromptFor(index);
+      const line = wienerBriefLine(wienerSpeechSourceText(prompt, true), maxLength);
 
-        expect(line.length, line).toBeLessThanOrEqual(maxLength);
-        expect(estimatedWrappedLineCount(line, maxCharsPerLine), line).toBeLessThanOrEqual(2);
-      }
+      expect(line.length, line).toBeLessThanOrEqual(maxLength);
+      expect(estimatedWrappedLineCount(line, maxCharsPerLine), line).toBeLessThanOrEqual(2);
     });
   });
 
@@ -160,57 +173,6 @@ describe("WienerSpeechSystem", () => {
     expect(capped).toBeLessThanOrEqual(6200);
   });
 
-  it("positions the Wiener speech bubble near the static prompt text while staying inside the viewport", () => {
-    const layout = computeWienerSpeechLayout(
-      { width: 390, height: 844 },
-      { x: 195, y: 520, width: 358, height: 96 },
-      true
-    );
-
-    expect(layout.panel.x).toBe(195);
-    expect(layout.panel.y).toBeLessThan(520);
-    expect(layout.panel.height).toBe(62);
-    expect(layout.panel.width).toBeLessThanOrEqual(358);
-    expect(layout.panel.x - layout.panel.width / 2).toBeGreaterThanOrEqual(14);
-    expect(layout.panel.x + layout.panel.width / 2).toBeLessThanOrEqual(376);
-    expect(layout.label.fontSize).toBe(8);
-    expect(layout.label.visible).toBe(true);
-    expect(layout.label.y).toBeLessThan(layout.text.y);
-    expect(layout.text.wordWrapWidth).toBe(layout.panel.width - 32);
-  });
-
-  it("keeps the compact toast readable above the static prompt", () => {
-    const width = 320;
-    const height = 568;
-    const playLayout = computePlayLayout({ width, height });
-    const frozenElapsedMs = Math.round(TUTORIAL_ROUND_DURATION_MS * 0.238);
-    const movingTextY =
-      playLayout.sentenceStartY
-      + (playLayout.sentenceEndY - playLayout.sentenceStartY) * (frozenElapsedMs / TUTORIAL_ROUND_DURATION_MS);
-    const movingTextPanel = {
-      ...playLayout.textPanel,
-      y: movingTextY
-    };
-    const toast = computeWienerSpeechLayout({ width, height }, movingTextPanel, true);
-
-    expect(toast.panel.height).toBe(62);
-    expect(toast.label.visible).toBe(true);
-    expect(toast.text.fontSize).toBe(12);
-    expect(edges(toast.panel).top).toBeGreaterThanOrEqual(edges(playLayout.resolveButton).bottom);
-    expect(edges(toast.panel).bottom).toBeLessThanOrEqual(edges(movingTextPanel).top);
-  });
-
-  it("moves below the text panel when there is no space above it", () => {
-    const layout = computeWienerSpeechLayout(
-      { width: 390, height: 844 },
-      { x: 195, y: 70, width: 358, height: 96 },
-      true
-    );
-
-    expect(layout.panel.y).toBeGreaterThan(70);
-    expect(layout.panel.y + layout.panel.height / 2).toBeLessThan(844);
-  });
-
   it("keeps active pet speech out of the prompt band on short landscape desktop", () => {
     const width = 960;
     const height = 520;
@@ -232,6 +194,70 @@ describe("WienerSpeechSystem", () => {
     expect(withinViewport(speech.panel, width, height)).toBe(true);
     expect(overlaps(speech.panel, activeTextPanel)).toBe(false);
     expect(edges(speech.panel).bottom).toBeLessThanOrEqual(edges(activeTextPanel).top - 12);
+  });
+
+  it.each([
+    { label: "small mobile phone", width: 320, height: 568, surfaceProfile: "mobile" as const, expectedY: 219 },
+    { label: "compact mobile phone", width: 368, height: 552, surfaceProfile: "mobile" as const, expectedY: 219 },
+    { label: "standard mobile phone", width: 390, height: 844, surfaceProfile: "mobile" as const },
+    { label: "short landscape", width: 960, height: 520, surfaceProfile: "browser" as const },
+    { label: "desktop harness", width: 960, height: 720, surfaceProfile: "browser" as const },
+    { label: "tablet portrait", width: 768, height: 1024, surfaceProfile: "browser" as const },
+    { label: "wide desktop", width: 1280, height: 720, surfaceProfile: "browser" as const }
+  ])("keeps active pet speech clear of the timer on $label", ({ width, height, surfaceProfile, expectedY }) => {
+    const viewport = { width, height };
+    const playLayout = computePlayLayout({ ...viewport, surfaceProfile });
+    const textPanel = { ...playLayout.textPanel, y: playLayout.sentenceStartY };
+    const timer = {
+      ...playLayout.timer,
+      x: playLayout.timer.x + playLayout.timer.width / 2
+    };
+    const speech = computePetSpeechLayout({
+      viewport,
+      textPanel,
+      petBounds: playLayout.petWienerSlot,
+      feedback: computeFeedbackCardLayout(width, height, playLayout.contentPanel, undefined, undefined, surfaceProfile),
+      resolveButton: playLayout.resolveButton,
+      compact: playLayout.compact,
+      reviewSpeech: false,
+      activeTimerRect: timer
+    });
+
+    expect(clearanceBetween(speech.panel, timer)).toBeGreaterThanOrEqual(
+      ACTIVE_PET_SPEECH_TIMER_CLEARANCE_PX
+    );
+    expect(overlaps(speech.panel, playLayout.petWienerSlot)).toBe(false);
+    if (expectedY !== undefined) {
+      expect(speech.panel.y).toBe(expectedY);
+      expect(overlaps(speech.panel, textPanel)).toBe(false);
+      expect(edges(speech.panel).bottom).toBeLessThanOrEqual(edges(textPanel).top - 20);
+    }
+  });
+
+  it("does not move standard-phone active speech when the timer is already clear", () => {
+    const viewport = { width: 390, height: 844 };
+    const playLayout = computePlayLayout({ ...viewport, surfaceProfile: "mobile" });
+    const input = {
+      viewport,
+      textPanel: { ...playLayout.textPanel, y: playLayout.sentenceStartY },
+      petBounds: playLayout.petWienerSlot,
+      feedback: computeFeedbackCardLayout(
+        viewport.width,
+        viewport.height,
+        playLayout.contentPanel,
+        undefined,
+        undefined,
+        "mobile" as const
+      ),
+      resolveButton: playLayout.resolveButton,
+      compact: playLayout.compact,
+      reviewSpeech: false
+    };
+    const timer = { ...playLayout.timer, x: playLayout.timer.x + playLayout.timer.width / 2 };
+
+    expect(computePetSpeechLayout({ ...input, activeTimerRect: timer })).toEqual(
+      computePetSpeechLayout(input)
+    );
   });
 
   it.each([
@@ -294,6 +320,85 @@ describe("WienerSpeechSystem", () => {
     expect(edges(speech.panel).top).toBeGreaterThanOrEqual(
       edges(playLayout.resolveButton).bottom + COMPACT_REVIEW_SPEECH_CLEARANCE_PX
     );
+  });
+
+  it.each([
+    { label: "small mobile surface", width: 320, height: 568 },
+    { label: "reported mobile surface", width: 368, height: 552 },
+    { label: "standard mobile surface", width: 390, height: 844 }
+  ])("keeps compact tutorial review speech clear of Wiener on $label", ({ width, height }) => {
+    const playLayout = computePlayLayout({ width, height, surfaceProfile: "mobile" });
+    const reviewTextPanel = {
+      ...playLayout.textPanel,
+      y: playLayout.sentenceReviewY
+    };
+    const feedback = computeFeedbackCardLayout(
+      width,
+      height,
+      playLayout.contentPanel,
+      undefined,
+      undefined,
+      "mobile"
+    );
+    const speech = computePetSpeechLayout({
+      viewport: { width, height },
+      textPanel: reviewTextPanel,
+      petBounds: playLayout.petWienerSlot,
+      feedback,
+      resolveButton: playLayout.resolveButton,
+      compact: playLayout.compact,
+      reviewSpeech: true
+    });
+
+    expect(withinViewport(speech.panel, width, height)).toBe(true);
+    expect(overlaps(speech.panel, playLayout.petWienerSlot)).toBe(false);
+    expect(clearanceBetween(speech.panel, playLayout.petWienerSlot)).toBeGreaterThanOrEqual(
+      COMPACT_REVIEW_SPEECH_PET_CLEARANCE_PX
+    );
+    expect(speech.text.wordWrapWidth).toBeGreaterThanOrEqual(160);
+  });
+
+  it("keeps compact mobile review speech below the HUD band", () => {
+    const width = 368;
+    const height = 552;
+    const playLayout = computePlayLayout({ width, height, surfaceProfile: "mobile" });
+    const reviewTextPanel = {
+      ...playLayout.textPanel,
+      y: playLayout.sentenceReviewY
+    };
+    const feedback = computeFeedbackCardLayout(
+      width,
+      height,
+      playLayout.contentPanel,
+      undefined,
+      undefined,
+      "mobile"
+    );
+    const speech = computePetSpeechLayout({
+      viewport: { width, height },
+      textPanel: reviewTextPanel,
+      petBounds: playLayout.petWienerSlot,
+      feedback,
+      resolveButton: playLayout.resolveButton,
+      compact: playLayout.compact,
+      reviewSpeech: true,
+      evidenceRect: {
+        x: reviewTextPanel.x,
+        y: reviewTextPanel.y,
+        width: 297,
+        height: 24
+      }
+    });
+    const hud = computeHudLayout(width, playLayout.contentPanel).background;
+    const hudPanel = {
+      x: hud.x,
+      y: hud.y + hud.height / 2,
+      width: hud.width,
+      height: hud.height
+    };
+
+    expect(edges(speech.panel).top).toBeGreaterThanOrEqual(COMPACT_PET_SPEECH_TOP_SAFE_Y);
+    expect(overlaps(speech.panel, hudPanel)).toBe(false);
   });
 
   it.each([

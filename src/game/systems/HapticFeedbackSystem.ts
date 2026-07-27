@@ -2,9 +2,32 @@ import type { PlaytestInputModality } from "./InputModalitySystem";
 
 export type HapticFeedbackCue = "cut" | "confirm" | "clear" | "miss" | "warning";
 export type HapticPattern = number | number[];
+export type HapticFeedbackRoute = "native" | "browser" | "unavailable";
+
+export interface NativeHapticFeedbackMessage {
+  cue: HapticFeedbackCue;
+  repeats: number;
+}
 
 export interface HapticNavigatorLike {
   vibrate?: (pattern: HapticPattern) => boolean;
+}
+
+export interface NativeHapticMessageHandlerLike {
+  postMessage: (message: NativeHapticFeedbackMessage) => void;
+}
+
+export interface HapticFeedbackEnvironment {
+  navigator?: HapticNavigatorLike;
+  native?: {
+    available: boolean;
+    handler?: NativeHapticMessageHandlerLike;
+  };
+}
+
+export interface HapticFeedbackCapability {
+  available: boolean;
+  route: HapticFeedbackRoute;
 }
 
 export const hapticFeedbackPatterns: Record<HapticFeedbackCue, HapticPattern> = {
@@ -16,6 +39,7 @@ export const hapticFeedbackPatterns: Record<HapticFeedbackCue, HapticPattern> = 
 };
 
 export const MAX_CUT_CONFIRMATION_HAPTIC_PULSES = 4;
+export const NATIVE_HAPTIC_MESSAGE_HANDLER_NAME = "tokenizerTrainingHaptics";
 
 export function hapticModalityCanPlay(modality: PlaytestInputModality): boolean {
   return modality === "touch" || modality === "pen" || modality === "mixed";
@@ -37,7 +61,7 @@ export function cutConfirmationHapticPattern(cutCount: number): HapticPattern | 
 export class HapticFeedbackSystem {
   constructor(
     private muted = false,
-    private readonly navigatorRef: HapticNavigatorLike | undefined = defaultHapticNavigator()
+    private readonly environment: HapticFeedbackEnvironment = defaultHapticFeedbackEnvironment()
   ) {}
 
   isMuted(): boolean {
@@ -49,7 +73,9 @@ export class HapticFeedbackSystem {
   }
 
   canPlay(modality: PlaytestInputModality): boolean {
-    return !this.muted && hapticModalityCanPlay(modality) && typeof this.navigatorRef?.vibrate === "function";
+    return !this.muted
+      && hapticModalityCanPlay(modality)
+      && hapticFeedbackCapability(this.environment).available;
   }
 
   play(cue: HapticFeedbackCue, modality: PlaytestInputModality): boolean {
@@ -57,29 +83,78 @@ export class HapticFeedbackSystem {
       return false;
     }
 
+    return this.playNative(cue, 1) || this.playBrowser(hapticFeedbackPatterns[cue]);
+  }
+
+  playCutBurst(cutCount: number, modality: PlaytestInputModality): boolean {
+    const repeats = limitedPulseCount(cutCount, MAX_CUT_CONFIRMATION_HAPTIC_PULSES);
+    const pattern = cutConfirmationHapticPattern(cutCount);
+    if (repeats <= 0 || !pattern || !this.canPlay(modality)) {
+      return false;
+    }
+
+    return this.playNative("cut", repeats) || this.playBrowser(pattern);
+  }
+
+  private playNative(cue: HapticFeedbackCue, repeats: number): boolean {
+    const native = this.environment.native;
+    if (!native?.available || typeof native.handler?.postMessage !== "function") {
+      return false;
+    }
+
     try {
-      return this.navigatorRef?.vibrate?.(hapticFeedbackPatterns[cue]) === true;
+      native.handler.postMessage({ cue, repeats });
+      return true;
     } catch {
       return false;
     }
   }
 
-  playCutBurst(cutCount: number, modality: PlaytestInputModality): boolean {
-    const pattern = cutConfirmationHapticPattern(cutCount);
-    if (!pattern || !this.canPlay(modality)) {
-      return false;
-    }
-
+  private playBrowser(pattern: HapticPattern): boolean {
     try {
-      return this.navigatorRef?.vibrate?.(pattern) === true;
+      return this.environment.navigator?.vibrate?.(pattern) === true;
     } catch {
       return false;
     }
   }
 }
 
-function defaultHapticNavigator(): HapticNavigatorLike | undefined {
-  return (globalThis as typeof globalThis & { navigator?: HapticNavigatorLike }).navigator;
+export function hapticFeedbackCapability(
+  environment: HapticFeedbackEnvironment = defaultHapticFeedbackEnvironment()
+): HapticFeedbackCapability {
+  if (environment.native?.available && typeof environment.native.handler?.postMessage === "function") {
+    return { available: true, route: "native" };
+  }
+
+  if (typeof environment.navigator?.vibrate === "function") {
+    return { available: true, route: "browser" };
+  }
+
+  return { available: false, route: "unavailable" };
+}
+
+export function hapticFeedbackCapabilityLabel(capability: HapticFeedbackCapability): string {
+  return capability.available ? "Haptics: Available" : "Haptics: Unavailable";
+}
+
+function defaultHapticFeedbackEnvironment(): HapticFeedbackEnvironment {
+  const runtime = globalThis as unknown as {
+    navigator?: HapticNavigatorLike;
+    webkit?: {
+      messageHandlers?: Record<string, NativeHapticMessageHandlerLike | undefined>;
+    };
+    __TOKENIZER_TRAINING_NATIVE_CAPABILITIES__?: {
+      haptics?: boolean;
+    };
+  };
+
+  return {
+    navigator: runtime.navigator,
+    native: {
+      available: runtime.__TOKENIZER_TRAINING_NATIVE_CAPABILITIES__?.haptics === true,
+      handler: runtime.webkit?.messageHandlers?.[NATIVE_HAPTIC_MESSAGE_HANDLER_NAME]
+    }
+  };
 }
 
 function limitedPulseCount(value: number, limit: number): number {

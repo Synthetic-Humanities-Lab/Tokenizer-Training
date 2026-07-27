@@ -14,6 +14,7 @@ export interface CutInputSample {
   text: string;
   viewportWidth: number;
   hinted?: boolean;
+  spaceRunAssist?: boolean;
   playableSlots?: BoundarySlot[];
 }
 
@@ -39,50 +40,51 @@ export class CutInputSessionSystem {
   constructor(private readonly swipe = new SwipeCutSystem()) {}
 
   applySample(input: CutInputSample): CutInputResult {
-    const slots = input.playableSlots ?? this.swipe.buildPlayableSlots(input.bounds, input.text, input.hinted ?? false);
+    const spaceRunAssist = input.spaceRunAssist ?? true;
+    const playableSlots = input.playableSlots ?? this.swipe.buildPlayableSlots(input.bounds, input.text, input.hinted ?? false);
+    const slots = spaceRunAssist
+      ? this.spaceRunAssistedSlots(playableSlots, input.bounds, input.text)
+      : playableSlots;
     const snapDistance = this.swipe.snapDistanceForViewport(input.viewportWidth);
     const existingCuts = new Set(input.currentCuts);
     this.gestureStartPoint ??= input.lastPoint ?? input.point;
-    this.rememberOrdinarySpaceRunLock(input, slots, snapDistance, existingCuts);
+    if (spaceRunAssist) {
+      this.rememberOrdinarySpaceRunLock(input, slots, snapDistance, existingCuts);
+    }
     const nearestBoundary = this.swipe.nearestBoundary(slots, input.point, snapDistance);
-    const protectedNearestBoundary = nearestBoundary === null
+    const protectedNearestBoundary = !spaceRunAssist || nearestBoundary === null
       ? null
       : this.spaceRunProtectedCandidate(nearestBoundary, input, slots, snapDistance, existingCuts);
-    const nearestCandidate =
-      protectedNearestBoundary !== null && existingCuts.has(protectedNearestBoundary) ? null : protectedNearestBoundary;
+    const nearestCandidate = spaceRunAssist
+      ? protectedNearestBoundary !== null && existingCuts.has(protectedNearestBoundary) ? null : protectedNearestBoundary
+      : nearestBoundary !== null && existingCuts.has(nearestBoundary) ? null : nearestBoundary;
     const crossedBoundaries = input.lastPoint
       ? this.localGestureCandidates(
-          this.swipe.collapseSpaceRunGestureDuplicates(
-            this.spaceRunProtectedCandidates(
-              this.swipe.boundariesCrossedBySegment(slots, input.lastPoint, input.point, snapDistance),
-              input,
-              slots,
-              snapDistance,
-              existingCuts
-            ),
-            input.text
-          ).filter((cut) => !existingCuts.has(cut)),
+          this.candidateBoundariesForSample(input, slots, snapDistance, existingCuts, spaceRunAssist)
+            .filter((cut) => !existingCuts.has(cut)),
           input,
           slots,
           snapDistance,
           nearestCandidate
         )
       : [];
-    const boundary = crossedBoundaries.length > 0 && !isPreSpaceRunBoundary(input.text, nearestCandidate)
+    const boundary = spaceRunAssist && crossedBoundaries.length > 0 && !isPreSpaceRunBoundary(input.text, nearestCandidate)
       ? null
       : nearestCandidate;
+    const rawCandidates = uniqueCandidates(
+      [...crossedBoundaries, boundary].filter((candidate): candidate is number => candidate !== null)
+    );
+    const assistedCandidates = spaceRunAssist
+      ? this.spaceRunGestureCandidates(input.currentCuts, rawCandidates, input.text)
+      : { currentCuts: input.currentCuts, candidates: rawCandidates, replacedCuts: [] };
     const candidateCuts = this.localGestureReplacementCandidates(
-      this.spaceRunGestureCandidates(
-        input.currentCuts,
-        uniqueCandidates([...crossedBoundaries, boundary].filter((candidate): candidate is number => candidate !== null)),
-        input.text
-      ),
+      assistedCandidates,
       input,
       slots,
       snapDistance
     );
     const cuts = this.swipe.addCuts(
-      this.spaceRunLockedCurrentCuts(candidateCuts.currentCuts, input.text),
+      spaceRunAssist ? this.spaceRunLockedCurrentCuts(candidateCuts.currentCuts, input.text) : candidateCuts.currentCuts,
       candidateCuts.candidates,
       graphemeLength(input.text)
     );
@@ -104,6 +106,58 @@ export class CutInputSessionSystem {
     this.spaceRunGestureLocks.clear();
     this.gestureStartPoint = undefined;
     return undefined;
+  }
+
+  private spaceRunAssistedSlots(
+    slots: BoundarySlot[],
+    bounds: BoundaryBounds,
+    text: string
+  ): BoundarySlot[] {
+    const graphemes = splitGraphemes(text);
+    const graphemeWidth = graphemes.length > 0 ? bounds.width / graphemes.length : 0;
+
+    return slots.flatMap((slot) => {
+      if (graphemes[slot.index - 1] === " ") {
+        return [];
+      }
+
+      if (graphemes[slot.index] !== " ") {
+        return [slot];
+      }
+
+      let runLength = 0;
+      for (
+        let index = slot.index;
+        index < graphemes.length && graphemes[index] === graphemes[slot.index];
+        index += 1
+      ) {
+        runLength += 1;
+      }
+
+      return [{
+        ...slot,
+        x: bounds.left + graphemeWidth * (slot.index + runLength / 2)
+      }];
+    });
+  }
+
+  private candidateBoundariesForSample(
+    input: CutInputSample,
+    slots: BoundaryBoundsSlot[],
+    snapDistance: number,
+    existingCuts: Set<number>,
+    spaceRunAssist: boolean
+  ): number[] {
+    const crossed = this.swipe.boundariesCrossedBySegment(slots, input.lastPoint!, input.point, snapDistance);
+
+    if (!spaceRunAssist) {
+      return crossed;
+    }
+
+    return this.swipe.collapseSpaceRunGestureDuplicates(
+      this.spaceRunProtectedCandidates(crossed, input, slots, snapDistance, existingCuts),
+      input.text
+    );
   }
 
   private localGestureCandidates(

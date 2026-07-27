@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_TIME_WARNING_THRESHOLD_MS,
+  MIN_TIME_WARNING_THRESHOLD_MS,
+  TIME_WARNING_DURATION_RATIO,
   TIME_WARNING_PULSE_MS,
   shouldPlayTimeWarning,
+  timeWarningThresholdMs,
   timerPressureVisualState
 } from "../src/game/systems/TimePressureSystem";
 
@@ -21,6 +24,27 @@ describe("shouldPlayTimeWarning", () => {
       warningPlayed: false,
       timeRemainingMs: 2001
     })).toBe(false);
+  });
+
+  it("scales the warning window so fast rounds never begin under warning pressure", () => {
+    expect(TIME_WARNING_DURATION_RATIO).toBe(0.25);
+    expect(timeWarningThresholdMs(10000)).toBe(2000);
+    expect(timeWarningThresholdMs(2800)).toBe(700);
+    expect(timeWarningThresholdMs(1800)).toBe(MIN_TIME_WARNING_THRESHOLD_MS);
+    expect(shouldPlayTimeWarning({
+      tutorialMode: false,
+      resolving: false,
+      warningPlayed: false,
+      timeRemainingMs: 1800,
+      durationMs: 1800
+    })).toBe(false);
+    expect(shouldPlayTimeWarning({
+      tutorialMode: false,
+      resolving: false,
+      warningPlayed: false,
+      timeRemainingMs: MIN_TIME_WARNING_THRESHOLD_MS,
+      durationMs: 1800
+    })).toBe(true);
   });
 
   it("suppresses warning cues while tutorial, review, or a prior warning owns the state", () => {

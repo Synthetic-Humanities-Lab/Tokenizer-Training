@@ -34,7 +34,12 @@ import {
   cutConfirmationAudioCues
 } from "../systems/AudioSystem";
 import { CutInputSessionSystem } from "../systems/CutInputSessionSystem";
-import { DifficultySystem, type DifficultyState } from "../systems/DifficultySystem";
+import {
+  difficultyPhaseAnnouncement,
+  DifficultySystem,
+  type DifficultyPhase,
+  type DifficultyState
+} from "../systems/DifficultySystem";
 import { FeedbackSystem, type FeedbackSummary } from "../systems/FeedbackSystem";
 import {
   clearGameQaSnapshot,
@@ -48,13 +53,30 @@ import {
   hudImpactVisualState,
   type HudImpactVisualState
 } from "../systems/HudImpactSystem";
-import { HapticFeedbackSystem } from "../systems/HapticFeedbackSystem";
+import { hapticFeedbackCapability, HapticFeedbackSystem } from "../systems/HapticFeedbackSystem";
+import {
+  createHapticPreferenceRuntime,
+  readHapticPreferenceRuntime
+} from "../systems/HapticPreferenceSystem";
 import {
   inputModalityFromPointer,
   mergeInputModality,
   type PlaytestInputModality
 } from "../systems/InputModalitySystem";
 import { InputFeelMetricsSystem, type InputFeelMetricsSnapshot } from "../systems/InputFeelMetricsSystem";
+import {
+  motionTreatment,
+  MOTION_PREFERENCE_REGISTRY_KEY,
+  type MotionPreferenceRuntime,
+  type MotionPreferenceSnapshot,
+  unsupportedMotionPreference
+} from "../systems/MotionPreferenceSystem";
+import { bindPlayControlActivation } from "../systems/PlayControlActivationSystem";
+import {
+  PlayInputRoutingSystem,
+  type PlayControlId,
+  type PlayInputOwner
+} from "../systems/PlayInputRoutingSystem";
 import {
   clearButtonLabel,
   clearButtonVisualState,
@@ -68,10 +90,13 @@ import {
 import { playSceneQaSnapshot } from "../systems/PlaySceneQaSystem";
 import { playSceneQaControlsFromUrl, type PlaySceneQaControls } from "../systems/PlaySceneQaControlSystem";
 import {
+  ENDLESS_PROMPT_ACQUISITION_MS,
+  PROMPT_ACQUISITION_MS,
   promptAcquisitionVisualState,
   type PromptAcquisitionVisualState
 } from "../systems/PromptAcquisitionSystem";
 import { RankSystem } from "../systems/RankSystem";
+import { readSafeAreaInsetsForSurface, type SafeAreaInsets } from "../systems/SafeAreaSystem";
 import {
   reviewPanelSequence,
   TUTORIAL_REVIEW_CONTINUE_DWELL_MS
@@ -93,7 +118,12 @@ import {
   wienerSpeechMaxLength,
   wienerSpeechSourceText
 } from "../systems/WienerSpeechSystem";
-import { ScoringSystem, type RoundScoreResult } from "../systems/ScoringSystem";
+import {
+  cutAuditAccuracy,
+  ScoringSystem,
+  STARTING_TOKEN_CREDITS,
+  type RoundScoreResult
+} from "../systems/ScoringSystem";
 import { sceneClockNow } from "../systems/SceneClockSystem";
 import { SentenceMotionSystem, type SentenceMotionState } from "../systems/SentenceMotionSystem";
 import { SessionFlowSystem, type SessionOutcome, type SessionRoundTrace } from "../systems/SessionFlowSystem";
@@ -103,6 +133,7 @@ import {
   shouldShowPlayableSlotHints
 } from "../systems/SlotHintPolicySystem";
 import { StorageSystem, type HighScoreRecord } from "../systems/StorageSystem";
+import { readSurfaceProfile, type SurfaceProfile } from "../systems/SurfaceProfileSystem";
 import { SwipeCutSystem, type BoundarySlot, type Point } from "../systems/SwipeCutSystem";
 import {
   appendTrailPoint,
@@ -118,7 +149,6 @@ import {
 import {
   touchAimLoupeState,
   type TouchAimLoupePlacement,
-  touchAimLoupeVisualStyle,
   type TouchAimLoupeState
 } from "../systems/TouchAimLoupeSystem";
 import { buildSubmittedCutTextPieces } from "../systems/TextSplitAnimationSystem";
@@ -128,13 +158,17 @@ import {
   TokenizerSystem,
   type TokenFixture
 } from "../systems/TokenizerSystem";
+import { TrainingFixtureScheduleSystem } from "../systems/TrainingFixtureScheduleSystem";
 import {
   TUTORIAL_ROUND_DURATION_MS,
   TutorialSystem,
   type TutorialRound
 } from "../systems/TutorialSystem";
 import {
-  wienerCutReaction,
+  TOKEN_LOG_QUOTA,
+  tokenLogSentenceObservation
+} from "../systems/TokenLogSystem";
+import {
   wienerResolveReaction,
   type WienerReactionKind,
   type WienerReactionPlan
@@ -165,7 +199,6 @@ interface NoCutPreviewSnapshot {
 
 interface PendingReviewReveal {
   fixture: TokenFixture;
-  score: RoundScoreResult;
   summary: FeedbackSummary;
   resolutionLine: string;
   feedbackAtMs: number;
@@ -181,6 +214,15 @@ type RoundResolveTrigger = ResolutionCommitTrigger;
 const RECENT_FIXTURE_HISTORY_LIMIT = 4;
 const FALLING_TEXT_PIECE_DEPTH = 7.4;
 const POINTER_SAMPLE_MIN_DISTANCE_PX = 1.75;
+const NATIVE_APP_PAUSE_EVENT = "tokenizertraining:native-pause";
+const NATIVE_APP_RESUME_EVENT = "tokenizertraining:native-resume";
+
+function nativeQaLaunchEnabled(): boolean {
+  const capabilities = (globalThis as typeof globalThis & {
+    __TOKENIZER_TRAINING_NATIVE_CAPABILITIES__?: { qa?: boolean };
+  }).__TOKENIZER_TRAINING_NATIVE_CAPABILITIES__;
+  return capabilities?.qa === true;
+}
 
 function activeCutLabelText(kind: ActiveCutPulseKind | undefined): string {
   if (kind === "confirm") {
@@ -228,13 +270,16 @@ export class PlayScene extends Phaser.Scene {
   private readonly cutInput = new CutInputSessionSystem(this.swipe);
   private readonly storage = new StorageSystem();
   private readonly audio = new AudioSystem(this.storage.loadMuted());
-  private readonly haptics = new HapticFeedbackSystem(this.audio.isMuted());
+  private readonly haptics = new HapticFeedbackSystem();
+  private readonly fallbackHapticPreference = createHapticPreferenceRuntime(this.storage);
   private readonly rankSystem = new RankSystem();
   private readonly sessionFlow = new SessionFlowSystem();
   private readonly motion = new SentenceMotionSystem();
   private readonly tutorial = new TutorialSystem();
+  private readonly trainingFixtureSchedule = new TrainingFixtureScheduleSystem();
   private readonly inputFeelMetrics = new InputFeelMetricsSystem();
-  private readonly qaControls: PlaySceneQaControls = import.meta.env.DEV
+  private readonly playInputRouter = new PlayInputRoutingSystem();
+  private readonly qaControls: PlaySceneQaControls = import.meta.env.DEV || nativeQaLaunchEnabled()
     ? playSceneQaControlsFromUrl(globalThis.location?.href)
     : {};
 
@@ -270,7 +315,6 @@ export class PlayScene extends Phaser.Scene {
   private petReactionPeakScaleY = 1;
   private wienerSpeechPanel!: Phaser.GameObjects.Rectangle;
   private wienerSpeechChrome!: Phaser.GameObjects.Graphics;
-  private wienerSpeechLabel!: Phaser.GameObjects.Text;
   private wienerSpeechText!: Phaser.GameObjects.Text;
   private resolveButton!: Phaser.GameObjects.Rectangle;
   private resolveLabel!: Phaser.GameObjects.Text;
@@ -282,6 +326,7 @@ export class PlayScene extends Phaser.Scene {
   private muteLabel!: Phaser.GameObjects.Text;
   private exitButton!: Phaser.GameObjects.Rectangle;
   private exitLabel!: Phaser.GameObjects.Text;
+  private playControlDisposers: Array<() => void> = [];
   private cutMarkers: Phaser.GameObjects.GameObject[] = [];
   private activeCutGraphics!: Phaser.GameObjects.Graphics;
   private clearCutFeedbackGraphics!: Phaser.GameObjects.Graphics;
@@ -326,7 +371,7 @@ export class PlayScene extends Phaser.Scene {
   private targetHintGraphics!: Phaser.GameObjects.Graphics;
   private trailPoints: TrailPoint[] = [];
   private trailFadeTween?: Phaser.Tweens.Tween;
-  private fallingTextPieces: Phaser.GameObjects.Text[] = [];
+  private fallingTextPieces: Phaser.GameObjects.Container[] = [];
   private lastPointerPoint?: Point;
   private armedPreviewBoundary: number | null = null;
   private armedPreviewStrength: number | null = null;
@@ -351,13 +396,6 @@ export class PlayScene extends Phaser.Scene {
   private rendererQaCapturePending = false;
   private lastRendererQaCaptureSignature = "";
   private rendererQaCaptureStatus = "idle";
-  private tutorialPromptTimer?: Phaser.Time.TimerEvent;
-  private tutorialMechanicsTimer?: Phaser.Time.TimerEvent;
-  private tutorialByteTimer?: Phaser.Time.TimerEvent;
-  private tutorialTokenIdTimer?: Phaser.Time.TimerEvent;
-  private tutorialRuleTimer?: Phaser.Time.TimerEvent;
-  private tutorialFollowupTimer?: Phaser.Time.TimerEvent;
-  private tutorialReviewPanelTimer?: Phaser.Time.TimerEvent;
   private wienerSpeechTimer?: Phaser.Time.TimerEvent;
   private wienerSpeechSticky = false;
   private feedbackAdvanceTimer?: Phaser.Time.TimerEvent;
@@ -368,20 +406,22 @@ export class PlayScene extends Phaser.Scene {
   private currentTutorialRound?: TutorialRound;
   private sentenceMotion?: SentenceMotionState;
   private currentDifficulty: DifficultyState = this.difficulty.getState(1);
+  private previousDifficultyPhase?: DifficultyPhase;
   private currentCuts: number[] = [];
   private highScoreRecord: HighScoreRecord | null = null;
   private roundStartedAt = 0;
   private activeRoundDurationMs = 9000;
-  private balance = 40;
+  private creditBalance = STARTING_TOKEN_CREDITS;
   private round = 0;
-  private lastPay = 0;
-  private lastCost = 0;
-  private totalPay = 0;
-  private totalCost = 0;
+  private lastVerifiedCredits = 0;
+  private lastReworkCredits = 0;
+  private totalVerifiedCredits = 0;
+  private totalReworkCredits = 0;
   private totalCorrect = 0;
   private totalMissed = 0;
   private totalFalse = 0;
   private totalPossible = 0;
+  private tokenLogQuotaCount = 0;
   private startSource: PlaySessionStartSource = "unknown";
   private inputModality: PlaytestInputModality = "none";
   private previousFixtureId: string | undefined;
@@ -392,6 +432,8 @@ export class PlayScene extends Phaser.Scene {
   private resolving = false;
   private tutorialReviewReady = false;
   private tutorialReviewReadyAtMs: number | null = null;
+  private endlessReviewReady = false;
+  private endlessReviewReadyAtMs: number | null = null;
   private tutorialMode = false;
   private compactLayout = false;
   private timeWarningPlayed = false;
@@ -399,6 +441,9 @@ export class PlayScene extends Phaser.Scene {
   private hudImpactStartedAt: number | null = null;
   private hudImpactNet = 0;
   private focusPauseRequested = false;
+  private reviewFocusPausedAtMs: number | null = null;
+  private motionPreference: Readonly<MotionPreferenceSnapshot> = unsupportedMotionPreference();
+  private unsubscribeMotionPreference?: () => void;
 
   private readonly handleVisibilityChange = (): void => {
     if (globalThis.document?.hidden) {
@@ -421,11 +466,27 @@ export class PlayScene extends Phaser.Scene {
     this.resumeActiveRoundAfterFocusReturn();
   };
 
+  private readonly handleNativeAppPause = (): void => {
+    this.pauseActiveRoundForFocusLoss();
+  };
+
+  private readonly handleNativeAppResume = (): void => {
+    this.resumeActiveRoundAfterFocusReturn();
+  };
+
   constructor() {
     super("PlayScene");
   }
 
   create(data: PlaySceneData): void {
+    this.playInputRouter.cancelAll();
+    this.disposePlayControlBindings();
+    this.audio.setMuted(this.storage.loadMuted());
+    const hapticCapability = hapticFeedbackCapability();
+    const hapticPreference = readHapticPreferenceRuntime(this.registry) ?? this.fallbackHapticPreference;
+    this.haptics.setMuted(!hapticPreference.snapshot(hapticCapability.available).enabled);
+    const motionRuntime = this.registry.get(MOTION_PREFERENCE_REGISTRY_KEY) as MotionPreferenceRuntime | undefined;
+    this.motionPreference = motionRuntime?.snapshot() ?? unsupportedMotionPreference();
     this.tutorialMode = data.tutorial ?? false;
     this.startSource = data.startSource ?? "unknown";
     this.highScoreRecord = this.storage.loadHighScore();
@@ -434,7 +495,11 @@ export class PlayScene extends Phaser.Scene {
     this.previousFixtureCategory = undefined;
     this.recentFixtureIds = [];
     this.recentFixtureCategories = [];
+    this.trainingFixtureSchedule.restore(this.storage.loadTrainingProgress());
+    this.refreshTokenLogQuotaCount();
     this.currentTutorialRound = undefined;
+    this.previousDifficultyPhase = undefined;
+    this.reviewFocusPausedAtMs = null;
     this.sentenceMotion = undefined;
     this.resolving = false;
 
@@ -517,11 +582,6 @@ export class PlayScene extends Phaser.Scene {
     this.petWiener = addWienerImage(this, { x: 0, y: 0, height: 82, depth: 31 });
     this.wienerSpeechPanel = this.add.rectangle(0, 0, 0, 0, uiPalette.panelLight, 0.97).setStrokeStyle(1, uiPalette.strokeDark, 0.74).setDepth(32);
     this.wienerSpeechChrome = this.add.graphics().setDepth(32.5);
-    this.wienerSpeechLabel = this.add.text(0, 0, "WIENER", {
-      fontFamily: uiFonts.mono,
-      fontSize: "9px",
-      color: uiPalette.textFaint
-    }).setDepth(33);
     this.wienerSpeechText = this.add.text(0, 0, "", {
       fontFamily: uiFonts.body,
       fontSize: "13px",
@@ -547,44 +607,22 @@ export class PlayScene extends Phaser.Scene {
       fontSize: "15px",
       color: uiPalette.text
     }).setOrigin(0.5).setDepth(23);
-    this.exitButton = this.add.rectangle(0, 0, 132, 24, buttonVisual.fill, 0.82).setStrokeStyle(1, buttonVisual.stroke).setDepth(22);
+    this.exitButton = this.add.rectangle(0, 0, 132, 40, buttonVisual.fill, 0.82).setStrokeStyle(1, buttonVisual.stroke).setDepth(22);
     this.exitLabel = this.add.text(0, 0, "Exit Training", {
       fontFamily: uiFonts.body,
-      fontSize: "12px",
+      fontSize: "15px",
       color: uiPalette.text
     }).setOrigin(0.5).setDepth(23);
-    this.resolveButton.setInteractive({ useHandCursor: true });
-    this.resolveButton.on("pointerover", () => this.applyResolveButtonVisualState(true));
-    this.resolveButton.on("pointerout", () => this.applyResolveButtonVisualState(false));
-    this.resolveButton.on("pointerdown", () => this.handleResolvePointerDown());
-    this.resolveButton.on("pointerup", () => this.handleResolvePointerUp());
-    this.clearButton.setInteractive({ useHandCursor: true });
-    this.clearButton.on("pointerover", () => this.applyClearButtonVisualState(true));
-    this.clearButton.on("pointerout", () => this.applyClearButtonVisualState(false));
-    this.clearButton.on("pointerdown", () => this.applyClearButtonVisualState(true, true));
-    this.clearButton.on("pointerup", () => this.clearPlayerCuts());
-    this.muteButton.setInteractive({ useHandCursor: true });
-    this.muteButton.on("pointerover", () => this.muteButton.setFillStyle(buttonVisual.hoverFill, buttonVisual.hoverAlpha));
-    this.muteButton.on("pointerout", () => this.muteButton.setFillStyle(buttonVisual.fill, buttonVisual.fillAlpha));
-    this.muteButton.on("pointerdown", () => this.muteButton.setFillStyle(buttonVisual.pressFill, buttonVisual.pressAlpha));
-    this.muteButton.on("pointerup", () => {
-      this.muteButton.setFillStyle(buttonVisual.hoverFill, buttonVisual.hoverAlpha);
-      this.toggleMute();
-    });
-    this.exitButton.setInteractive({ useHandCursor: true });
-    this.exitButton.on("pointerover", () => this.exitButton.setFillStyle(buttonVisual.hoverFill, buttonVisual.hoverAlpha));
-    this.exitButton.on("pointerout", () => this.exitButton.setFillStyle(buttonVisual.fill, 0.82));
-    this.exitButton.on("pointerdown", () => this.exitButton.setFillStyle(buttonVisual.pressFill, buttonVisual.pressAlpha));
-    this.exitButton.on("pointerup", () => this.exitToMenu());
+    this.bindPlayControls();
 
     this.hud = new Hud(this);
     this.feedbackCard = new FeedbackCard(this);
 
-    this.input.on("pointerdown", this.handlePointer, this);
-    this.input.on("pointermove", this.handlePointer, this);
+    this.input.on("pointerdown", this.handlePointerDown, this);
+    this.input.on("pointermove", this.handlePointerMove, this);
     this.input.on("pointerup", this.handlePointerGestureEnd, this);
-    this.input.on("pointerupoutside", this.handlePointerGestureEnd, this);
-    this.input.on("gameout", this.handlePointerGestureEnd, this);
+    this.input.on("pointerupoutside", this.handlePointerGestureCancel, this);
+    this.input.on("gameout", this.handlePointerGameOut, this);
     this.input.keyboard?.on("keydown-ENTER", this.handleKeyboardResolve, this);
     this.input.keyboard?.on("keydown-SPACE", this.handleKeyboardResolve, this);
     this.input.keyboard?.on("keydown-BACKSPACE", this.handleKeyboardClear, this);
@@ -592,12 +630,66 @@ export class PlayScene extends Phaser.Scene {
     this.input.keyboard?.on("keydown-M", this.handleKeyboardMute, this);
     this.input.keyboard?.on("keydown-ESC", this.handleKeyboardExit, this);
     this.scale.on("resize", this.layout, this);
+    this.unsubscribeMotionPreference = motionRuntime?.subscribe((snapshot) => {
+      this.applyMotionPreference(snapshot);
+    });
     this.registerFocusPauseListeners();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.shutdownScene, this);
 
     this.updateMuteLabel();
     this.layout();
     this.startRound();
+  }
+
+  private bindPlayControls(): void {
+    this.resolveButton.setInteractive({ useHandCursor: true });
+    this.clearButton.setInteractive({ useHandCursor: true });
+    this.muteButton.setInteractive({ useHandCursor: true });
+    this.exitButton.setInteractive({ useHandCursor: true });
+
+    this.playControlDisposers = [
+      bindPlayControlActivation({
+        controlId: "resolve",
+        button: this.resolveButton,
+        router: this.playInputRouter,
+        onRest: () => this.applyResolveButtonVisualState(false),
+        onHover: () => this.applyResolveButtonVisualState(true),
+        onPress: () => this.handleResolvePointerDown(),
+        onActivate: () => this.handleResolvePointerUp()
+      }),
+      bindPlayControlActivation({
+        controlId: "clear",
+        button: this.clearButton,
+        router: this.playInputRouter,
+        onRest: () => this.applyClearButtonVisualState(false),
+        onHover: () => this.applyClearButtonVisualState(true),
+        onPress: () => this.applyClearButtonVisualState(true, true),
+        onActivate: () => this.clearPlayerCuts()
+      }),
+      bindPlayControlActivation({
+        controlId: "mute",
+        button: this.muteButton,
+        router: this.playInputRouter,
+        onRest: () => this.muteButton.setFillStyle(buttonVisual.fill, buttonVisual.fillAlpha),
+        onHover: () => this.muteButton.setFillStyle(buttonVisual.hoverFill, buttonVisual.hoverAlpha),
+        onPress: () => this.muteButton.setFillStyle(buttonVisual.pressFill, buttonVisual.pressAlpha),
+        onActivate: () => this.toggleMute()
+      }),
+      bindPlayControlActivation({
+        controlId: "exit",
+        button: this.exitButton,
+        router: this.playInputRouter,
+        onRest: () => this.exitButton.setFillStyle(buttonVisual.fill, 0.82),
+        onHover: () => this.exitButton.setFillStyle(buttonVisual.hoverFill, buttonVisual.hoverAlpha),
+        onPress: () => this.exitButton.setFillStyle(buttonVisual.pressFill, buttonVisual.pressAlpha),
+        onActivate: () => this.exitToMenu()
+      })
+    ];
+  }
+
+  private disposePlayControlBindings(): void {
+    this.playControlDisposers.forEach((dispose) => dispose());
+    this.playControlDisposers = [];
   }
 
   update(time: number): void {
@@ -608,6 +700,7 @@ export class PlayScene extends Phaser.Scene {
     if (this.resolving) {
       this.updatePendingReviewReveal();
       this.updateTutorialReviewReady();
+      this.updateEndlessReviewReady();
       return;
     }
 
@@ -629,12 +722,16 @@ export class PlayScene extends Phaser.Scene {
     globalThis.document?.addEventListener("visibilitychange", this.handleVisibilityChange);
     this.browserWindow()?.addEventListener("blur", this.handleWindowBlur);
     this.browserWindow()?.addEventListener("focus", this.handleWindowFocus);
+    this.browserWindow()?.addEventListener(NATIVE_APP_PAUSE_EVENT, this.handleNativeAppPause);
+    this.browserWindow()?.addEventListener(NATIVE_APP_RESUME_EVENT, this.handleNativeAppResume);
   }
 
   private unregisterFocusPauseListeners(): void {
     globalThis.document?.removeEventListener("visibilitychange", this.handleVisibilityChange);
     this.browserWindow()?.removeEventListener("blur", this.handleWindowBlur);
     this.browserWindow()?.removeEventListener("focus", this.handleWindowFocus);
+    this.browserWindow()?.removeEventListener(NATIVE_APP_PAUSE_EVENT, this.handleNativeAppPause);
+    this.browserWindow()?.removeEventListener(NATIVE_APP_RESUME_EVENT, this.handleNativeAppResume);
   }
 
   private browserWindow(): Window | undefined {
@@ -642,14 +739,31 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private pauseActiveRoundForFocusLoss(): void {
+    const pauseAlreadyRequested = this.focusPauseRequested;
     this.focusPauseRequested = true;
-    if (!this.currentFixture || this.resolving || !this.sentenceMotion || this.sentenceMotion.paused) {
+    const interruptedOwner = this.playInputRouter.cancelAll();
+    if (interruptedOwner?.kind === "control") {
+      this.resetPlayControlVisual(interruptedOwner.controlId);
+    }
+    this.resetTransientSliceState();
+    if (!this.currentFixture) {
+      return;
+    }
+    if (this.resolving) {
+      if (!pauseAlreadyRequested) {
+        this.reviewFocusPausedAtMs = this.baseNowMs();
+        this.setReviewTimersPaused(true);
+        this.audio.cancelPending();
+        this.writePlayQaSnapshot();
+      }
+      return;
+    }
+    if (!this.sentenceMotion || this.sentenceMotion.paused) {
       return;
     }
 
     const now = this.activeNowMs(this.baseNowMs());
     this.sentenceMotion = this.motion.pause(this.sentenceMotion, now);
-    this.cancelTransientGestureStateForFocusLoss();
     this.updateSentenceMotion(now);
     this.updateHud(now);
     this.updateTimerVisual(now);
@@ -662,7 +776,14 @@ export class PlayScene extends Phaser.Scene {
     }
 
     this.focusPauseRequested = false;
-    if (!this.currentFixture || this.resolving || !this.sentenceMotion || !this.sentenceMotion.paused) {
+    if (!this.currentFixture) {
+      return;
+    }
+    if (this.resolving) {
+      this.resumeReviewAfterFocusReturn();
+      return;
+    }
+    if (!this.sentenceMotion || !this.sentenceMotion.paused) {
       return;
     }
 
@@ -674,7 +795,37 @@ export class PlayScene extends Phaser.Scene {
     this.writePlayQaSnapshot();
   }
 
-  private cancelTransientGestureStateForFocusLoss(): void {
+  private setReviewTimersPaused(paused: boolean): void {
+    if (this.feedbackAdvanceTimer) {
+      this.feedbackAdvanceTimer.paused = paused;
+    }
+    if (this.wienerSpeechTimer) {
+      this.wienerSpeechTimer.paused = paused;
+    }
+    this.reviewRevealTimers.forEach((timer) => { timer.paused = paused; });
+    this.resolutionRevealTimers.forEach((timer) => { timer.paused = paused; });
+  }
+
+  private resumeReviewAfterFocusReturn(): void {
+    const pausedAt = this.reviewFocusPausedAtMs;
+    this.reviewFocusPausedAtMs = null;
+    if (pausedAt !== null) {
+      const hiddenDurationMs = Math.max(0, this.baseNowMs() - pausedAt);
+      if (this.pendingReviewReveal) {
+        this.pendingReviewReveal.feedbackAtMs += hiddenDurationMs;
+      }
+      if (this.tutorialReviewReadyAtMs !== null) {
+        this.tutorialReviewReadyAtMs += hiddenDurationMs;
+      }
+      if (this.endlessReviewReadyAtMs !== null) {
+        this.endlessReviewReadyAtMs += hiddenDurationMs;
+      }
+    }
+    this.setReviewTimersPaused(false);
+    this.writePlayQaSnapshot();
+  }
+
+  private resetTransientSliceState(): void {
     this.cutInput.endGesture();
     this.lastPointerPoint = undefined;
     this.gestureTouchedCutBand = false;
@@ -684,10 +835,16 @@ export class PlayScene extends Phaser.Scene {
     this.gestureTouchedExistingCuts.clear();
     this.gestureNoCutPreview = undefined;
     this.inputFeelMetrics.endGesture();
+    this.clearArmedCutPreview();
     this.clearTrail();
   }
 
   private startRound(): void {
+    const interruptedOwner = this.playInputRouter.cancelAll();
+    if (interruptedOwner?.kind === "control") {
+      this.resetPlayControlVisual(interruptedOwner.controlId);
+    }
+    this.resetTransientSliceState();
     this.clearCutMarkers();
     this.clearFallingTextPieces();
     this.clearPetReaction();
@@ -702,15 +859,6 @@ export class PlayScene extends Phaser.Scene {
     this.clearPromptAcquisitionBeat();
     this.clearTextCutImpact();
     this.clearSlotHints();
-    this.clearTrail();
-    this.lastPointerPoint = undefined;
-    this.tutorialPromptTimer?.remove(false);
-    this.tutorialMechanicsTimer?.remove(false);
-    this.tutorialByteTimer?.remove(false);
-    this.tutorialTokenIdTimer?.remove(false);
-    this.tutorialRuleTimer?.remove(false);
-    this.tutorialFollowupTimer?.remove(false);
-    this.tutorialReviewPanelTimer?.remove(false);
     this.feedbackAdvanceTimer?.remove(false);
     this.clearReviewRevealTimers();
     this.feedbackCard.hide();
@@ -724,16 +872,12 @@ export class PlayScene extends Phaser.Scene {
     this.cutStatusText.setVisible(true);
     this.inputFeelMetrics.startRound();
     this.currentCuts = [];
-    this.gestureTouchedCutBand = false;
-    this.gestureHadCut = false;
-    this.gestureAddedCuts.clear();
-    this.gestureReleaseSampleCuts.clear();
-    this.gestureTouchedExistingCuts.clear();
-    this.gestureNoCutPreview = undefined;
     this.resolving = false;
     this.lastResolveTrigger = null;
     this.tutorialReviewReady = false;
     this.tutorialReviewReadyAtMs = null;
+    this.endlessReviewReady = false;
+    this.endlessReviewReadyAtMs = null;
     if (!this.focusPauseRequested) {
       this.focusPauseRequested = globalThis.document?.hidden ?? false;
     }
@@ -743,8 +887,17 @@ export class PlayScene extends Phaser.Scene {
     this.updateResolveButtonState();
     this.updateClearButtonState();
     this.round += 1;
+    const previousDifficultyPhase = this.previousDifficultyPhase;
     this.currentDifficulty = this.difficulty.getState(this.round);
+    this.previousDifficultyPhase = this.currentDifficulty.phase;
     this.currentFixture = this.pickFixture();
+    if (!this.tutorialMode) {
+      this.currentDifficulty = this.difficulty.applyWorkload(this.currentDifficulty, {
+        boundaryCount: this.currentFixture.boundary_positions.length,
+        tokenCount: this.currentFixture.token_count,
+        textLength: displayLength(this.currentFixture.text)
+      });
+    }
     this.previousFixtureId = this.currentFixture.id;
     this.previousFixtureCategory = this.currentFixture.category;
     this.rememberFixture(this.currentFixture);
@@ -753,17 +906,29 @@ export class PlayScene extends Phaser.Scene {
     this.roundStartedAt = startedAt;
     this.activeRoundDurationMs = this.tutorialMode ? TUTORIAL_ROUND_DURATION_MS : this.currentDifficulty.roundDurationMs;
     this.layout();
-    this.startSentenceMotion(startedAt);
+    this.startSentenceMotion(startedAt + (this.tutorialMode ? 0 : ENDLESS_PROMPT_ACQUISITION_MS));
     const now = this.nowMs();
     this.updateSentenceMotion(now);
     this.startPromptAcquisitionBeat(startedAt);
     this.updateHud(now);
     this.updateTimerVisual(now);
-    const activeLine = this.tutorialMode ? this.tutorialPrompt() : this.sessionFlow.activeTrainingLine(this.balance);
+    const phaseChanged = !this.tutorialMode
+      && previousDifficultyPhase !== undefined
+      && previousDifficultyPhase !== this.currentDifficulty.phase;
+    const activeLine = this.tutorialMode
+      ? this.tutorialPrompt()
+      : phaseChanged
+        ? difficultyPhaseAnnouncement(this.currentDifficulty.phase)
+        : this.sessionFlow.activeTrainingLine({
+          creditBalance: this.creditBalance,
+          round: this.round,
+          fixture: this.currentFixture
+        });
     this.setWienerSpeech(activeLine, { sticky: true });
     if (this.focusPauseRequested) {
       this.pauseActiveRoundForFocusLoss();
     }
+    this.stageQaRound();
   }
 
   private pickFixture(): TokenFixture {
@@ -780,14 +945,47 @@ export class PlayScene extends Phaser.Scene {
     }
 
     this.currentTutorialRound = undefined;
+    if (this.qaControls.fixtureId) {
+      const fixture = this.tokenizer.byId(this.qaControls.fixtureId);
+      if (!fixture) {
+        throw new Error(`Missing QA fixture ${this.qaControls.fixtureId}.`);
+      }
+      return fixture;
+    }
+
+    const schedule = this.trainingFixtureSchedule.selectionForRound(
+      this.round,
+      this.tokenizer.all().length
+    );
     return this.tokenizer.pickFixture(this.round, {
       tierCap: this.currentDifficulty.tierCap,
       previousId: this.previousFixtureId,
       previousCategory: this.previousFixtureCategory,
       recentIds: this.recentFixtureIds,
       recentCategories: this.recentFixtureCategories,
-      preferHighestTier: !this.tutorialMode
+      excludeIds: schedule.excludeIds,
+      preferredIds: schedule.preferredIds,
+      preferHighestTier: this.currentDifficulty.tierCap < 4,
+      allowTierOverflowWhenExhausted: true
     });
+  }
+
+  private stageQaRound(): void {
+    if (this.tutorialMode || !this.qaControls.cuts || !this.currentFixture) {
+      return;
+    }
+
+    const length = displayLength(this.currentFixture.text);
+    const cuts = this.qaControls.cuts;
+    if (cuts.some((cut) => !Number.isSafeInteger(cut) || cut <= 0 || cut >= length)) {
+      return;
+    }
+
+    this.currentCuts = [...cuts].sort((a, b) => a - b);
+    this.renderPlayerCuts();
+    if (this.qaControls.autoResolve) {
+      this.resolveRound("manual");
+    }
   }
 
   private rememberFixture(fixture: TokenFixture): void {
@@ -798,11 +996,6 @@ export class PlayScene extends Phaser.Scene {
   private tutorialPrompt(): string {
     if (!this.currentTutorialRound) return "Tutorial record unavailable. Predict anyway.";
     return this.tutorial.activePromptFor(this.round - 1);
-  }
-
-  private tutorialIntroPrompt(): string {
-    if (!this.currentTutorialRound) return "Tutorial record unavailable. Predict anyway.";
-    return this.tutorial.introPromptFor(this.round - 1);
   }
 
   private tutorialReviewSpeechFor(index: number, score: RoundScoreResult): string {
@@ -817,11 +1010,16 @@ export class PlayScene extends Phaser.Scene {
     return this.compactLayout ? 118 : 154;
   }
 
-  private handlePointer(pointer: Phaser.Input.Pointer): void {
+  private handlePointerDown(pointer: Phaser.Input.Pointer): void {
+    this.handlePointer(pointer, true);
+  }
+
+  private handlePointerMove(pointer: Phaser.Input.Pointer): void {
+    this.handlePointer(pointer, false);
+  }
+
+  private handlePointer(pointer: Phaser.Input.Pointer, canStartSlice: boolean): void {
     const observedModality = inputModalityFromPointer(pointer);
-    if (pointer.isDown) {
-      this.inputModality = mergeInputModality(this.inputModality, observedModality);
-    }
 
     if (!this.currentFixture || this.resolving) {
       return;
@@ -829,7 +1027,21 @@ export class PlayScene extends Phaser.Scene {
 
     const point = { x: pointer.x, y: pointer.y };
     if (!pointer.isDown) {
-      this.renderHoverCutPreview(point, observedModality);
+      if (!this.playInputRouter.hasOwner()) {
+        this.renderHoverCutPreview(point, observedModality);
+      }
+      return;
+    }
+
+    const sliceAccepted = canStartSlice
+      ? this.playInputRouter.beginSlice(pointer)
+      : this.playInputRouter.continueSlice(pointer);
+    if (!sliceAccepted && !this.playInputRouter.ownsPointer(pointer)) {
+      return;
+    }
+
+    this.inputModality = mergeInputModality(this.inputModality, observedModality);
+    if (!sliceAccepted) {
       return;
     }
 
@@ -865,6 +1077,7 @@ export class PlayScene extends Phaser.Scene {
       text: this.currentFixture.text,
       viewportWidth: this.scale.width,
       hinted: showSlotHints,
+      spaceRunAssist: false,
       playableSlots: slots
     });
     const cutsChanged = result.addedCuts.length > 0 || result.removedCuts.length > 0;
@@ -915,12 +1128,6 @@ export class PlayScene extends Phaser.Scene {
           correction: correctionCutCount > 0
         });
       }
-      if (feedbackAddedCuts.length > 0) {
-        this.playPetReaction(wienerCutReaction(feedbackAddedCuts.length));
-      }
-      if (feedbackAddedCuts.length >= 2) {
-        this.playChainSwipeFeedback(feedbackAddedCuts);
-      }
       if (responseCutCount > 0) {
         this.audio.playSequence(cutConfirmationAudioCues(responseCutCount), CUT_CONFIRMATION_CUE_SPACING_MS);
         if (correctionCutCount > 0) {
@@ -942,6 +1149,14 @@ export class PlayScene extends Phaser.Scene {
       this.updateClearButtonState();
       this.writePlayQaSnapshot();
     }
+    if (previousCutCount === 0 && this.currentCuts.length > 0) {
+      if (this.tutorialMode) {
+        const followUp = this.tutorial.firstCutFollowUpFor(this.round - 1);
+        if (followUp) {
+          this.setWienerSpeech(followUp, { sticky: true });
+        }
+      }
+    }
     if (result.addedCuts.length > 0) {
       this.playTextCutImpact(Math.max(1, responseCutCount));
     }
@@ -956,8 +1171,42 @@ export class PlayScene extends Phaser.Scene {
     this.clearArmedCutPreview();
   }
 
-  private handlePointerGestureEnd(pointer?: Phaser.Input.Pointer): void {
-    if (!this.resolving && this.currentFixture && this.lastPointerPoint && pointer) {
+  private handlePointerGestureEnd(pointer: Phaser.Input.Pointer): void {
+    const owner = this.playInputRouter.endPointer(pointer);
+    if (!owner) {
+      return;
+    }
+    if (owner.kind === "control") {
+      this.resetPlayControlVisual(owner.controlId);
+      return;
+    }
+
+    this.completeSliceGesture(pointer, pointer.wasTouch && pointer.wasCanceled);
+  }
+
+  private handlePointerGestureCancel(pointer: Phaser.Input.Pointer): void {
+    const owner = this.playInputRouter.endPointer(pointer);
+    this.completeCanceledPlayInput(owner);
+  }
+
+  private handlePointerGameOut(): void {
+    const owner = this.playInputRouter.cancelAll();
+    this.completeCanceledPlayInput(owner);
+    this.resetAllPlayControlVisuals();
+  }
+
+  private completeCanceledPlayInput(owner: PlayInputOwner | undefined): void {
+    if (owner?.kind === "slice") {
+      this.completeSliceGesture(undefined, true);
+      return;
+    }
+    if (owner?.kind === "control") {
+      this.resetPlayControlVisual(owner.controlId);
+    }
+  }
+
+  private completeSliceGesture(pointer?: Phaser.Input.Pointer, canceled = false): void {
+    if (!canceled && !this.resolving && this.currentFixture && this.lastPointerPoint && pointer) {
       const observedModality = inputModalityFromPointer(pointer);
       this.inputModality = mergeInputModality(this.inputModality, observedModality);
       this.applyPointerCutSample({ x: pointer.x, y: pointer.y }, { releaseSample: true });
@@ -965,7 +1214,7 @@ export class PlayScene extends Phaser.Scene {
 
     const releasePoint = this.lastPointerPoint;
     const noCutPreview = this.gestureNoCutPreview;
-    const shouldShowNoCutFeedback = !this.resolving && shouldAcknowledgeNoCutGesture({
+    const shouldShowNoCutFeedback = !canceled && !this.resolving && shouldAcknowledgeNoCutGesture({
       touchedCutBand: this.gestureTouchedCutBand,
       hadCut: this.gestureHadCut,
       trailPointCount: this.trailPoints.length,
@@ -994,9 +1243,6 @@ export class PlayScene extends Phaser.Scene {
     }
     this.inputFeelMetrics.endGesture();
     this.renderInputResponseBadge(this.inputFeelMetrics.snapshot(this.baseNowMs()));
-    if (!this.resolving && releasePulseCuts.length >= 2) {
-      this.playChainSwipeFeedback(releasePulseCuts);
-    }
     this.writePlayQaSnapshot();
     this.trailFadeTween?.stop();
     this.trailFadeTween = this.tweens.add({
@@ -1047,9 +1293,15 @@ export class PlayScene extends Phaser.Scene {
     }
 
     this.resolving = true;
+    const interruptedOwner = this.playInputRouter.cancelAll();
+    if (interruptedOwner?.kind === "control") {
+      this.resetPlayControlVisual(interruptedOwner.controlId);
+    }
     this.lastResolveTrigger = trigger;
     this.tutorialReviewReady = false;
     this.tutorialReviewReadyAtMs = null;
+    this.endlessReviewReady = false;
+    this.endlessReviewReadyAtMs = null;
     this.focusPauseRequested = false;
     this.lastPointerPoint = this.cutInput.endGesture();
     this.inputFeelMetrics.recordResolveCommit(this.baseNowMs());
@@ -1070,35 +1322,33 @@ export class PlayScene extends Phaser.Scene {
     this.updateResolveButtonState();
     this.updateClearButtonState();
     const now = this.nowMs();
-    this.tutorialPromptTimer?.remove(false);
-    this.tutorialMechanicsTimer?.remove(false);
-    this.tutorialByteTimer?.remove(false);
-    this.tutorialTokenIdTimer?.remove(false);
-    this.tutorialRuleTimer?.remove(false);
-    this.tutorialFollowupTimer?.remove(false);
     this.hideWienerSpeech();
     this.clearReviewRevealTimers();
-    const timeRemainingRatio =
-      this.activeRoundDurationMs <= 0 ? 0 : this.remainingTimeMs(now) / this.activeRoundDurationMs;
     const score = this.scoring.scoreRound({
       truth: this.currentFixture.boundary_positions,
       guesses: this.currentCuts,
-      tier: this.currentFixture.tier,
-      difficultyWeight: this.currentFixture.difficulty_weight * this.currentDifficulty.penaltyScale,
-      tokenCount: this.currentFixture.token_count,
-      timeRemainingRatio
+      difficultyWeight: this.currentFixture.difficulty_weight,
+      penaltyScale: this.currentDifficulty.penaltyScale
     });
 
     this.totalCorrect += score.correctCuts.length;
     this.totalMissed += score.missedCuts.length;
     this.totalFalse += score.falseCuts.length;
     this.totalPossible += this.currentFixture.boundary_positions.length;
-    this.totalPay += score.pay;
-    this.totalCost += score.companyCost;
-    this.lastPay = score.pay;
-    this.lastCost = score.companyCost;
-    this.balance += score.net;
-    this.startHudImpact(score.net, now);
+    this.totalVerifiedCredits += score.verifiedCredits;
+    this.totalReworkCredits += score.reworkCredits;
+    this.lastVerifiedCredits = score.verifiedCredits;
+    this.lastReworkCredits = score.reworkCredits;
+    if (!this.tutorialMode) {
+      this.creditBalance += score.creditDelta;
+    }
+    this.trainingFixtureSchedule.recordResult(
+      this.currentFixture.id,
+      this.round,
+      score.missedCuts.length === 0 && score.falseCuts.length === 0
+    );
+    this.storage.saveTrainingProgress(this.trainingFixtureSchedule.snapshot());
+    this.startHudImpact(score.creditDelta, now);
     this.recordRoundTrace(this.currentFixture, score);
     this.updateHud(now);
     this.updateTimerVisual(now);
@@ -1119,12 +1369,15 @@ export class PlayScene extends Phaser.Scene {
     const resolutionFeedbackInput = {
       missedCuts: score.missedCuts,
       falseCuts: score.falseCuts,
-      balance: this.balance
+      creditBalance: this.creditBalance
     };
     this.audio.playSequence(this.resolutionFeedback.audioCues(resolutionFeedbackInput));
     this.haptics.play(this.resolutionFeedback.hapticCue(resolutionFeedbackInput), this.inputModality);
 
-    const summary = this.feedback.summarize(this.currentFixture, score, { balanceAfter: this.balance });
+    const summary = this.feedback.summarize(this.currentFixture, score);
+    this.storage.rememberTokenLogSentences([tokenLogSentenceObservation(this.currentFixture, score)]);
+    this.refreshTokenLogQuotaCount();
+    this.updateHud(now);
     const baseReviewDelayMs = this.resolutionFeedback.reviewAdvanceDelayMs({
       tutorialMode: this.tutorialMode,
       finalTutorialRound: this.tutorialMode && this.tutorial.isCompleteAfter(this.round),
@@ -1134,23 +1387,27 @@ export class PlayScene extends Phaser.Scene {
       missedCuts: score.missedCuts,
       falseCuts: score.falseCuts
     });
-    const resolutionLine = this.tutorialMode ? this.tutorialReviewSpeechFor(this.round - 1, score) : summary.wienerSpeech;
     const reviewSequence = reviewPanelSequence({
       tutorialMode: this.tutorialMode,
       compact: this.compactLayout,
       viewportHeight: this.scale.height,
-      baseReviewDelayMs
+      baseReviewDelayMs,
+      hasErrors: score.missedCuts.length + score.falseCuts.length > 0
     });
+    const resolutionLine = this.tutorialMode
+      ? this.tutorialReviewSpeechFor(this.round - 1, score)
+      : summary.wienerSpeech;
     this.writePlayQaSnapshot();
 
     this.feedbackAdvanceTimer?.remove(false);
-    this.tutorialReviewPanelTimer?.remove(false);
     this.hideWienerSpeech();
     const reviewFixture = this.currentFixture;
     const reviewStartedAt = this.baseNowMs();
+    if (!this.tutorialMode) {
+      this.endlessReviewReadyAtMs = reviewStartedAt + reviewSequence.continueDelayMs;
+    }
     const pendingReviewReveal: PendingReviewReveal = {
       fixture: reviewFixture,
-      score,
       summary,
       resolutionLine,
       feedbackAtMs: reviewStartedAt + Math.max(reviewSequence.feedbackDelayMs, reviewSequence.speechDelayMs),
@@ -1165,14 +1422,47 @@ export class PlayScene extends Phaser.Scene {
       return;
     }
 
+    if (this.qaControls.holdReview || this.qaControls.holdSplit) {
+      if (this.qaControls.holdSplit) {
+        this.feedbackCard.hide();
+        this.pendingReviewReveal = undefined;
+        this.clearReviewRevealTimers();
+      }
+      this.writePlayQaSnapshot();
+      return;
+    }
+
     this.feedbackAdvanceTimer = this.time.delayedCall(reviewSequence.reviewDelayMs, () => {
       this.advanceAfterResolution();
     });
   }
 
+  private resetPlayControlVisual(controlId: PlayControlId): void {
+    if (controlId === "resolve") {
+      this.applyResolveButtonVisualState(false);
+      return;
+    }
+    if (controlId === "clear") {
+      this.applyClearButtonVisualState(false);
+      return;
+    }
+    if (controlId === "mute") {
+      this.muteButton.setFillStyle(buttonVisual.fill, buttonVisual.fillAlpha);
+      return;
+    }
+    this.exitButton.setFillStyle(buttonVisual.fill, 0.82);
+  }
+
+  private resetAllPlayControlVisuals(): void {
+    this.resetPlayControlVisual("resolve");
+    this.resetPlayControlVisual("clear");
+    this.resetPlayControlVisual("mute");
+    this.resetPlayControlVisual("exit");
+  }
+
   private handleResolvePointerDown(): void {
     this.resolvePointerDownCanAdvanceReview =
-      !this.tutorialMode || !this.resolving || this.tutorialReviewCanAdvance();
+      !this.resolving || this.reviewCanAdvance();
     this.applyResolveButtonVisualState(true, true);
   }
 
@@ -1183,13 +1473,13 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private handleResolveButton(options: { canAdvanceReview?: boolean } = {}): void {
-    if (this.tutorialMode && this.resolving) {
+    if (this.resolving) {
       if (options.canAdvanceReview === false) {
         this.updateResolveButtonState();
         return;
       }
 
-      this.advanceTutorialReview();
+      this.advanceReview();
       return;
     }
 
@@ -1262,8 +1552,32 @@ export class PlayScene extends Phaser.Scene {
     this.markTutorialReviewReady();
   }
 
-  private advanceTutorialReview(): void {
-    if (!this.tutorialReviewCanAdvance()) {
+  private updateEndlessReviewReady(): void {
+    if (this.tutorialMode || !this.resolving || this.endlessReviewReady || this.endlessReviewReadyAtMs === null) {
+      return;
+    }
+
+    if (this.baseNowMs() < this.endlessReviewReadyAtMs) {
+      return;
+    }
+
+    this.endlessReviewReady = true;
+    this.endlessReviewReadyAtMs = null;
+    this.updateResolveButtonState();
+    this.writePlayQaSnapshot();
+  }
+
+  private endlessReviewCanAdvance(): boolean {
+    this.updateEndlessReviewReady();
+    return this.endlessReviewReady;
+  }
+
+  private reviewCanAdvance(): boolean {
+    return this.tutorialMode ? this.tutorialReviewCanAdvance() : this.endlessReviewCanAdvance();
+  }
+
+  private advanceReview(): void {
+    if (!this.reviewCanAdvance()) {
       return;
     }
 
@@ -1280,7 +1594,7 @@ export class PlayScene extends Phaser.Scene {
       tutorialMode: this.tutorialMode,
       completedRound: this.round,
       tutorialRoundCount: this.tutorial.count(),
-      balance: this.balance
+      creditBalance: this.creditBalance
     });
 
     if (transition.type === "menu") {
@@ -1315,29 +1629,31 @@ export class PlayScene extends Phaser.Scene {
       currentRound: this.round,
       resolving: this.resolving
     });
-    const accuracy = this.totalPossible === 0 ? 0 : this.totalCorrect / this.totalPossible;
+    const accuracy = this.totalPossible === 0
+      ? 0
+      : cutAuditAccuracy(this.totalCorrect, this.totalMissed, this.totalFalse);
     const rank = this.rankSystem.calculate({
       rounds: completedRounds,
-      balance: Math.max(0, this.balance),
+      creditBalance: Math.max(0, this.creditBalance),
       accuracy,
-      totalPay: this.totalPay,
-      totalCost: this.totalCost
+      totalVerifiedCredits: this.totalVerifiedCredits,
+      totalReworkCredits: this.totalReworkCredits
     });
     this.scene.start("ResultsScene", {
       rounds: completedRounds,
-      balance: Math.max(0, this.balance),
+      creditBalance: Math.max(0, this.creditBalance),
       accuracy,
       totalCorrectCuts: this.totalCorrect,
       totalMissedCuts: this.totalMissed,
       totalFalseCuts: this.totalFalse,
       startSource: this.startSource,
       inputModality: this.inputModality,
-      totalPay: this.totalPay,
-      totalCost: this.totalCost,
+      totalVerifiedCredits: this.totalVerifiedCredits,
+      totalReworkCredits: this.totalReworkCredits,
       roundTraces: this.roundTraces,
       rank: rank.rank,
       rankScore: rank.rankScore,
-      costEfficiency: rank.costEfficiency,
+      creditEfficiency: rank.creditEfficiency,
       outcome
     });
   }
@@ -1524,7 +1840,7 @@ export class PlayScene extends Phaser.Scene {
     this.armedCutPreviewGraphics.lineStyle(1.25, targetColor, preview.targetAlpha);
     this.armedCutPreviewGraphics.lineBetween(slot.x - preview.tickLength, top, slot.x + preview.tickLength, top);
     this.armedCutPreviewGraphics.lineBetween(slot.x - preview.tickLength, bottom, slot.x + preview.tickLength, bottom);
-    if (preview.snapReady && preview.latchLength > 0) {
+    if (!this.compactLayout && preview.snapReady && preview.latchLength > 0) {
       const latchInset = this.compactLayout ? 7 : 9;
       const latchTop = top + latchInset;
       const latchBottom = bottom - latchInset;
@@ -1541,12 +1857,6 @@ export class PlayScene extends Phaser.Scene {
 
   private renderTouchAimLoupe(state: TouchAimLoupeState): void {
     this.touchAimLoupeGraphics.clear();
-    this.touchAimLoupeBoundary = state.boundary;
-    this.touchAimLoupeRect = state.rect;
-    this.touchAimLoupeSnapReady = state.snapReady;
-    this.touchAimLoupePointerClearancePx = state.pointerClearancePx;
-    this.touchAimLoupeOcclusionSafe = state.occlusionSafe;
-    this.touchAimLoupePlacement = state.placement;
     this.inputFeelMetrics.recordTouchAimLoupe({
       visible: state.visible,
       snapReady: state.snapReady,
@@ -1554,39 +1864,13 @@ export class PlayScene extends Phaser.Scene {
       occlusionSafe: state.occlusionSafe
     });
 
-    if (!state.visible || !state.rect) {
-      this.touchAimLoupeText.setVisible(false);
-      return;
-    }
-
-    const rect = state.rect;
-    const left = rect.x - rect.width / 2;
-    const top = rect.y - rect.height / 2;
-    const accentColor = state.snapReady ? uiPalette.amber : uiPalette.blueGrey;
-    const style = touchAimLoupeVisualStyle(state.snapReady);
-
-    this.touchAimLoupeGraphics.fillStyle(uiPalette.panelLight, 0.95);
-    this.touchAimLoupeGraphics.fillRoundedRect(left, top, rect.width, rect.height, 6);
-    this.touchAimLoupeGraphics.lineStyle(1, uiPalette.strokeDark, style.borderAlpha);
-    this.touchAimLoupeGraphics.strokeRoundedRect(left, top, rect.width, rect.height, 6);
-    this.touchAimLoupeGraphics.fillStyle(accentColor, style.accentAlpha);
-    this.touchAimLoupeGraphics.fillRoundedRect(left + 6, top + 5, style.sideRailWidth, rect.height - 10, 2);
-    this.touchAimLoupeGraphics.fillStyle(accentColor, style.railAlpha);
-    this.touchAimLoupeGraphics.fillRoundedRect(left + 16, top + rect.height - 7, rect.width - 32, style.railHeight, 2);
-    this.touchAimLoupeGraphics.lineStyle(style.centerLineWidth, accentColor, style.centerLineAlpha);
-    this.touchAimLoupeGraphics.lineBetween(rect.x, top + 7, rect.x, top + rect.height - 7);
-    if (state.snapReady) {
-      const bracketInset = 12;
-      const bracketGap = 4;
-      this.touchAimLoupeGraphics.lineStyle(1.25, uiPalette.amberLight, style.railAlpha * 0.86);
-      this.touchAimLoupeGraphics.lineBetween(rect.x - bracketInset, top + 8, rect.x - bracketGap, top + 8);
-      this.touchAimLoupeGraphics.lineBetween(rect.x + bracketGap, top + 8, rect.x + bracketInset, top + 8);
-      this.touchAimLoupeGraphics.lineBetween(rect.x - bracketInset, top + rect.height - 9, rect.x - bracketGap, top + rect.height - 9);
-      this.touchAimLoupeGraphics.lineBetween(rect.x + bracketGap, top + rect.height - 9, rect.x + bracketInset, top + rect.height - 9);
-    }
-    this.touchAimLoupeText.setText(state.text);
-    this.touchAimLoupeText.setPosition(rect.x, rect.y + 1);
-    this.touchAimLoupeText.setVisible(true);
+    this.touchAimLoupeBoundary = null;
+    this.touchAimLoupeRect = undefined;
+    this.touchAimLoupeSnapReady = false;
+    this.touchAimLoupePointerClearancePx = null;
+    this.touchAimLoupeOcclusionSafe = false;
+    this.touchAimLoupePlacement = "hidden";
+    this.touchAimLoupeText.setVisible(false);
   }
 
   private renderResolvedCuts(score: RoundScoreResult): void {
@@ -1812,36 +2096,68 @@ export class PlayScene extends Phaser.Scene {
     this.clearFallingTextPieces();
     const bounds = this.textObject.getBounds();
     const fontSize = this.gameTextFontSize(this.textObject);
-    const piecePlans = buildSubmittedCutTextPieces(this.currentFixture.text, this.currentCuts, bounds);
+    const piecePlans = buildSubmittedCutTextPieces(
+      this.currentFixture.text,
+      this.currentCuts,
+      bounds,
+      {
+        tokenStrings: this.currentFixture.token_strings,
+        tokenIds: this.currentFixture.token_ids
+      }
+    );
     if (piecePlans.length === 0) {
       this.textObject.setVisible(true);
       return;
     }
 
     this.textObject.setVisible(false);
+    const treatment = motionTreatment(this.motionPreference);
     for (const plan of piecePlans) {
-      const piece = this.add.text(plan.x, plan.y, plan.text, {
+      const glyph = this.add.text(0, 0, plan.text, {
         fontFamily: uiFonts.mono,
         fontSize: `${fontSize}px`,
         color: uiPalette.text,
         align: "center"
-      }).setOrigin(0.5).setDepth(FALLING_TEXT_PIECE_DEPTH);
+      }).setOrigin(0.5);
+      const children: Phaser.GameObjects.GameObject[] = [glyph];
+      if (plan.tokenId !== undefined) {
+        children.push(this.add.text(0, fontSize * 0.68, `ID ${plan.tokenId}`, {
+          fontFamily: uiFonts.mono,
+          fontSize: `${Math.max(9, Math.round(fontSize * 0.32))}px`,
+          color: "#ea8b2f",
+          align: "center"
+        }).setOrigin(0.5, 0));
+      }
+      const piece = this.add.container(plan.x, plan.y, children).setDepth(FALLING_TEXT_PIECE_DEPTH);
       this.fallingTextPieces.push(piece);
+      const transition = treatment.resolvedText === "fade"
+        ? {
+            alpha: 0,
+            duration: 160,
+            ease: "Linear"
+          }
+        : {
+            y: this.scale.height + 42 + plan.index * 7,
+            x: piece.x + plan.fallXOffset,
+            angle: plan.rotationDeg,
+            alpha: 0.18,
+            delay: plan.delayMs,
+            duration: plan.durationMs,
+            ease: "Cubic.easeIn"
+          };
       this.tweens.add({
         targets: piece,
-        y: this.scale.height + 42 + plan.index * 7,
-        x: piece.x + plan.fallXOffset,
-        angle: plan.rotationDeg,
-        alpha: 0.18,
-        delay: plan.delayMs,
-        duration: plan.durationMs,
-        ease: "Cubic.easeIn",
+        ...transition,
         onComplete: () => {
           this.fallingTextPieces = this.fallingTextPieces.filter((candidate) => candidate !== piece);
           piece.destroy();
           this.writePlayQaSnapshot();
         }
       });
+      if (this.qaControls.holdSplit) {
+        this.tweens.killTweensOf(piece);
+        piece.setAlpha(1);
+      }
     }
     this.writePlayQaSnapshot();
   }
@@ -1864,6 +2180,7 @@ export class PlayScene extends Phaser.Scene {
     this.reviewRevealTimers = [];
     this.pendingReviewReveal = undefined;
     this.tutorialReviewReadyAtMs = null;
+    this.endlessReviewReadyAtMs = null;
   }
 
   private scheduleReviewReveal(delayMs: number, action: () => void): void {
@@ -1902,7 +2219,7 @@ export class PlayScene extends Phaser.Scene {
       this.scheduleTutorialReviewReady();
     }
     this.setWienerSpeech(pending.resolutionLine, {
-      sticky: this.tutorialMode,
+      sticky: true,
       maxLength: this.tutorialMode ? this.tutorialReviewSpeechMaxLength() : undefined
     });
     if (this.pendingReviewReveal === pending) {
@@ -2225,8 +2542,6 @@ export class PlayScene extends Phaser.Scene {
     const x = Math.max(bounds.left + 18, Math.min(bounds.right - 18, point?.x ?? bounds.centerX));
     const contactY = Math.max(bounds.top - 8, Math.min(bounds.bottom + 8, point?.y ?? bounds.centerY));
     const startY = bounds.top - 16;
-    this.audio.play("miss");
-    this.haptics.play("miss", this.inputModality);
     this.clearNoCutFeedback();
     this.noCutFeedbackGraphics.setPosition(0, 0);
     this.noCutFeedbackGraphics.setAlpha(1);
@@ -2365,7 +2680,10 @@ export class PlayScene extends Phaser.Scene {
       color: "#8f531f",
       align: "center"
     }).setOrigin(0.5).setDepth(7).setAlpha(this.compactLayout ? 0.28 : 0.34);
-    ghost.setScale(style.scaleX, style.scaleY);
+    const treatment = motionTreatment(this.motionPreference);
+    if (treatment.cutImpact === "scale") {
+      ghost.setScale(style.scaleX, style.scaleY);
+    }
     this.textCutImpactGhost = ghost;
     this.writePlayQaSnapshot();
     this.textCutImpactTween = this.tweens.add({
@@ -2373,8 +2691,8 @@ export class PlayScene extends Phaser.Scene {
       scaleX: 1,
       scaleY: 1,
       alpha: 0,
-      duration: style.durationMs,
-      ease: style.ease,
+      duration: treatment.cutImpact === "fade" ? 120 : style.durationMs,
+      ease: treatment.cutImpact === "fade" ? "Linear" : style.ease,
       onComplete: () => {
         ghost.destroy();
         if (this.textCutImpactGhost === ghost) {
@@ -2415,10 +2733,25 @@ export class PlayScene extends Phaser.Scene {
     this.targetHintGraphics?.clear();
   }
 
+  private currentSurfaceProfile(): SurfaceProfile {
+    return readSurfaceProfile();
+  }
+
+  private currentSafeArea(surfaceProfile: SurfaceProfile = this.currentSurfaceProfile()): SafeAreaInsets {
+    return readSafeAreaInsetsForSurface(surfaceProfile);
+  }
+
+  private currentPlayLayout(width = this.scale.width, height = this.scale.height): ReturnType<typeof computePlayLayout> {
+    const surfaceProfile = this.currentSurfaceProfile();
+    return computePlayLayout({ width, height, safeArea: this.currentSafeArea(surfaceProfile), surfaceProfile });
+  }
+
   private layout(): void {
     const width = this.scale.width;
     const height = this.scale.height;
-    const layout = computePlayLayout({ width, height });
+    const surfaceProfile = this.currentSurfaceProfile();
+    const safeArea = this.currentSafeArea(surfaceProfile);
+    const layout = computePlayLayout({ width, height, safeArea, surfaceProfile });
     const fontSize = this.fitTextFontSize(layout.textPanel.width, layout.compact);
     this.compactLayout = layout.compact;
 
@@ -2456,10 +2789,10 @@ export class PlayScene extends Phaser.Scene {
     this.muteButton.setPosition(layout.muteButton.x, layout.muteButton.y);
     this.muteButton.setSize(layout.muteButton.width, layout.muteButton.height);
     this.muteLabel.setPosition(this.muteButton.x, this.muteButton.y);
-    this.layoutPetWiener(layout);
+    this.layoutPetWiener(layout, safeArea, surfaceProfile);
     this.layoutWienerSpeech();
-    this.hud.layout(width, layout.contentPanel);
-    this.feedbackCard.layout(width, height, layout.contentPanel);
+    this.hud.layout(width, layout.contentPanel, safeArea, surfaceProfile);
+    this.feedbackCard.layout(width, height, layout.contentPanel, safeArea, surfaceProfile);
     const now = this.nowMs();
     this.updateTimerVisual(now);
     this.updateSentenceMotion(now);
@@ -2473,7 +2806,9 @@ export class PlayScene extends Phaser.Scene {
 
   private tutorialCompletePerformance(): TutorialCompletePerformance {
     return {
-      accuracy: this.totalPossible === 0 ? 0 : this.totalCorrect / this.totalPossible,
+      accuracy: this.totalPossible === 0
+        ? 0
+        : cutAuditAccuracy(this.totalCorrect, this.totalMissed, this.totalFalse),
       totalCorrectCuts: this.totalCorrect,
       totalMissedCuts: this.totalMissed,
       totalFalseCuts: this.totalFalse
@@ -2483,9 +2818,9 @@ export class PlayScene extends Phaser.Scene {
   private updateHud(time: number): void {
     const progress = this.hudProgressState();
     this.hud.update({
-      balance: this.balance,
-      pay: this.lastPay,
-      cost: this.lastCost,
+      creditBalance: this.tutorialMode ? Number.POSITIVE_INFINITY : this.creditBalance,
+      verifiedCredits: this.lastVerifiedCredits,
+      reworkCredits: this.lastReworkCredits,
       progressLabel: progress.label,
       progressCurrent: progress.current,
       progressTarget: progress.target,
@@ -2493,9 +2828,13 @@ export class PlayScene extends Phaser.Scene {
       timerMode: this.resolving ? "review" : this.sentenceMotion?.paused ? "paused" : "active",
       timeWarningEnabled: !this.tutorialMode,
       highScoreRounds: this.highScoreRecord?.rounds ?? 0,
-      highScoreRank: this.highScoreRecord?.rank ?? "Regex Intern",
+      currentRounds: this.tutorialMode ? this.completedRoundsForHud() : this.round,
       impact: this.currentHudImpactState(time)
     });
+  }
+
+  private completedRoundsForHud(): number {
+    return Math.max(0, this.round - (this.resolving ? 0 : 1));
   }
 
   private hudProgressState(): { label: string; current: number; target: number } {
@@ -2507,13 +2846,18 @@ export class PlayScene extends Phaser.Scene {
       };
     }
 
-    const completedRounds = Math.max(0, this.round - (this.resolving ? 0 : 1));
-    const progress = this.rankSystem.progressForCompletedRounds(completedRounds, this.resolving);
     return {
-      label: "CLEARANCE",
-      current: progress.current,
-      target: progress.target
+      label: "SAMPLES",
+      current: this.tokenLogQuotaCount,
+      target: TOKEN_LOG_QUOTA
     };
+  }
+
+  private refreshTokenLogQuotaCount(): void {
+    this.tokenLogQuotaCount = Math.min(
+      TOKEN_LOG_QUOTA,
+      this.storage.loadTokenLogSentences().length
+    );
   }
 
   private startHudImpact(net: number, time: number): void {
@@ -2534,7 +2878,7 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private updateTimerVisual(time: number): void {
-    const layout = computePlayLayout({ width: this.scale.width, height: this.scale.height });
+    const layout = this.currentPlayLayout();
     const timerState = this.currentTimerPressureState(time);
     this.timerFill.setSize(layout.timer.width * timerState.ratio, timerState.height);
     this.timerFill.setFillStyle(
@@ -2562,7 +2906,8 @@ export class PlayScene extends Phaser.Scene {
       tutorialMode: this.tutorialMode,
       resolving: this.resolving,
       warningPlayed: this.timeWarningPlayed,
-      timeRemainingMs: this.remainingTimeMs(time)
+      timeRemainingMs: this.remainingTimeMs(time),
+      durationMs: this.activeRoundDurationMs
     })) {
       this.timeWarningPlayed = true;
       this.audio.play("warning");
@@ -2572,7 +2917,7 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private startSentenceMotion(now = this.nowMs()): void {
-    const layout = computePlayLayout({ width: this.scale.width, height: this.scale.height });
+    const layout = this.currentPlayLayout();
     this.sentenceMotion = this.motion.create({
       startY: layout.sentenceStartY,
       endY: layout.sentenceEndY,
@@ -2594,7 +2939,7 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private setSentenceY(y: number): void {
-    const layout = computePlayLayout({ width: this.scale.width, height: this.scale.height });
+    const layout = this.currentPlayLayout();
     const panelX = layout.textPanel.x;
     this.textPanel.setPosition(panelX, y);
     this.textPanelShadow.setPosition(panelX + 5, y + 6);
@@ -2736,26 +3081,17 @@ export class PlayScene extends Phaser.Scene {
     };
   }
 
-  private setWienerSpeech(value: string, options: { showToast?: boolean; sticky?: boolean; maxLength?: number } = {}): void {
-    if (options.showToast ?? true) {
-      this.showWienerSpeech(value, {
-        sticky: options.sticky ?? false,
-        maxLength: options.maxLength
-      });
-      return;
-    }
-
-    this.hideWienerSpeech();
+  private setWienerSpeech(value: string, options: { sticky?: boolean; maxLength?: number } = {}): void {
+    this.showWienerSpeech(value, options);
   }
 
   private showWienerSpeech(value: string, options: { sticky?: boolean; maxLength?: number } = {}): void {
     this.wienerSpeechTimer?.remove(false);
     this.wienerSpeechSticky = options.sticky ?? false;
-    const maxLength = options.maxLength ?? wienerSpeechMaxLength(this.compactLayout);
+    const maxLength = options.maxLength ?? wienerSpeechMaxLength(this.compactLayout, this.wienerSpeechSticky);
     const sourceText = wienerSpeechSourceText(value, this.wienerSpeechSticky ? false : this.compactLayout);
     this.wienerSpeechText.setText(wienerBriefLine(sourceText, maxLength));
     this.wienerSpeechPanel.setVisible(true);
-    this.wienerSpeechLabel.setVisible(true);
     this.wienerSpeechText.setVisible(true);
     this.layoutWienerSpeech();
     this.wienerSpeechPanel.setAlpha(0.96);
@@ -2771,7 +3107,6 @@ export class PlayScene extends Phaser.Scene {
     this.wienerSpeechTimer?.remove(false);
     this.wienerSpeechSticky = false;
     this.wienerSpeechPanel?.setVisible(false);
-    this.wienerSpeechLabel?.setVisible(false);
     this.wienerSpeechText?.setVisible(false);
     this.wienerSpeechChrome?.clear();
     this.writePlayQaSnapshot();
@@ -2782,9 +3117,12 @@ export class PlayScene extends Phaser.Scene {
       return;
     }
 
-    const layout = computePlayLayout({ width: this.scale.width, height: this.scale.height });
+    const surfaceProfile = this.currentSurfaceProfile();
+    const safeArea = this.currentSafeArea(surfaceProfile);
+    const layout = computePlayLayout({ width: this.scale.width, height: this.scale.height, safeArea, surfaceProfile });
     const feedbackLayout =
-      this.feedbackCard.layoutState() ?? computeFeedbackCardLayout(this.scale.width, this.scale.height, layout.contentPanel);
+      this.feedbackCard.layoutState()
+      ?? computeFeedbackCardLayout(this.scale.width, this.scale.height, layout.contentPanel, undefined, safeArea, surfaceProfile);
     const petBounds = this.petWiener.getBounds();
     const petRect = this.qaRectFromBounds(petBounds);
     const reviewSpeech = this.wienerSpeechSticky && this.tutorialMode && this.resolving;
@@ -2795,7 +3133,8 @@ export class PlayScene extends Phaser.Scene {
       feedback: feedbackLayout,
       resolveButton: layout.resolveButton,
       compact: this.compactLayout,
-      reviewSpeech
+      reviewSpeech,
+      activeTimerRect: this.resolving ? undefined : this.qaRectFromBounds(this.timerTrack.getBounds())
     });
     const { x, y, width, height } = speechLayout.panel;
 
@@ -2808,7 +3147,6 @@ export class PlayScene extends Phaser.Scene {
         y: petBounds.top + petBounds.height * 0.45
       }
     });
-    this.wienerSpeechLabel.setVisible(false);
     this.wienerSpeechText.setPosition(speechLayout.text.x, speechLayout.text.y);
     this.wienerSpeechText.setStyle({ fontSize: `${speechLayout.text.fontSize}px` });
     this.wienerSpeechText.setWordWrapWidth(speechLayout.text.wordWrapWidth);
@@ -2837,7 +3175,7 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private computeRestingSentenceY(): number {
-    const layout = computePlayLayout({ width: this.scale.width, height: this.scale.height });
+    const layout = this.currentPlayLayout();
     return this.resolving ? layout.sentenceReviewY : layout.sentenceStartY;
   }
 
@@ -3098,7 +3436,8 @@ export class PlayScene extends Phaser.Scene {
         ? Number.POSITIVE_INFINITY
         : Math.max(0, time - this.promptAcquisitionStartedAt),
       compact: this.compactLayout,
-      tutorialMode: this.tutorialMode
+      tutorialMode: this.tutorialMode,
+      durationMs: this.tutorialMode ? PROMPT_ACQUISITION_MS : ENDLESS_PROMPT_ACQUISITION_MS
     });
   }
 
@@ -3109,9 +3448,12 @@ export class PlayScene extends Phaser.Scene {
 
     const width = this.scale.width;
     const height = this.scale.height;
-    const layout = computePlayLayout({ width, height });
-    const hudLayout = computeHudLayout(width, layout.contentPanel);
-    const feedbackLayout = this.feedbackCard.layoutState() ?? computeFeedbackCardLayout(width, height, layout.contentPanel);
+    const surfaceProfile = this.currentSurfaceProfile();
+    const safeArea = this.currentSafeArea(surfaceProfile);
+    const layout = computePlayLayout({ width, height, safeArea, surfaceProfile });
+    const hudLayout = computeHudLayout(width, layout.contentPanel, safeArea, surfaceProfile);
+    const feedbackLayout = this.feedbackCard.layoutState()
+      ?? computeFeedbackCardLayout(width, height, layout.contentPanel, undefined, safeArea, surfaceProfile);
     const textBounds = this.textObject.getBounds();
     const feedbackQa = this.feedbackCard.qaState();
     const motionQa = this.motionQaState();
@@ -3231,6 +3573,9 @@ export class PlayScene extends Phaser.Scene {
       motionDurationMs: motionQa.durationMs,
       motionProgress: motionQa.progress,
       motionPaused: motionQa.paused,
+      reducedMotion: this.motionPreference.reduced,
+      motionPreferenceSupported: this.motionPreference.supported,
+      resolvedTextTransition: motionTreatment(this.motionPreference).resolvedText,
       hudImpactActive: hudImpact.active,
       hudImpactTone: hudImpact.tone,
       hudImpactTargets: hudImpact.targets,
@@ -3277,8 +3622,8 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private resolveButtonActionable(): boolean {
-    if (this.resolving && this.tutorialMode) {
-      return this.tutorialReviewCanAdvance();
+    if (this.resolving) {
+      return this.reviewCanAdvance();
     }
 
     return !this.resolving;
@@ -3587,7 +3932,7 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private playPetReaction(plan: WienerReactionPlan | null): void {
-    if (!plan || !this.petWiener) {
+    if (!plan || !this.petWiener || motionTreatment(this.motionPreference).petReaction === "still") {
       return;
     }
 
@@ -3647,6 +3992,9 @@ export class PlayScene extends Phaser.Scene {
     this.petIdleTween?.stop();
     this.petIdleTween = undefined;
     this.petWiener.setY(this.petWienerBaseY);
+    if (motionTreatment(this.motionPreference).petIdle === "still") {
+      return;
+    }
     this.petIdleTween = this.tweens.add({
       targets: this.petWiener,
       y: this.petWienerBaseY - 5,
@@ -3663,11 +4011,35 @@ export class PlayScene extends Phaser.Scene {
     this.petWiener?.setY(this.petWienerBaseY);
   }
 
-  private layoutPetWiener(layout: ReturnType<typeof computePlayLayout>): void {
+  private applyMotionPreference(snapshot: Readonly<MotionPreferenceSnapshot>): void {
+    this.motionPreference = snapshot;
+    const treatment = motionTreatment(snapshot);
+    if (treatment.petIdle === "still") {
+      this.clearPetReaction();
+      this.clearPetIdleBob();
+      this.clearFallingTextPieces();
+    } else if (this.petWiener?.active) {
+      this.restartPetIdleBob();
+    }
+    this.writePlayQaSnapshot();
+  }
+
+  private layoutPetWiener(
+    layout: ReturnType<typeof computePlayLayout>,
+    safeArea: SafeAreaInsets = this.currentSafeArea(),
+    surfaceProfile: SurfaceProfile = this.currentSurfaceProfile()
+  ): void {
     let petY = layout.petWienerSlot.y;
     if (this.resolving && !layout.compact) {
       const petHeight = layout.petWienerSlot.height;
-      const feedback = computeFeedbackCardLayout(this.scale.width, this.scale.height, layout.contentPanel);
+      const feedback = computeFeedbackCardLayout(
+        this.scale.width,
+        this.scale.height,
+        layout.contentPanel,
+        undefined,
+        safeArea,
+        surfaceProfile
+      );
       const feedbackTop = feedback.y - feedback.height / 2;
       const playfieldTop = layout.playfield.y - layout.playfield.height / 2;
       const minY = playfieldTop + petHeight / 2 + 18;
@@ -3692,15 +4064,15 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private moveSentenceToReviewPosition(): void {
-    const layout = computePlayLayout({ width: this.scale.width, height: this.scale.height });
+    const surfaceProfile = this.currentSurfaceProfile();
+    const layout = this.currentPlayLayout();
     this.sentenceMotion = undefined;
-    this.layoutPetWiener(layout);
+    this.layoutPetWiener(layout, this.currentSafeArea(surfaceProfile), surfaceProfile);
     this.setSentenceY(layout.sentenceReviewY);
   }
 
   private toggleMute(): void {
     const muted = this.audio.toggleMuted();
-    this.haptics.setMuted(muted);
     this.storage.saveMuted(muted);
     this.updateMuteLabel();
     if (!muted) {
@@ -3717,10 +4089,11 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private applyResolveButtonVisualState(hovered: boolean, pressed = false): void {
-    if (this.resolving && this.tutorialMode) {
-      const finalRound = this.tutorial.isCompleteAfter(this.round);
-      const ready = this.tutorialReviewCanAdvance();
-      this.resolveLabel?.setText(ready ? finalRound ? "Finish" : "Continue" : "Review");
+    if (this.resolving) {
+      const ready = this.reviewCanAdvance();
+      const finalTutorialRound = this.tutorialMode && this.tutorial.isCompleteAfter(this.round);
+      const readyLabel = this.tutorialMode ? finalTutorialRound ? "Finish" : "Continue" : "Next";
+      this.resolveLabel?.setText(ready ? readyLabel : "Review");
       this.resolveButton?.setAlpha(ready ? 1 : 0.72);
       this.resolveButton?.setFillStyle(
         ready
@@ -3814,21 +4187,20 @@ export class PlayScene extends Phaser.Scene {
       return;
     }
 
+    const interruptedOwner = this.playInputRouter.cancelAll();
+    if (interruptedOwner?.kind === "control") {
+      this.resetPlayControlVisual(interruptedOwner.controlId);
+    }
+    this.resetTransientSliceState();
     const clearedCutCount = this.currentCuts.length;
     this.playClearCutFeedback(this.currentCuts);
     this.haptics.play("clear", this.inputModality);
     this.clearChainSwipeFeedback();
     this.clearNoCutFeedback();
     this.currentCuts = [];
-    this.inputFeelMetrics.endGesture();
-    this.gestureAddedCuts.clear();
-    this.gestureReleaseSampleCuts.clear();
-    this.gestureTouchedExistingCuts.clear();
-    this.gestureNoCutPreview = undefined;
     this.clearActiveCutMarkers();
     this.clearTextCutImpact();
     this.clearInputResponseBadge();
-    this.clearTrail();
     this.resolveReadyPulseStartedAt = undefined;
     this.renderCutStatus();
     this.updateResolveButtonState();
@@ -3843,15 +4215,8 @@ export class PlayScene extends Phaser.Scene {
     this.audio.play("ui");
     const transition = this.sessionFlow.exitTransition({
       tutorialMode: this.tutorialMode,
-      balance: this.balance
+      creditBalance: this.creditBalance
     });
-    this.tutorialPromptTimer?.remove(false);
-    this.tutorialMechanicsTimer?.remove(false);
-    this.tutorialByteTimer?.remove(false);
-    this.tutorialTokenIdTimer?.remove(false);
-    this.tutorialRuleTimer?.remove(false);
-    this.tutorialFollowupTimer?.remove(false);
-    this.tutorialReviewPanelTimer?.remove(false);
     this.wienerSpeechTimer?.remove(false);
     this.feedbackAdvanceTimer?.remove(false);
     this.clearReviewRevealTimers();
@@ -3882,12 +4247,12 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private resetSessionStats(): void {
-    this.balance = 40;
+    this.creditBalance = STARTING_TOKEN_CREDITS;
     this.round = 0;
-    this.lastPay = 0;
-    this.lastCost = 0;
-    this.totalPay = 0;
-    this.totalCost = 0;
+    this.lastVerifiedCredits = 0;
+    this.lastReworkCredits = 0;
+    this.totalVerifiedCredits = 0;
+    this.totalReworkCredits = 0;
     this.totalCorrect = 0;
     this.totalMissed = 0;
     this.totalFalse = 0;
@@ -3897,14 +4262,14 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private shutdownScene(): void {
+    this.playInputRouter.cancelAll();
+    this.resetTransientSliceState();
+    this.disposePlayControlBindings();
+    this.unsubscribeMotionPreference?.();
+    this.unsubscribeMotionPreference = undefined;
     this.unregisterFocusPauseListeners();
     this.focusPauseRequested = false;
-    this.tutorialPromptTimer?.remove(false);
-    this.tutorialMechanicsTimer?.remove(false);
-    this.tutorialByteTimer?.remove(false);
-    this.tutorialTokenIdTimer?.remove(false);
-    this.tutorialRuleTimer?.remove(false);
-    this.tutorialFollowupTimer?.remove(false);
+    this.reviewFocusPausedAtMs = null;
     this.wienerSpeechTimer?.remove(false);
     this.feedbackAdvanceTimer?.remove(false);
     this.clearReviewRevealTimers();
@@ -3922,14 +4287,12 @@ export class PlayScene extends Phaser.Scene {
     this.clearCutMarkers();
     this.clearActiveCutMarkers();
     this.clearSlotHints();
-    this.clearTrail();
-    this.inputFeelMetrics.endGesture();
     clearGameQaSnapshot();
-    this.input.off("pointerdown", this.handlePointer, this);
-    this.input.off("pointermove", this.handlePointer, this);
+    this.input.off("pointerdown", this.handlePointerDown, this);
+    this.input.off("pointermove", this.handlePointerMove, this);
     this.input.off("pointerup", this.handlePointerGestureEnd, this);
-    this.input.off("pointerupoutside", this.handlePointerGestureEnd, this);
-    this.input.off("gameout", this.handlePointerGestureEnd, this);
+    this.input.off("pointerupoutside", this.handlePointerGestureCancel, this);
+    this.input.off("gameout", this.handlePointerGameOut, this);
     this.input.keyboard?.off("keydown-ENTER", this.handleKeyboardResolve, this);
     this.input.keyboard?.off("keydown-SPACE", this.handleKeyboardResolve, this);
     this.input.keyboard?.off("keydown-BACKSPACE", this.handleKeyboardClear, this);

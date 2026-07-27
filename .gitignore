@@ -1,5 +1,10 @@
 node_modules/
 dist/
+ios/TokenizerTraining/WebAssets/
+.ms-playwright/
+.qa/
+docs/mobile_device_evidence/
+docs/mobile_device_validation_completed.md
 coverage/
 .vite/
 .npm-cache/

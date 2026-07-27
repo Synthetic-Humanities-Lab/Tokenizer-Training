@@ -9,18 +9,18 @@ import {
 } from "../src/game/systems/HudImpactSystem";
 
 describe("HudImpactSystem", () => {
-  it("targets pay and balance for a positive resolved net", () => {
-    expect(hudImpactTone(4.75)).toBe("gain");
-    expect(hudImpactTargets(4.75)).toEqual(["balance", "pay"]);
-    expect(hudImpactLabelTarget(4.75)).toBe("pay");
-    expect(hudImpactDeltaText(4.75)).toBe("NET +$4.75");
+  it("targets verified credits and the account for a positive resolved net", () => {
+    expect(hudImpactTone(4)).toBe("gain");
+    expect(hudImpactTargets(4)).toEqual(["credits", "verified"]);
+    expect(hudImpactLabelTarget(4)).toBe("verified");
+    expect(hudImpactDeltaText(4)).toBe("NET +4 TC");
   });
 
-  it("targets cost and balance for a negative resolved net", () => {
-    expect(hudImpactTone(-2.1)).toBe("loss");
-    expect(hudImpactTargets(-2.1)).toEqual(["balance", "cost"]);
-    expect(hudImpactLabelTarget(-2.1)).toBe("cost");
-    expect(hudImpactDeltaText(-2.1)).toBe("NET -$2.10");
+  it("targets rework and the account for a negative resolved net", () => {
+    expect(hudImpactTone(-2)).toBe("loss");
+    expect(hudImpactTargets(-2)).toEqual(["credits", "rework"]);
+    expect(hudImpactLabelTarget(-2)).toBe("rework");
+    expect(hudImpactDeltaText(-2)).toBe("NET -2 TC");
   });
 
   it("stays inactive for neutral or invalid resolved net values", () => {
@@ -37,15 +37,15 @@ describe("HudImpactSystem", () => {
   });
 
   it("decays quickly after the accounting impact beat", () => {
-    const start = hudImpactVisualState({ net: 3.5, elapsedMs: 0 });
-    const middle = hudImpactVisualState({ net: 3.5, elapsedMs: HUD_IMPACT_PULSE_MS / 2 });
-    const done = hudImpactVisualState({ net: 3.5, elapsedMs: HUD_IMPACT_PULSE_MS });
+    const start = hudImpactVisualState({ net: 3, elapsedMs: 0 });
+    const middle = hudImpactVisualState({ net: 3, elapsedMs: HUD_IMPACT_PULSE_MS / 2 });
+    const done = hudImpactVisualState({ net: 3, elapsedMs: HUD_IMPACT_PULSE_MS });
 
     expect(HUD_IMPACT_PULSE_MS).toBeGreaterThanOrEqual(480);
     expect(HUD_IMPACT_PULSE_MS).toBeLessThanOrEqual(700);
     expect(start.active).toBe(true);
-    expect(start.deltaText).toBe("NET +$3.50");
-    expect(start.labelTarget).toBe("pay");
+    expect(start.deltaText).toBe("NET +3 TC");
+    expect(start.labelTarget).toBe("verified");
     expect(start.fillAlpha).toBeGreaterThan(middle.fillAlpha);
     expect(start.strokeAlpha).toBeGreaterThan(middle.strokeAlpha);
     expect(start.deltaAlpha).toBeGreaterThan(middle.deltaAlpha);

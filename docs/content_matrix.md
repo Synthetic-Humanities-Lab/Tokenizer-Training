@@ -24,6 +24,7 @@ Examples:
 - hyphenation
 - numbers
 - punctuation
+- internet punctuation clusters
 
 Examples:
 - I can't believe it.
@@ -35,6 +36,8 @@ Examples:
 - budget=$42
 - worker-id2040
 - ok/no?
+- okayyyy!!!
+- wait--what?!
 
 ## Tier 3: Dense Strings
 
@@ -44,9 +47,10 @@ Examples:
 - hashtags
 - camelCase
 - snake_case
+- shell commands
 
 Examples:
-- openai.com/pricing
+- wiener.ai/pricing
 - admin@example.com
 - hello_world_v2.py
 - parseJSONQuickly()
@@ -58,22 +62,23 @@ Examples:
 - root@localhost.dev
 - audit.log.2026.txt
 - setTokenLimit(8192)
+- git status --short
+- chmod +x deploy.sh
 
 ## Tier 4: Chaotic Strings
 
-- emoji
 - multilingual strings
 - symbol clusters
 - code snippets
-- weird proper nouns
-- internet slang
+- proper names
+- leading and ordinary spaces
 
 Examples:
 - café mañana
 - naïve façade
 - Model A-12
 - cost_per_token++
-- model_name=cl100k_base
+- model_name=bun40_base
 - lol!!! why tho
 - rate_limit=429
 - queue→worker
@@ -81,22 +86,32 @@ Examples:
 - rank→cost
 - assistant_v4=stale
 - ` audit queue`
+- WienerWorks HQ
+- tokenización manual
+- ` human tokenizer`
 
 ## Selection Rules
 
-- Avoid immediate repeats.
+- Retire correctly completed sentences for the run.
+- Retry failed sentences only after twenty intervening prompts.
 - Rotate categories.
 - Increase tier availability over time.
 - Harder examples should offer higher pay but higher risk.
 
 ## Current Fixture Coverage
 
-The checked-in corpus currently contains 78 `cl100k_base` fixtures:
+The checked-in corpus currently contains 200 `cl100k_base` fixtures. The Token Log
+uses this as its completion quota:
 
-- Tier 1: 16 simple prose examples, including economy, labor, and review phrases
-- Tier 2: 24 punctuation, contraction, hyphenation, number, currency, ID, and symbol examples
-- Tier 3: 19 dense URL, email, filename, command, code, and hashtag examples
-- Tier 4: 19 multilingual, leading-space, tokenizer-string, symbolic, and code-symbol examples
+- 60 ordinary prose examples (30%), including future labor, WienerWorks, office, and absurd prompt language
+- 60 punctuation, number, contraction, hyphenation, and informal-language examples (30%)
+- 40 URL, email, filename, command, code, hashtag, and technical-string examples (20%)
+- 40 Latin-script multilingual, spacing, leading-space, proper-name, and symbolic edge cases (20%)
+
+The difficulty distribution is Tier 1: 40, Tier 2: 50, Tier 3: 50, and Tier 4: 60.
 
 All playable fixtures are generated from `data/seed_strings.csv` and rejected if
 token byte boundaries cannot map cleanly to visible grapheme boundaries.
+Player-facing model and company names in the corpus are fictionalized; the
+fixture generator still uses real `cl100k_base` encoding so every boundary and
+vocabulary ID remains factual.

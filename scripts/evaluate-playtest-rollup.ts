@@ -1,9 +1,6 @@
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
-import {
-  LEGACY_PLAYTEST_RUN_PREFIX,
-  PLAYTEST_RUN_PREFIX
-} from "../src/game/systems/ProductIdentitySystem";
+import { PLAYTEST_RUN_PREFIX } from "../src/game/systems/ProductIdentitySystem";
 
 export interface RollupCriterion {
   id: string;
@@ -48,6 +45,8 @@ export interface PlaytestRollupEvaluation {
   issues: string[];
 }
 
+const PLAYTEST_ROLLUP_H1 = "# Tokenizer Training Playtest Rollup";
+
 export const rollupCriteria: RollupCriterion[] = [
   {
     id: "firstAction",
@@ -61,12 +60,12 @@ export const rollupCriteria: RollupCriterion[] = [
   },
   {
     id: "handoff",
-    label: "Starts Endless from tutorial-complete handoff without outside instruction",
+    label: "Selects Start Training from tutorial-complete handoff without outside instruction",
     minPasses: 4
   },
   {
     id: "netExplanation",
-    label: "Explains pay minus cost equals net after a review state",
+    label: "Explains verified credits minus rework equals net credits after a review state",
     minPasses: 4
   },
   {
@@ -140,6 +139,10 @@ export function evaluatePlaytestRollup(markdown: string, file = "rollup.md"): Pl
   const rollup = parsePlaytestRollup(markdown, file);
   const issues: string[] = [];
 
+  if (firstNonblankLine(markdown) !== PLAYTEST_ROLLUP_H1) {
+    issues.push(`H1 must exactly be "${PLAYTEST_ROLLUP_H1}".`);
+  }
+
   validateSessionIndex(rollup, issues);
   validateCriterionRows(rollup, issues);
   validateAggregateSignals(rollup, issues);
@@ -200,7 +203,7 @@ function validateSessionIndex(rollup: PlaytestRollup, issues: string[]): void {
 }
 
 function validGameRunId(value: string): boolean {
-  return new RegExp(`^(?:${PLAYTEST_RUN_PREFIX}|${LEGACY_PLAYTEST_RUN_PREFIX})-[a-z0-9-]+$`, "i").test(value.trim());
+  return new RegExp(`^${PLAYTEST_RUN_PREFIX}-[a-z0-9-]+$`, "i").test(value.trim());
 }
 
 function validateCriterionRows(rollup: PlaytestRollup, issues: string[]): void {
@@ -224,6 +227,10 @@ function validateCriterionRows(rollup: PlaytestRollup, issues: string[]): void {
 
     if (!substantiveEvidence(row.evidence)) {
       issues.push(`${criterion.label}: evidence/contradictions field is missing or generic.`);
+    } else if (criterion.id === "handoff" && !trainingHandoffEvidenceIsConcrete(row.evidence)) {
+      issues.push(
+        `${criterion.label}: pass evidence must name the tutorial-complete handoff, an affirmative started Training or clicked Training action, and no-prompt/coaching/timing evidence.`
+      );
     }
 
     if (!positiveDecision(row.decision)) {
@@ -358,6 +365,10 @@ function markdownTableCells(line: string): string[] {
     .map((cell) => cell.trim());
 }
 
+function firstNonblankLine(markdown: string): string | undefined {
+  return markdown.split(/\r?\n/).find((line) => line.trim().length > 0);
+}
+
 function sectionText(markdown: string, heading: string): string {
   const escapedHeading = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const match = new RegExp(`^##\\s+${escapedHeading}\\s*$`, "im").exec(markdown);
@@ -424,7 +435,7 @@ function principleEvidenceSupportsArea(area: string, value: string): boolean {
 
   switch (area) {
     case "Top game design":
-      return /\b(prompt|action|swipe|cut|review|evidence|consequence|handoff|endless|loop|continuation|coaching)\b/.test(
+      return /\b(prompt|action|swipe|cut|review|evidence|consequence|handoff|training|endless|loop|continuation|coaching)\b/.test(
         normalized
       );
     case "Critical/conceptual play":
@@ -446,6 +457,46 @@ function principleEvidenceSupportsArea(area: string, value: string): boolean {
     default:
       return false;
   }
+}
+
+function trainingHandoffEvidenceIsConcrete(value: string): boolean {
+  const clauses = value
+    .trim()
+    .toLowerCase()
+    .split(/[.!?;\n]+/)
+    .map((clause) => clause.trim())
+    .filter(Boolean);
+
+  return clauses.some((clause) => {
+    const handoffContext =
+      /\bhandoff(?:\s+(?:screen|surface|state))?\b/.test(clause) ||
+      /\btutorial[- ]complet(?:e|ed|ion)\s+(?:screen|surface|state)\b/.test(clause);
+    const startedTraining = /\bstart(?:ed|s)\s+(?:the\s+)?[`"']?training\b[`"']?/.test(clause);
+    const clickedTraining = /\bclick(?:ed|s)\s+(?:on\s+)?(?:the\s+)?[`"']?(?:start\s+)?training\b[`"']?(?:\s+(?:button|action|control))?/.test(
+      clause
+    );
+    const withoutOutsideInstruction = /\b(no prompts?|no prompting|unprompted|without (?:outside |facilitator )?(?:instructions?|prompts?|prompting|coaching)|no coaching|no intervention|within \d+ seconds?)\b/.test(
+      clause
+    );
+    const negatedOrFailedAction =
+      /\b(?:(?:no|zero)\s+(?:testers?|players?|participants?|users?|sessions?|one)|none\s+of\s+(?:the\s+)?(?:testers?|players?|participants?|users?|sessions?)|not\s+one\s+(?:tester|player|participant|user|session))\s+(?:ever\s+)?(?:successfully\s+)?(?:clicked|clicks|started|starts)\b/.test(
+        clause
+      ) ||
+      /\b(?:did|does|do|could|can|was|were)\s+not\s+(?:successfully\s+)?(?:click|start)\b/.test(clause) ||
+      /\b(?:didn't|doesn't|don't|couldn't|can't|cannot)\s+(?:successfully\s+)?(?:click|start)\b/.test(clause) ||
+      /\bnever\s+(?:clicked|clicks|started|starts)\b/.test(clause) ||
+      /\b(?:failed|fails)\s+to\s+(?:click|start)\b/.test(clause) ||
+      /\b(?:was|were|is|are)\s+unable\s+to\s+(?:click|start)\b/.test(clause);
+    const mainMenuAction = /\bmain[- ]menu\b/.test(clause);
+
+    return (
+      handoffContext &&
+      (startedTraining || clickedTraining) &&
+      withoutOutsideInstruction &&
+      !negatedOrFailedAction &&
+      !mainMenuAction
+    );
+  });
 }
 
 function aggregateSignalSupportsLabel(label: string, value: string): boolean {

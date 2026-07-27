@@ -5,6 +5,7 @@ import {
   playtestDebriefQuestions,
   playtestObservationLabels,
   playtestPrincipleEvidenceLabels,
+  playtestSessionEvidenceIssues,
   renderPlaytestGateEvaluation,
   validateDebriefAnswers,
   validateCopiedSummary,
@@ -18,7 +19,7 @@ import type {
 } from "../scripts/evaluate-playtest-notes";
 
 const completeSummary = `Tokenizer Training playtest summary
-Run ID: mtt-20260606-172531z
+Run ID: tt-20260606-172531z
 Outcome: quit
 Start: handoff screen
 Input: touch
@@ -31,6 +32,7 @@ Round trace:
 2. punct_001 / contraction / tier 2 / tokens 5 / OK 2 / Missed 1 / False 1
 3. dense_001 / url / tier 3 / tokens 4 / OK 1 / Missed 1 / False 1
 Input feel trace:
+Input feel fields: first-cut latency, resolve timing after first/last cut, cut batch ownership, release-sample/correction ownership, no-cut acknowledgements, touch-loupe clearance.
 1. samples 5 / responses 2 / first 32ms / resolve-first 420ms / resolve-last 180ms / commit 1 / batch 1 / release-latched 1 / last-source release / adjusted 0 / gesture-samples 5 / owned-cuts 2 / no-cut 0 / near 0 / off 0 / loupe 4 / ready 3 / low-clear 0 / min-clear 42px
 Pay: $21.50
 Cost: $49.75
@@ -43,14 +45,17 @@ Best saved: 11 rounds / BPE Adjacent`;
 const criteriaLabels = [
   "First action completed without outside instruction",
   "Explains one non-word tokenization behavior",
-  "Starts Endless from tutorial-complete handoff",
-  "Explains pay minus cost equals net",
+  "Selects Start Training from tutorial-complete handoff",
+  "Explains verified credits minus rework equals net credits",
   "No systematic swipe/snap mistrust",
   "Mobile readability holds on real device",
   "Labor frame noticed without being told",
   "Engagement and degraded visual intent observed",
   "Copied summary returned with run ID, start source, input modality, round trace, cut-error counts, total net, and best-saved record"
 ] as const;
+
+const handoffEvidenceRequirement =
+  "pass evidence must name the tutorial-complete handoff, an affirmative started Training or clicked Training action, and no-prompt/coaching/timing evidence";
 
 function sessionNote(options: {
   tester: string;
@@ -102,7 +107,7 @@ function sessionNote(options: {
 
 - Tester ID: ${options.tester}
 - Date: 2026-06-06
-- Run ID: mtt-20260606-172531z
+- Run ID: tt-20260606-172531z
 - Device/browser: ${options.deviceBrowser ?? "iPhone Safari"}
 - Input: ${options.input ?? "touch"}
 - Network: ${options.network ?? "LAN"}
@@ -176,10 +181,10 @@ function defaultObservationEvidence(tester: string, label: PlaytestObservationLa
       return `${tester} said swipe snap positions felt precise and did not blame input imprecision.`;
     case "Missed/false review markers understood":
       return `${tester} explained missed and false review markers as different audit outcomes.`;
-    case "Pay, cost, net, balance, and rank understood":
+    case "Verified credits, rework, net credits, remaining credits, and rank understood":
       return `${tester} explained pay minus cost changed net, balance, and rank.`;
-    case "Tutorial-complete handoff starts Endless without prompting":
-      return `${tester} started Endless Training from the handoff without outside instruction.`;
+    case "Tutorial-complete handoff: Start Training selected without prompting":
+      return `${tester} started Training from the handoff without outside instruction.`;
     case "Dense strings read as higher-risk tokenization":
       return `${tester} said the URL with dots and slashes looked higher-risk and more expensive.`;
     case "Degraded AI labor frame noticed through play":
@@ -218,9 +223,9 @@ function defaultCriterionEvidence(tester: string, label: (typeof criteriaLabels)
       return `${tester} swiped the first tutorial cut unprompted with no coaching.`;
     case "Explains one non-word tokenization behavior":
       return `${tester} said spaces can travel with the next token and punctuation may split.`;
-    case "Starts Endless from tutorial-complete handoff":
-      return `${tester} clicked Start Endless Training from the tutorial-complete handoff within 8 seconds without outside instruction.`;
-    case "Explains pay minus cost equals net":
+    case "Selects Start Training from tutorial-complete handoff":
+      return `${tester} clicked Start Training from the tutorial-complete handoff within 8 seconds without outside instruction.`;
+    case "Explains verified credits minus rework equals net credits":
       return `${tester} explained pay minus company cost makes the net result.`;
     case "No systematic swipe/snap mistrust":
       return `${tester} trusted the swipe snap positions and did not blame input imprecision.`;
@@ -259,6 +264,136 @@ describe("playtest note evaluator", () => {
     expect(session.criteria.firstAction).toBe("pass");
     expect(session.criterionEvidence.firstAction).toContain("P1 swiped the first tutorial cut");
     expect(session.criteria.copiedSummary).toBe("pass");
+  });
+
+  it.each([
+    ["legacy", "# Manual Tokenization Training Playtest Notes"],
+    ["missing", ""],
+    ["wrong", "# Tokenizer Training Session Notes"],
+    ["canonical H1 after unscoped text", "Unscoped evidence\n# Tokenizer Training Playtest Notes"]
+  ])("rejects a %s session note H1", (_case, h1) => {
+    const session = parsePlaytestSessionNote(
+      sessionNote({ tester: "P1" }).replace("# Tokenizer Training Playtest Notes", h1),
+      "p1.md"
+    );
+
+    expect(playtestSessionEvidenceIssues(session)).toEqual([
+      'p1.md: H1 must exactly be "# Tokenizer Training Playtest Notes".'
+    ]);
+  });
+
+  it.each([
+    ["started Training", "P1 started Training from the handoff without outside instruction."],
+    ["starts Training", "The tutorial-complete handoff starts Training without prompting."],
+    ["clicked Training", "P1 clicked Training from the handoff without facilitator prompting."],
+    ["clicked Start Training", "P1 clicked Start Training from the handoff within 8 seconds."],
+    ["clicked a quoted Start Training label", "P1 clicked `Start Training` from the handoff without prompting."],
+    [
+      "current action beside a historical name",
+      "The historical button was Start Endless Training; P1 clicked Start Training from the current handoff with no coaching."
+    ]
+  ])("accepts concrete %s handoff evidence", (_case, handoffEvidence) => {
+    const session = parsePlaytestSessionNote(
+      sessionNote({
+        tester: "P1",
+        observationEvidence: {
+          "Tutorial-complete handoff: Start Training selected without prompting": handoffEvidence
+        },
+        evidence: {
+          "Selects Start Training from tutorial-complete handoff": handoffEvidence
+        }
+      }),
+      "p1.md"
+    );
+
+    expect(session.observationValidation.invalidRows).toEqual([]);
+    expect(playtestSessionEvidenceIssues(session)).toEqual([]);
+  });
+
+  it.each([
+    ["missing handoff context", "P1 clicked Start Training without prompting."],
+    [
+      "negated group action",
+      "No tester clicked Start Training from the tutorial-complete handoff without prompting."
+    ],
+    [
+      "did-not-click failure",
+      "P1 did not click Start Training from the tutorial-complete handoff without prompting."
+    ],
+    [
+      "could-not-start failure",
+      "P1 could not start Training from the tutorial-complete handoff without prompting."
+    ],
+    [
+      "main-menu Training click",
+      "After seeing the tutorial-complete handoff, P1 returned to the main menu and clicked Start Training within 8 seconds."
+    ],
+    ["missing autonomy or timing evidence", "P1 clicked Start Training from the tutorial-complete handoff."]
+  ])("rejects %s as handoff evidence", (_case, handoffEvidence) => {
+    const session = parsePlaytestSessionNote(
+      sessionNote({
+        tester: "P1",
+        observationEvidence: {
+          "Tutorial-complete handoff: Start Training selected without prompting": handoffEvidence
+        },
+        evidence: {
+          "Selects Start Training from tutorial-complete handoff": handoffEvidence
+        }
+      }),
+      "p1.md"
+    );
+    const issues = playtestSessionEvidenceIssues(session);
+
+    expect(session.observationValidation.invalidRows).toContain(
+      `Tutorial-complete handoff: Start Training selected without prompting ${handoffEvidenceRequirement}`
+    );
+    expect(issues).toContain(
+      "p1.md: Selects Start Training from tutorial-complete handoff pass needs criterion-specific observed evidence."
+    );
+  });
+
+  it("rejects retired Start Endless Training as current handoff evidence", () => {
+    const retiredEvidence = "P1 clicked Start Endless Training from the handoff without outside instruction.";
+    const session = parsePlaytestSessionNote(
+      sessionNote({
+        tester: "P1",
+        observationEvidence: {
+          "Tutorial-complete handoff: Start Training selected without prompting": retiredEvidence
+        },
+        evidence: {
+          "Selects Start Training from tutorial-complete handoff": retiredEvidence
+        }
+      }),
+      "p1.md"
+    );
+    const issues = playtestSessionEvidenceIssues(session);
+
+    expect(session.observationValidation.invalidRows).toContain(
+      `Tutorial-complete handoff: Start Training selected without prompting ${handoffEvidenceRequirement}`
+    );
+    expect(issues).toContain(
+      "p1.md: Selects Start Training from tutorial-complete handoff pass needs criterion-specific observed evidence."
+    );
+  });
+
+  it("does not parse retired handoff rows as the current schema", () => {
+    const session = parsePlaytestSessionNote(
+      sessionNote({ tester: "P1" })
+        .replace(
+          "Tutorial-complete handoff: Start Training selected without prompting",
+          "Tutorial-complete handoff starts Endless without prompting"
+        )
+        .replace(
+          "Selects Start Training from tutorial-complete handoff",
+          "Starts Endless from tutorial-complete handoff"
+        ),
+      "p1.md"
+    );
+
+    expect(session.observationValidation.missingRows).toContain(
+      "Tutorial-complete handoff: Start Training selected without prompting pass state"
+    );
+    expect(session.criteria.handoff).toBe("missing");
   });
 
   it("parses debrief answers written inline on the numbered question line", () => {
@@ -416,7 +551,7 @@ describe("playtest note evaluator", () => {
           input: "touch",
           deviceBrowser: "iPhone Safari",
           results: {
-            "Starts Endless from tutorial-complete handoff": "fail"
+            "Selects Start Training from tutorial-complete handoff": "fail"
           }
         }),
         "p1.md"
@@ -431,7 +566,7 @@ describe("playtest note evaluator", () => {
 
     expect(evaluation.ready).toBe(false);
     expect(evaluation.issues).toContain(
-      'p1.md: Starts Endless from tutorial-complete handoff is marked fail but observation "Tutorial-complete handoff starts Endless without prompting" is pass.'
+      'p1.md: Selects Start Training from tutorial-complete handoff is marked fail but observation "Tutorial-complete handoff: Start Training selected without prompting" is pass.'
     );
   });
 
@@ -490,7 +625,7 @@ describe("playtest note evaluator", () => {
       validateSessionMetadata({
         testerId: "P1",
         date: "2026-06-06",
-        runId: "mtt-20260606-172531z",
+        runId: "tt-20260606-172531z",
         deviceBrowser: "iPhone Safari",
         input: "touch",
         network: "LAN",
@@ -546,11 +681,21 @@ describe("playtest note evaluator", () => {
     expect(validation.invalidFields).toContain("run ID must use the game-generated tt-* format");
   });
 
+  it("rejects legacy run IDs in session metadata and copied summaries", () => {
+    const metadataValidation = validateSessionMetadata({ runId: "mtt-20260606-172531z" });
+    const summaryValidation = validateCopiedSummary(
+      completeSummary.replace("Run ID: tt-20260606-172531z", "Run ID: mtt-20260606-172531z")
+    );
+
+    expect(metadataValidation.invalidFields).toContain("run ID must use the game-generated tt-* format");
+    expect(summaryValidation.invalidFields).toContain("run ID must use the game-generated tt-* format");
+  });
+
   it("rejects mobile metadata when the visual evidence field records none", () => {
     const validation = validateSessionMetadata({
       testerId: "P1",
       date: "2026-06-06",
-      runId: "mtt-20260606-172531z",
+      runId: "tt-20260606-172531z",
         deviceBrowser: "iPhone Safari",
         input: "touch",
         network: "LAN",
@@ -570,7 +715,7 @@ describe("playtest note evaluator", () => {
     const sameMachine = validateSessionMetadata({
       testerId: "P1",
       date: "2026-06-06",
-      runId: "mtt-20260606-172531z",
+      runId: "tt-20260606-172531z",
       deviceBrowser: "iPhone Safari",
       input: "touch",
       network: "same-machine",
@@ -582,7 +727,7 @@ describe("playtest note evaluator", () => {
     const localhost = validateSessionMetadata({
       testerId: "P1",
       date: "2026-06-06",
-      runId: "mtt-20260606-172531z",
+      runId: "tt-20260606-172531z",
       deviceBrowser: "iPhone Safari",
       input: "touch",
       network: "LAN",
@@ -638,6 +783,7 @@ describe("playtest note evaluator", () => {
 
   it("validates required copied-summary evidence fields", () => {
     expect(validateCopiedSummary(completeSummary).complete).toBe(true);
+    expect(validateCopiedSummary(`\n \n${completeSummary}`).complete).toBe(true);
 
     const validation = validateCopiedSummary(`Tokenizer Training playtest summary
 Run ID: not captured
@@ -671,10 +817,40 @@ Cuts: OK 1 / Missed 0 / False 0
 Round trace:
 1. simple_001 / simple_prose / tier 1 / tokens 6 / OK 1 / Missed 0 / False 0
 Input feel trace:
+Input feel fields: first-cut latency, resolve timing after first/last cut, cut batch ownership, release-sample/correction ownership, no-cut acknowledgements, touch-loupe clearance.
 1. samples 1 / responses 1 / first 10ms / resolve-first 120ms / resolve-last 120ms / commit 1 / batch 1 / release-latched 0 / last-source direct / adjusted 0 / gesture-samples 1 / owned-cuts 1 / no-cut 0 / near 0 / off 0 / loupe 0 / ready 0 / low-clear 0 / min-clear n/a
 Net: +$1.00
 Best saved: 1 rounds / Regex Intern`).missingFields
     ).toContain("run ID");
+  });
+
+  it.each([
+    [
+      "legacy Manual Tokenization Training header",
+      completeSummary.replace(
+        "Tokenizer Training playtest summary",
+        "Manual Tokenization Training playtest summary"
+      )
+    ],
+    [
+      "legacy Tokenization Training header",
+      completeSummary.replace(
+        "Tokenizer Training playtest summary",
+        "Tokenization Training playtest summary"
+      )
+    ],
+    [
+      "canonical title only later in the text",
+      `Manual Tokenization Training playtest summary\n${completeSummary}`
+    ]
+  ])("rejects a copied summary with a %s", (_case, summary) => {
+    const validation = validateCopiedSummary(summary);
+
+    expect(validation.complete).toBe(false);
+    expect(validation.missingFields).toEqual([]);
+    expect(validation.invalidFields).toEqual([
+      'summary first nonblank line must exactly equal "Tokenizer Training playtest summary"'
+    ]);
   });
 
   it("requires copied summaries to use explicit input-feel ownership labels", () => {
@@ -693,7 +869,7 @@ Best saved: 1 rounds / Regex Intern`).missingFields
   it("rejects copied summaries from direct runs or a different run ID", () => {
     const directRun = validateCopiedSummary(completeSummary.replace("Start: handoff screen", "Start: direct"));
     const wrongRun = validateCopiedSummary(completeSummary, {
-      runId: "mtt-20260606-180000z"
+      runId: "tt-20260606-180000z"
     });
 
     expect(directRun.complete).toBe(false);
@@ -703,7 +879,7 @@ Best saved: 1 rounds / Regex Intern`).missingFields
   });
 
   it("rejects copied summaries with a non-game run ID", () => {
-    const validation = validateCopiedSummary(completeSummary.replace("Run ID: mtt-20260606-172531z", "Run ID: row-1"));
+    const validation = validateCopiedSummary(completeSummary.replace("Run ID: tt-20260606-172531z", "Run ID: row-1"));
 
     expect(validation.complete).toBe(false);
     expect(validation.invalidFields).toContain("run ID must use the game-generated tt-* format");
@@ -711,7 +887,7 @@ Best saved: 1 rounds / Regex Intern`).missingFields
 
   it("rejects evaluations with missing or placeholder session metadata", () => {
     const missingMetadata = sessionNote({ tester: "P1", input: "touch", deviceBrowser: "iPhone Safari" })
-      .replace("- Run ID: mtt-20260606-172531z", "- Run ID:")
+      .replace("- Run ID: tt-20260606-172531z", "- Run ID:")
       .replace("- Launch URL: http://192.168.1.20:5173/?playtestReset=1", "- Launch URL:");
     const placeholderMetadata = sessionNote({ tester: "P2", input: "touch", deviceBrowser: "iPhone Safari" })
       .replace("- Input: touch", "- Input: mouse / touch / pen / trackpad / mixed")
@@ -1070,7 +1246,7 @@ Best saved: 1 rounds / Regex Intern`
           tester: "P3",
           input: "mouse",
           deviceBrowser: "Desktop Firefox",
-          summary: completeSummary.replace("Run ID: mtt-20260606-172531z", "Run ID: mtt-20260606-180000z")
+          summary: completeSummary.replace("Run ID: tt-20260606-172531z", "Run ID: tt-20260606-180000z")
         }),
         "p3.md"
       ),
