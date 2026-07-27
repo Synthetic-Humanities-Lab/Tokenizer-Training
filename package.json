@@ -38,7 +38,7 @@
     "mobile:status": "tsx scripts/report-mobile-status.ts",
     "mobile:validate": "tsx scripts/evaluate-mobile-device-validation.ts",
     "build": "tsc --noEmit && vite build",
-    "build:pages": "tsc --noEmit && vite build --base /tokenizer-training/",
+    "build:pages": "tsc --noEmit && vite build --base /Tokenizer-Training/",
     "build:ios-web": "tsc --noEmit && vite build --base ./ --outDir ios/TokenizerTraining/WebAssets --emptyOutDir",
     "test": "vitest run",
     "generate:fixtures": "tsx scripts/generate-token-fixtures.ts"

@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
+import packageJson from "../package.json";
 import config from "../vite.config";
 
 describe("Vite build config", () => {
+  it("uses the canonical case-sensitive GitHub Pages project path", () => {
+    expect(packageJson.scripts["build:pages"]).toContain("--base /Tokenizer-Training/");
+  });
+
   it("keeps the known Phaser engine bundle explicit instead of a generic app chunk", () => {
     const output = config.build?.rollupOptions?.output;
     const outputOptions = Array.isArray(output) ? output[0] : output;
