@@ -70,7 +70,7 @@ describe("BestRankResetSystem", () => {
     expect(RESET_BEST_RANK_TITLE).toBe("Reset Best Rank?");
     expect(RESET_BEST_RANK_MESSAGE).toContain("saved rank and round record");
     expect(RESET_BEST_RANK_MESSAGE).toContain("Token Log, sample progress, Training access");
-    expect(RESET_BEST_RANK_MESSAGE).toContain("Sound, and Haptics remain");
+    expect(RESET_BEST_RANK_MESSAGE).toContain("preferences remain");
     expect(RESET_BEST_RANK_CANCEL_LABEL).toBe("Cancel");
     expect(RESET_BEST_RANK_CONFIRM_LABEL).toBe("Reset Rank");
   });

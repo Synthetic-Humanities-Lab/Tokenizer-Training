@@ -4,7 +4,7 @@ import type {
 } from "../systems/HudImpactSystem";
 import { safeAreaInsets, type SafeAreaInput } from "../systems/SafeAreaSystem";
 import type { SurfaceProfile } from "../systems/SurfaceProfileSystem";
-import { uiFonts, uiPalette } from "./VisualTheme";
+import { uiFonts, uiPalette, uiTextResolution } from "./VisualTheme";
 
 export type HudTimerMode = "active" | "paused" | "review";
 
@@ -317,6 +317,7 @@ export class Hud {
     this.impactLabelText = scene.add.text(0, 0, "", {
       fontFamily: uiFonts.mono,
       fontSize: "11px",
+      resolution: uiTextResolution(),
       color: uiPalette.text
     }).setOrigin(0.5).setDepth(21).setVisible(false);
     this.creditsText = this.makeText("CREDITS\n40 TC", 24, 20, 24);
@@ -374,6 +375,7 @@ export class Hud {
       .text(x, y, value, {
         fontFamily: uiFonts.body,
         fontSize: `${size}px`,
+        resolution: uiTextResolution(),
         color: uiPalette.text,
         lineSpacing: 4
       })

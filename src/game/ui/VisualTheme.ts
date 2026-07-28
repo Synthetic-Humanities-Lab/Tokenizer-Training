@@ -15,6 +15,7 @@ export const uiPalette = {
   textFaint: "#7d7469",
   amber: 0xea8b2f,
   amberLight: 0xffc06a,
+  tutorialTarget: 0x4f7f83,
   blueGrey: 0x9daaad,
   coldGlass: 0xded7cd,
   oxidizedGreen: 0xa8b69a,
@@ -46,6 +47,17 @@ export const buttonVisual = {
   disabledAlpha: 0.5,
   stroke: 0xbeb2a3
 } as const;
+
+export function uiTextResolution(pixelRatio = globalThis.devicePixelRatio): number {
+  const normalized = Number.isFinite(pixelRatio) ? Number(pixelRatio) : 1;
+  return Math.min(2, Math.max(1, normalized));
+}
+
+export function applyUiTextResolution<T extends Phaser.GameObjects.GameObject>(element: T): T {
+  const candidate = element as T & { setResolution?: (resolution: number) => unknown };
+  candidate.setResolution?.(uiTextResolution());
+  return element;
+}
 
 export interface WienerWorksSurfaceOptions {
   topOffset?: number;

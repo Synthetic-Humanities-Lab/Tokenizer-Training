@@ -324,7 +324,7 @@ describe("reading-derived design documentation", () => {
 
     expect(reset).toMatch(/first\s+activation only opens `Reset Best Rank\?`/);
     expect(reset).toContain("canonical and every legacy high-score key");
-    expect(reset).toMatch(/Token Log, sample progress, Training access, Sound, and\s+Haptics remain/);
+    expect(reset).toMatch(/Token Log, sample progress, Training access, and\s+preferences remain/);
     expect(reset).toContain("does not prove");
     expect(mobileShell).toContain("settings-reset-confirm.jpg");
     expect(mobileShell).toContain("`resetPointerActivationProven` false");

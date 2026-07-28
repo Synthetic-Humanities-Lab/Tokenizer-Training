@@ -95,6 +95,14 @@ describe("playSceneQaSnapshot", () => {
           }
         }
       ],
+      tutorialTargetHintsVisible: true,
+      tutorialSwipeCueVisible: true,
+      tutorialSwipeCueRect: {
+        x: layout.textPanel.x - 120,
+        y: layout.textPanel.y,
+        width: 18,
+        height: 92
+      },
       snapDistancePx: 26,
       previewDistancePx: 38,
       inputModality: "touch",
@@ -219,6 +227,8 @@ describe("playSceneQaSnapshot", () => {
       activeCutLabelCount: 1,
       resolvedCutLabelCount: 0,
       legalSlotCount: 17,
+      tutorialTargetHintsVisible: true,
+      tutorialSwipeCueVisible: true,
       snapDistancePx: 26,
       previewDistancePx: 38,
       armedPreviewBoundary: 3,
@@ -311,6 +321,10 @@ describe("playSceneQaSnapshot", () => {
       height: 76
     });
     expect(element(snapshot.elements, "playableSlot:7").text).toBe("7");
+    expect(element(snapshot.elements, "tutorialSwipeCue").visible).toBe(true);
+    expect(element(snapshot.elements, "tutorialSwipeCue").rect!.height).toBeGreaterThan(
+      element(snapshot.elements, "tutorialSwipeCue").rect!.width
+    );
     expect(element(snapshot.elements, "armedCutPreview").rect?.width).toBe(ARMED_CUT_PREVIEW_RECT_WIDTH);
     expect(element(snapshot.elements, "cutCorrectionFeedback").visible).toBe(true);
     expect(element(snapshot.elements, "cutCorrectionFeedback").rect).toEqual({

@@ -218,4 +218,14 @@ describe("SettingsLayoutSystem", () => {
     expect(layouts.map((layout) => layout.resetDialogTitle.width)).toEqual([224, 224, 224, 224]);
     expect(layouts.map((layout) => layout.resetDialogMessage.width)).toEqual([224, 224, 224, 224]);
   });
+
+  it("removes the unused haptics row from browser-only settings geometry", () => {
+    const withHaptics = computeSettingsLayout(390, 844, true, PHONE_SAFE_AREA, true);
+    const withoutHaptics = computeSettingsLayout(390, 844, true, PHONE_SAFE_AREA, false);
+
+    expect(withoutHaptics.card.height).toBe(withHaptics.card.height - 58);
+    expect(withoutHaptics.backButton.y).toBe(withHaptics.backButton.y - 29);
+    expect(edges(withoutHaptics.reducedMotionControl).bottom)
+      .toBeLessThan(edges(withoutHaptics.backButton).top);
+  });
 });

@@ -374,7 +374,10 @@ describe("PlayScene input lifecycle", () => {
       startRoundMethod.indexOf("this.updateTimerVisual(now);")
     );
     expect(stageMethod).toContain("cut <= 0 || cut >= length");
+    expect(stageMethod).not.toContain("this.tutorialMode ||");
     expect(stageMethod).toContain("this.currentCuts = [...cuts].sort((a, b) => a - b);");
+    expect(stageMethod).toContain("this.tutorialSwipeCueDismissed = this.currentCuts.length > 0;");
+    expect(stageMethod).toContain("this.renderSlotHints();");
     expect(stageMethod).toContain('this.resolveRound("manual");');
     expect(resolveMethod).toContain("this.qaControls.holdReview || this.qaControls.holdSplit");
     expect(resolveMethod).toContain("this.feedbackCard.hide();");

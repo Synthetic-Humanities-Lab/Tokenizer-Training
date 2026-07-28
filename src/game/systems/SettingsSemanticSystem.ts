@@ -57,19 +57,14 @@ export function settingsSemanticSnapshot(
         label: REDUCED_MOTION_LABEL,
         checked: input.motionPreference.reduced
       },
-      input.hapticCapability.available
-        ? {
+      ...(input.hapticCapability.available
+        ? [{
             kind: "switch",
             id: "haptics",
             label: "Haptics",
             checked: input.hapticPreference.enabled
-          }
-        : {
-            kind: "status",
-            id: "haptics",
-            label: "Haptics",
-            value: "Unavailable on this device"
-          },
+          } as const]
+        : []),
       {
         kind: "button",
         id: "back",

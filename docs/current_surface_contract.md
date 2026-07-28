@@ -170,8 +170,8 @@ test-only runtime APIs.
 - `Reset Best Rank` is an uncommon destructive Settings action. Its first
   activation only opens `Reset Best Rank?`; it cannot clear storage.
 - The confirmation states that the saved rank and round record on this device
-  will be removed while Token Log, sample progress, Training access, Sound, and
-  Haptics remain. `Cancel` precedes the visually destructive `Reset Rank`
+  will be removed while Token Log, sample progress, Training access, and
+  preferences remain. `Cancel` precedes the visually destructive `Reset Rank`
   action.
 - Confirmed deletion checks the canonical and every legacy high-score key before
   and after the attempt. The UI reports a reset only after readable storage shows
@@ -235,8 +235,8 @@ test-only runtime APIs.
   supported haptic hardware; otherwise it uses browser vibration when exposed or
   fails soft as unavailable.
 - On a capable route, Settings exposes an independent `Haptics: On` / `Haptics:
-  Off` control. On an incapable route it shows a noninteractive `Haptics:
-  Unavailable` control and preserves the stored choice.
+  Off` control. On an incapable route Settings omits Haptics and preserves the
+  stored choice.
 - The native bridge accepts only cut, confirm, clear, miss, and warning cues.
   JavaScript cannot provide arbitrary patterns or intensity; cut repeats are
   capped at four.

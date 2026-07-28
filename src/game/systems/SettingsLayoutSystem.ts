@@ -29,14 +29,15 @@ export function computeSettingsLayout(
   width: number,
   height: number,
   mobileSurface: boolean,
-  safeAreaInput?: SafeAreaInput
+  safeAreaInput?: SafeAreaInput,
+  hapticsAvailable = true
 ): SettingsLayout {
   const safeArea = safeAreaInsets(safeAreaInput);
   const usableWidth = Math.max(0, width - safeArea.left - safeArea.right);
   const usableHeight = Math.max(0, height - safeArea.top - safeArea.bottom);
   const compact = mobileSurface || width < 620;
   const cardWidth = Math.min(compact ? 430 : 620, Math.max(0, usableWidth - 24));
-  const cardHeight = Math.min(Math.max(0, usableHeight - 24), 500);
+  const cardHeight = Math.min(Math.max(0, usableHeight - 24), hapticsAvailable ? 500 : 442);
   const cardX = safeArea.left + usableWidth / 2;
   const cardY = safeArea.top + usableHeight / 2;
   const top = cardY - cardHeight / 2;

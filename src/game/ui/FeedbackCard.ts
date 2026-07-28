@@ -7,7 +7,7 @@ import {
 } from "../systems/PlayLayoutSystem";
 import { safeAreaInsets, type SafeAreaInput } from "../systems/SafeAreaSystem";
 import type { SurfaceProfile } from "../systems/SurfaceProfileSystem";
-import { uiFonts, uiPalette } from "./VisualTheme";
+import { uiFonts, uiPalette, uiTextResolution } from "./VisualTheme";
 
 export interface FeedbackCardLayout {
   x: number;
@@ -430,6 +430,7 @@ export class FeedbackCard {
     return this.scene.add.text(x, y, "", {
       fontFamily,
       fontSize: `${size}px`,
+      resolution: uiTextResolution(),
       color: uiPalette.text
     });
   }

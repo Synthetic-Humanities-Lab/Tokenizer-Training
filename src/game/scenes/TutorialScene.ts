@@ -23,7 +23,13 @@ import {
   type TutorialIntakeLayout,
   type TutorialIntakeTextBlock
 } from "../systems/TutorialIntakeSystem";
-import { buttonVisual, drawDegradedBrowserSurface, uiFonts, uiPalette } from "../ui/VisualTheme";
+import {
+  applyUiTextResolution,
+  buttonVisual,
+  drawDegradedBrowserSurface,
+  uiFonts,
+  uiPalette
+} from "../ui/VisualTheme";
 import { addWienerImage } from "../ui/WienerSprite";
 
 export class TutorialScene extends Phaser.Scene {
@@ -357,6 +363,7 @@ export class TutorialScene extends Phaser.Scene {
   }
 
   private addElement<T extends Phaser.GameObjects.GameObject>(element: T): T {
+    applyUiTextResolution(element);
     this.elements.push(element);
     return element;
   }

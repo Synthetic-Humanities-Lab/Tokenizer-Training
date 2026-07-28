@@ -117,18 +117,18 @@ describe("settingsSemanticSnapshot", () => {
     });
   });
 
-  it("uses static status instead of a fabricated Haptics switch when unavailable", () => {
-    const control = settingsSemanticSnapshot(input({
+  it("omits Haptics when the current runtime cannot produce tactile feedback", () => {
+    const controls = settingsSemanticSnapshot(input({
       hapticCapability: { available: false, route: "unavailable" },
       hapticPreference: { enabled: true, persisted: false, source: "unavailable" }
-    })).controls[3];
+    })).controls;
 
-    expect(control).toEqual({
-      kind: "status",
-      id: "haptics",
-      label: "Haptics",
-      value: "Unavailable on this device"
-    });
+    expect(controls.map(({ id }) => id)).toEqual([
+      "sound",
+      "reset-best-rank",
+      "reduced-motion",
+      "back"
+    ]);
   });
 
   it("retains inert background controls and adds the canonical reset alert dialog", () => {

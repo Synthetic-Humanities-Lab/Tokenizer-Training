@@ -7,7 +7,7 @@ import type {
 
 export const RESET_BEST_RANK_TITLE = "Reset Best Rank?";
 export const RESET_BEST_RANK_MESSAGE =
-  "Removes the saved rank and round record on this device. Token Log, sample progress, Training access, Sound, and Haptics remain.";
+  "Removes the saved rank and round record on this device. Token Log, sample progress, Training access, and preferences remain.";
 export const RESET_BEST_RANK_CANCEL_LABEL = "Cancel";
 export const RESET_BEST_RANK_CONFIRM_LABEL = "Reset Rank";
 

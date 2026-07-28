@@ -28,11 +28,12 @@ const AUDIO_SCENES = [
 ];
 
 describe("haptic capability integration", () => {
-  it("replaces implementation-status copy with runtime capability truth", () => {
+  it("shows Haptics only when the runtime can produce tactile feedback", () => {
     const source = readRepoFile("src/game/scenes/SettingsScene.ts");
 
     expect(source).not.toContain("Native shell pending");
-    expect(source).toContain("hapticFeedbackCapabilityLabel(this.hapticCapability)");
+    expect(source).toContain("if (this.hapticCapability.available)");
+    expect(source).not.toContain("Haptics: Unavailable");
     expect(source).toContain('id: "haptics"');
     expect(source).toContain("hapticFeedbackAvailable: this.hapticCapability.available");
     expect(source).toContain("hapticFeedbackRoute: this.hapticCapability.route");
@@ -57,7 +58,7 @@ describe("haptic capability integration", () => {
     );
     const hapticsControl = source.slice(
       source.indexOf("if (this.hapticCapability.available)"),
-      source.indexOf("} else {", source.indexOf("if (this.hapticCapability.available)"))
+      source.indexOf("this.createButton(layout.backButton", source.indexOf("if (this.hapticCapability.available)"))
     );
     const soundCommand = methodSource(source, "  private commandSetSoundMuted(");
     const hapticsCommand = methodSource(source, "  private commandSetHapticsEnabled(");

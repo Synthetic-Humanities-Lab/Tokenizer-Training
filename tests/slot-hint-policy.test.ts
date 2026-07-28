@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   playableSlotHintVisualStyle,
-  shouldShowPlayableSlotHints
+  shouldShowPlayableSlotHints,
+  shouldShowTutorialSwipeCue,
+  tutorialSwipeCueVisualState,
+  tutorialTargetHintVisualStyle
 } from "../src/game/systems/SlotHintPolicySystem";
+import { uiPalette } from "../src/game/ui/VisualTheme";
 
 describe("shouldShowPlayableSlotHints", () => {
   it("keeps tutorial cut-slot affordances explicit unless a round opts out", () => {
@@ -30,6 +34,52 @@ describe("shouldShowPlayableSlotHints", () => {
       tutorialMode: false,
       round: 4
     })).toBe(false);
+  });
+});
+
+describe("tutorial target guidance", () => {
+  it("renders target answers as segmented guides rather than staged-cut markers", () => {
+    const style = tutorialTargetHintVisualStyle(true);
+
+    expect(uiPalette.tutorialTarget).not.toBe(uiPalette.amber);
+    expect(uiPalette.tutorialTarget).not.toBe(uiPalette.amberLight);
+    expect(style.lineWidth).toBeLessThan(4);
+    expect(style.dashLength).toBeGreaterThan(0);
+    expect(style.gapLength).toBeGreaterThan(0);
+    expect(style.capRadius).toBeGreaterThan(0);
+  });
+
+  it("shows the swipe cue only before the first cut in explicitly guided tutorial rounds", () => {
+    expect(shouldShowTutorialSwipeCue({
+      tutorialMode: true,
+      targetHintsVisible: true,
+      tutorialShowSwipeCue: true,
+      dismissed: false,
+      resolving: false
+    })).toBe(true);
+    expect(shouldShowTutorialSwipeCue({
+      tutorialMode: true,
+      targetHintsVisible: true,
+      tutorialShowSwipeCue: true,
+      dismissed: true,
+      resolving: false
+    })).toBe(false);
+    expect(shouldShowTutorialSwipeCue({
+      tutorialMode: false,
+      targetHintsVisible: true,
+      tutorialShowSwipeCue: true,
+      dismissed: false,
+      resolving: false
+    })).toBe(false);
+  });
+
+  it("uses a static cue when reduced motion is enabled", () => {
+    expect(tutorialSwipeCueVisualState(0, true)).toEqual(
+      tutorialSwipeCueVisualState(1400, true)
+    );
+    expect(tutorialSwipeCueVisualState(200, false).progress).not.toBe(
+      tutorialSwipeCueVisualState(900, false).progress
+    );
   });
 });
 

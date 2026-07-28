@@ -33,6 +33,9 @@ export interface PlaySceneQaSnapshotInput {
   resolutionAuditLegendText?: string;
   legalSlotCount: number;
   playableSlotRects?: Array<{ boundary: number; rect: GameQaRect; hinted?: boolean }>;
+  tutorialTargetHintsVisible?: boolean;
+  tutorialSwipeCueVisible?: boolean;
+  tutorialSwipeCueRect?: GameQaRect;
   snapDistancePx?: number;
   previewDistancePx?: number;
   inputModality: string;
@@ -219,6 +222,13 @@ export function playSceneQaSnapshot(input: PlaySceneQaSnapshotInput): GameQaSnap
       text: `${slot.boundary}`,
       visible: false
     })),
+    ...(input.tutorialSwipeCueRect
+      ? [{
+          id: "tutorialSwipeCue",
+          rect: input.tutorialSwipeCueRect,
+          visible: input.tutorialSwipeCueVisible ?? true
+        }]
+      : []),
     { id: "resolveButton", rect: input.layout.resolveButton, text: input.resolveButtonText },
     { id: "clearButton", rect: input.layout.clearButton, text: input.clearButtonText },
     { id: "undoButton", rect: input.layout.undoButton, text: input.undoButtonText },
@@ -353,6 +363,8 @@ export function playSceneQaSnapshot(input: PlaySceneQaSnapshotInput): GameQaSnap
       resolutionAuditLegendVisible: input.resolutionAuditLegendRect !== undefined,
       resolutionAuditLegendText: input.resolutionAuditLegendText ?? "",
       legalSlotCount: Math.max(0, Math.floor(input.legalSlotCount)),
+      tutorialTargetHintsVisible: input.tutorialTargetHintsVisible ?? false,
+      tutorialSwipeCueVisible: input.tutorialSwipeCueVisible ?? false,
       snapDistancePx: normalizedNumber(input.snapDistancePx),
       previewDistancePx: normalizedNumber(input.previewDistancePx),
       armedPreviewBoundary: input.armedPreviewBoundary ?? null,

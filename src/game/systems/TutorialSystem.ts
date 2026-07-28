@@ -12,6 +12,7 @@ export interface TutorialRound {
   reviewReactions: TutorialReviewReactions;
   showSlotHints: boolean;
   showTargetHints: boolean;
+  showSwipeCue: boolean;
 }
 
 interface TutorialReviewSpeechInput {
@@ -27,8 +28,8 @@ const TUTORIAL_TOKEN_ID_REVIEW_LINE =
 const tutorialRounds: TutorialRound[] = [
   {
     fixtureId: "simple_001",
-    activeInstructionLine: "Swipe orange targets. Pale guides mark every possible cut; Resolve submits.",
-    firstCutFollowUpLine: "Orange means staged. Mark every target, or Clear to remove all cuts.",
+    activeInstructionLine: "Swipe up the dotted line. Repeat for every target; Resolve submits.",
+    firstCutFollowUpLine: "Solid amber means staged. Undo removes the last cut; Clear removes all.",
     reviewReactions: {
       clean: "OK marks a correct cut. The ledger marks each intact token VERIFIED: one Token Credit. REWORK stays zero.",
       missed: "MISS joins two real tokens, invalidating both. The ledger sends both to REWORK and deducts the charge.",
@@ -36,12 +37,13 @@ const tutorialRounds: TutorialRound[] = [
       mixed: "MISS joins real tokens; FALSE splits another. The ledger sends damaged pieces and extra fragments to REWORK."
     },
     showSlotHints: true,
-    showTargetHints: true
+    showTargetHints: true,
+    showSwipeCue: true
   },
   {
     fixtureId: "simple_002",
-    activeInstructionLine: "Repeat the orange route. Resolve splits text; exact tokens fall with IDs.",
-    firstCutFollowUpLine: "Finish the orange route. After Resolve, watch exact token pieces fall.",
+    activeInstructionLine: "Repeat the dotted lines. Resolve splits text; exact tokens fall with IDs.",
+    firstCutFollowUpLine: "Finish the dotted lines. After Resolve, watch exact token pieces fall.",
     reviewReactions: {
       clean: TUTORIAL_TOKEN_ID_REVIEW_LINE,
       missed: TUTORIAL_TOKEN_ID_REVIEW_LINE,
@@ -49,12 +51,13 @@ const tutorialRounds: TutorialRound[] = [
       mixed: TUTORIAL_TOKEN_ID_REVIEW_LINE
     },
     showSlotHints: true,
-    showTargetHints: true
+    showTargetHints: true,
+    showSwipeCue: true
   },
   {
     fixtureId: "simple_010",
-    activeInstructionLine: "Stage the orange route. Clear removes all cuts; Resolve sends what remains.",
-    firstCutFollowUpLine: "Cuts stay provisional until Resolve. Clear removes the whole staged route.",
+    activeInstructionLine: "Stage the dotted lines. Undo removes one cut; Clear removes all.",
+    firstCutFollowUpLine: "Cuts stay provisional until Resolve. Undo removes the last staged cut.",
     reviewReactions: {
       clean: "Clean route. Resolve audited exactly the cuts you left staged.",
       missed: "A boundary remained unstaged. Clear can revise cuts; it cannot replace one you never made.",
@@ -62,7 +65,8 @@ const tutorialRounds: TutorialRound[] = [
       mixed: "The route omitted a boundary and invented another. Use Clear before Resolve."
     },
     showSlotHints: true,
-    showTargetHints: true
+    showTargetHints: true,
+    showSwipeCue: false
   },
   {
     // Rename this fixture only in a dedicated fixture-migration pass.
@@ -76,11 +80,12 @@ const tutorialRounds: TutorialRound[] = [
       mixed: "The true boundary was before the gap; a second cut after it split one token in two."
     },
     showSlotHints: true,
-    showTargetHints: true
+    showTargetHints: true,
+    showSwipeCue: false
   },
   {
     fixtureId: "punct_002",
-    activeInstructionLine: "Orange answers are gone. 're-enter' looks whole, but it may split.",
+    activeInstructionLine: "Target guides are gone. 're-enter' looks whole, but it may split.",
     firstCutFollowUpLine: "Every pale guide accepts a cut. Use earlier evidence, then Resolve.",
     reviewReactions: {
       clean: "Correct. 're-enter' looks like one expression and resolves as two learned chunks.",
@@ -89,7 +94,8 @@ const tutorialRounds: TutorialRound[] = [
       mixed: "The expression hid one real split while your route added another. Readability remains unreliable."
     },
     showSlotHints: true,
-    showTargetHints: false
+    showTargetHints: false,
+    showSwipeCue: false
   },
   {
     fixtureId: "punct_001",
@@ -102,7 +108,8 @@ const tutorialRounds: TutorialRound[] = [
       mixed: "You missed a learned boundary and added another. The apostrophe declines responsibility."
     },
     showSlotHints: true,
-    showTargetHints: false
+    showTargetHints: false,
+    showSwipeCue: false
   },
   {
     fixtureId: "punct_004",
@@ -115,7 +122,8 @@ const tutorialRounds: TutorialRound[] = [
       mixed: "One punctuation boundary escaped while another was invented. The marks remain blameless."
     },
     showSlotHints: true,
-    showTargetHints: false
+    showTargetHints: false,
+    showSwipeCue: false
   },
   {
     fixtureId: "dense_001",
@@ -128,7 +136,8 @@ const tutorialRounds: TutorialRound[] = [
       mixed: "The URL lost one real boundary and gained an imaginary one. Infrastructure continues billing."
     },
     showSlotHints: true,
-    showTargetHints: false
+    showTargetHints: false,
+    showSwipeCue: false
   },
   {
     fixtureId: "punct_003",
@@ -141,11 +150,12 @@ const tutorialRounds: TutorialRound[] = [
       mixed: "The price concealed one boundary while your route supplied another. The protocol calls both rework."
     },
     showSlotHints: true,
-    showTargetHints: false
+    showTargetHints: false,
+    showSwipeCue: false
   },
   {
     fixtureId: "simple_014",
-    activeInstructionLine: "Final sample. Submit the route you would trust without orange answers.",
+    activeInstructionLine: "Final sample. Submit the route you would trust without target guides.",
     firstCutFollowUpLine: "Resolve when ready. The full ten-round audit decides access to Training.",
     reviewReactions: {
       clean: "The final sample is clean. Qualification still depends on the full tutorial audit.",
@@ -154,7 +164,8 @@ const tutorialRounds: TutorialRound[] = [
       mixed: "The final sample mixed missed and false cuts. Qualification still depends on the full audit."
     },
     showSlotHints: true,
-    showTargetHints: false
+    showTargetHints: false,
+    showSwipeCue: false
   }
 ];
 

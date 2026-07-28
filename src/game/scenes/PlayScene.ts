@@ -131,7 +131,10 @@ import { SessionFlowSystem, type SessionOutcome, type SessionRoundTrace } from "
 import type { PlaySessionStartSource } from "../systems/SessionStartSystem";
 import {
   playableSlotHintVisualStyle,
-  shouldShowPlayableSlotHints
+  shouldShowPlayableSlotHints,
+  shouldShowTutorialSwipeCue,
+  tutorialSwipeCueVisualState,
+  tutorialTargetHintVisualStyle
 } from "../systems/SlotHintPolicySystem";
 import { StorageSystem, type HighScoreRecord } from "../systems/StorageSystem";
 import { readSurfaceProfile, type SurfaceProfile } from "../systems/SurfaceProfileSystem";
@@ -176,7 +179,13 @@ import {
 } from "../systems/WienerReactionSystem";
 import { computeFeedbackCardLayout, FeedbackCard } from "../ui/FeedbackCard";
 import { computeHudLayout, Hud } from "../ui/Hud";
-import { buttonVisual, drawDegradedBrowserSurface, uiFonts, uiPalette } from "../ui/VisualTheme";
+import {
+  buttonVisual,
+  drawDegradedBrowserSurface,
+  uiFonts,
+  uiPalette,
+  uiTextResolution
+} from "../ui/VisualTheme";
 import { addWienerImage, sizeWienerImage } from "../ui/WienerSprite";
 
 interface PlaySceneData {
@@ -371,6 +380,9 @@ export class PlayScene extends Phaser.Scene {
   private textCutImpactGhost?: Phaser.GameObjects.Text;
   private slotHintGraphics!: Phaser.GameObjects.Graphics;
   private targetHintGraphics!: Phaser.GameObjects.Graphics;
+  private tutorialSwipeCueGraphics!: Phaser.GameObjects.Graphics;
+  private tutorialSwipeCueRect?: GameQaRect;
+  private tutorialSwipeCueDismissed = false;
   private trailPoints: TrailPoint[] = [];
   private trailFadeTween?: Phaser.Tweens.Tween;
   private fallingTextPieces: Phaser.GameObjects.Container[] = [];
@@ -516,6 +528,7 @@ export class PlayScene extends Phaser.Scene {
     this.chromeText = this.add.text(0, 0, "WienerWorks", {
       fontFamily: uiFonts.display,
       fontSize: "18px",
+      resolution: uiTextResolution(),
       color: uiPalette.text
     }).setOrigin(0, 0.5).setDepth(19);
     this.headerWienerLogo = addWienerImage(this, { x: 0, y: 0, height: 38, depth: 19 });
@@ -526,6 +539,7 @@ export class PlayScene extends Phaser.Scene {
     this.textObject = this.add.text(0, 0, "", {
       fontFamily: uiFonts.mono,
       fontSize: "34px",
+      resolution: uiTextResolution(),
       color: uiPalette.text,
       align: "center"
     }).setOrigin(0.5).setDepth(8);
@@ -533,6 +547,7 @@ export class PlayScene extends Phaser.Scene {
     this.promptAcquisitionText = this.add.text(0, 0, "", {
       fontFamily: uiFonts.mono,
       fontSize: "10px",
+      resolution: uiTextResolution(),
       color: uiPalette.textFaint,
       align: "center"
     }).setOrigin(0.5).setDepth(8.05).setVisible(false);
@@ -540,6 +555,7 @@ export class PlayScene extends Phaser.Scene {
     this.cutStatusText = this.add.text(0, 0, "", {
       fontFamily: uiFonts.mono,
       fontSize: "11px",
+      resolution: uiTextResolution(),
       color: uiPalette.textFaint,
       align: "center"
     }).setOrigin(0.5).setDepth(8);
@@ -547,6 +563,7 @@ export class PlayScene extends Phaser.Scene {
     this.inputResponseBadgeText = this.add.text(0, 0, "", {
       fontFamily: uiFonts.mono,
       fontSize: "11px",
+      resolution: uiTextResolution(),
       color: uiPalette.textMuted,
       align: "center"
     }).setOrigin(0.5).setDepth(8.1).setVisible(false);
@@ -554,6 +571,7 @@ export class PlayScene extends Phaser.Scene {
     this.noCutFeedbackText = this.add.text(0, 0, NO_CUT_FEEDBACK_LABEL, {
       fontFamily: uiFonts.mono,
       fontSize: "11px",
+      resolution: uiTextResolution(),
       color: uiPalette.textMuted,
       backgroundColor: "#f4eddf",
       align: "center"
@@ -564,6 +582,7 @@ export class PlayScene extends Phaser.Scene {
     this.resolveCommitText = this.add.text(0, 0, "", {
       fontFamily: uiFonts.mono,
       fontSize: "11px",
+      resolution: uiTextResolution(),
       color: uiPalette.textMuted,
       backgroundColor: "#ded7c7"
     }).setOrigin(0.5).setDepth(13.1).setVisible(false);
@@ -574,11 +593,13 @@ export class PlayScene extends Phaser.Scene {
     this.touchAimLoupeText = this.add.text(0, 0, "", {
       fontFamily: uiFonts.mono,
       fontSize: "14px",
+      resolution: uiTextResolution(),
       color: uiPalette.text,
       align: "center"
     }).setOrigin(0.5).setDepth(16).setVisible(false);
     this.slotHintGraphics = this.add.graphics().setDepth(7);
     this.targetHintGraphics = this.add.graphics().setDepth(9);
+    this.tutorialSwipeCueGraphics = this.add.graphics().setDepth(10);
     this.timerTrack = this.add.rectangle(0, 0, 0, 8, uiPalette.coldGlass, 0.64).setOrigin(0, 0.5).setDepth(16);
     this.timerFill = this.add.rectangle(0, 0, 0, 8, uiPalette.amber).setOrigin(0, 0.5).setDepth(17);
     this.petWiener = addWienerImage(this, { x: 0, y: 0, height: 82, depth: 31 });
@@ -587,6 +608,7 @@ export class PlayScene extends Phaser.Scene {
     this.wienerSpeechText = this.add.text(0, 0, "", {
       fontFamily: uiFonts.body,
       fontSize: "13px",
+      resolution: uiTextResolution(),
       color: uiPalette.text,
       wordWrap: { width: 360 }
     }).setDepth(33);
@@ -595,24 +617,28 @@ export class PlayScene extends Phaser.Scene {
     this.resolveLabel = this.add.text(0, 0, "Resolve", {
       fontFamily: uiFonts.body,
       fontSize: "15px",
+      resolution: uiTextResolution(),
       color: uiPalette.text
     }).setOrigin(0.5).setDepth(23);
     this.clearButton = this.add.rectangle(0, 0, 112, 40, buttonVisual.disabledFill, buttonVisual.disabledAlpha).setStrokeStyle(1, buttonVisual.stroke).setDepth(22);
     this.clearLabel = this.add.text(0, 0, "Clear Cuts", {
       fontFamily: uiFonts.body,
       fontSize: "15px",
+      resolution: uiTextResolution(),
       color: uiPalette.text
     }).setOrigin(0.5).setDepth(23);
     this.undoButton = this.add.rectangle(0, 0, 112, 40, buttonVisual.fill, buttonVisual.fillAlpha).setStrokeStyle(1, buttonVisual.stroke).setDepth(22);
     this.undoLabel = this.add.text(0, 0, "Undo", {
       fontFamily: uiFonts.body,
       fontSize: "15px",
+      resolution: uiTextResolution(),
       color: uiPalette.text
     }).setOrigin(0.5).setDepth(23);
     this.exitButton = this.add.rectangle(0, 0, 132, 40, buttonVisual.fill, 0.82).setStrokeStyle(1, buttonVisual.stroke).setDepth(22);
     this.exitLabel = this.add.text(0, 0, "Exit Training", {
       fontFamily: uiFonts.body,
       fontSize: "15px",
+      resolution: uiTextResolution(),
       color: uiPalette.text
     }).setOrigin(0.5).setDepth(23);
     this.bindPlayControls();
@@ -876,6 +902,7 @@ export class PlayScene extends Phaser.Scene {
     this.cutStatusText.setVisible(true);
     this.inputFeelMetrics.startRound();
     this.currentCuts = [];
+    this.tutorialSwipeCueDismissed = false;
     this.cutUndo.clear();
     this.resolving = false;
     this.lastResolveTrigger = null;
@@ -977,7 +1004,7 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private stageQaRound(): void {
-    if (this.tutorialMode || !this.qaControls.cuts || !this.currentFixture) {
+    if (!this.qaControls.cuts || !this.currentFixture) {
       return;
     }
 
@@ -988,6 +1015,8 @@ export class PlayScene extends Phaser.Scene {
     }
 
     this.currentCuts = [...cuts].sort((a, b) => a - b);
+    this.tutorialSwipeCueDismissed = this.currentCuts.length > 0;
+    this.renderSlotHints();
     this.renderPlayerCuts();
     if (this.qaControls.autoResolve) {
       this.resolveRound("manual");
@@ -1147,11 +1176,15 @@ export class PlayScene extends Phaser.Scene {
       }
     }
     if (cutsChanged) {
+      if (result.addedCuts.length > 0) {
+        this.tutorialSwipeCueDismissed = true;
+      }
       if (previousCutCount === 0 && this.currentCuts.length > 0) {
         this.startResolveReadyPulse();
       } else if (this.currentCuts.length === 0) {
         this.resolveReadyPulseStartedAt = undefined;
       }
+      this.renderSlotHints();
       this.renderPlayerCuts();
       this.renderCutStatus();
       this.updateResolveButtonState();
@@ -1738,6 +1771,7 @@ export class PlayScene extends Phaser.Scene {
       const label = existing?.label ?? this.add.text(cut.x, bounds.top - 18, labelText, {
         fontFamily: uiFonts.body,
         fontSize: "10px",
+        resolution: uiTextResolution(),
         color: uiPalette.text,
         backgroundColor: "#ded7c7"
       }).setOrigin(0.5).setDepth(13);
@@ -2068,6 +2102,7 @@ export class PlayScene extends Phaser.Scene {
         ? this.add.text(line.x, bounds.top - offsetY, label, {
             fontFamily: uiFonts.body,
             fontSize: "10px",
+            resolution: uiTextResolution(),
             color: uiPalette.text,
             backgroundColor: "#ded7c7"
           }).setOrigin(0.5).setDepth(13)
@@ -2129,6 +2164,7 @@ export class PlayScene extends Phaser.Scene {
       const glyph = this.add.text(0, 0, plan.text, {
         fontFamily: uiFonts.mono,
         fontSize: `${fontSize}px`,
+        resolution: uiTextResolution(),
         color: uiPalette.text,
         align: "center"
       }).setOrigin(0.5);
@@ -2137,6 +2173,7 @@ export class PlayScene extends Phaser.Scene {
         children.push(this.add.text(0, fontSize * 0.68, `ID ${plan.tokenId}`, {
           fontFamily: uiFonts.mono,
           fontSize: `${Math.max(9, Math.round(fontSize * 0.32))}px`,
+          resolution: uiTextResolution(),
           color: "#ea8b2f",
           align: "center"
         }).setOrigin(0.5, 0));
@@ -2690,6 +2727,7 @@ export class PlayScene extends Phaser.Scene {
     const ghost = this.add.text(this.textObject.x, this.textObject.y, this.textObject.text, {
       fontFamily: uiFonts.mono,
       fontSize: `${fontSize}px`,
+      resolution: uiTextResolution(),
       color: "#8f531f",
       align: "center"
     }).setOrigin(0.5).setDepth(7).setAlpha(this.compactLayout ? 0.28 : 0.34);
@@ -2744,6 +2782,8 @@ export class PlayScene extends Phaser.Scene {
   private clearSlotHints(): void {
     this.slotHintGraphics?.clear();
     this.targetHintGraphics?.clear();
+    this.tutorialSwipeCueGraphics?.clear();
+    this.tutorialSwipeCueRect = undefined;
   }
 
   private currentSurfaceProfile(): SurfaceProfile {
@@ -3221,13 +3261,69 @@ export class PlayScene extends Phaser.Scene {
     }
 
     if (targetHintsVisible) {
-      this.targetHintGraphics.lineStyle(4, uiPalette.amber, 0.84);
+      const targetStyle = tutorialTargetHintVisualStyle(this.compactLayout);
+      this.targetHintGraphics.lineStyle(targetStyle.lineWidth, uiPalette.tutorialTarget, targetStyle.alpha);
       for (const boundary of this.currentFixture.boundary_positions) {
         const x = this.swipe.boundaryX(bounds, this.currentFixture.text, boundary);
         if (x === null) continue;
-        this.targetHintGraphics.lineBetween(x, bounds.centerY - targetHalfHeight, x, bounds.centerY + targetHalfHeight);
+        const top = bounds.centerY - targetHalfHeight;
+        const bottom = bounds.centerY + targetHalfHeight;
+        for (let y = top; y < bottom; y += targetStyle.dashLength + targetStyle.gapLength) {
+          this.targetHintGraphics.lineBetween(x, y, x, Math.min(bottom, y + targetStyle.dashLength));
+        }
+        this.targetHintGraphics.fillStyle(uiPalette.tutorialTarget, targetStyle.alpha);
+        this.targetHintGraphics.fillCircle(x, top, targetStyle.capRadius);
+        this.targetHintGraphics.fillCircle(x, bottom, targetStyle.capRadius);
       }
     }
+
+    if (shouldShowTutorialSwipeCue({
+      tutorialMode: this.tutorialMode,
+      targetHintsVisible,
+      tutorialShowSwipeCue: this.currentTutorialRound?.showSwipeCue,
+      dismissed: this.tutorialSwipeCueDismissed,
+      resolving: this.resolving
+    })) {
+      this.renderTutorialSwipeCue(bounds, targetHalfHeight);
+    }
+  }
+
+  private renderTutorialSwipeCue(bounds: Phaser.Geom.Rectangle, targetHalfHeight: number): void {
+    if (!this.currentFixture) {
+      return;
+    }
+
+    const firstBoundary = this.currentFixture.boundary_positions[0];
+    const targetX = this.swipe.boundaryX(bounds, this.currentFixture.text, firstBoundary);
+    if (targetX === null) {
+      return;
+    }
+
+    const extension = this.compactLayout ? 13 : 16;
+    const top = bounds.centerY - targetHalfHeight - extension;
+    const bottom = bounds.centerY + targetHalfHeight + extension;
+    const state = tutorialSwipeCueVisualState(this.nowMs() - this.roundStartedAt, this.motionPreference.reduced);
+    const fingerY = Phaser.Math.Linear(bottom, top, state.progress);
+    const cueColor = uiPalette.tutorialTarget;
+
+    this.tutorialSwipeCueGraphics.lineStyle(this.compactLayout ? 1.5 : 2, cueColor, 0.72);
+    this.tutorialSwipeCueGraphics.lineBetween(targetX, bottom, targetX, top);
+    this.tutorialSwipeCueGraphics.fillStyle(cueColor, 0.72);
+    this.tutorialSwipeCueGraphics.fillTriangle(targetX, top, targetX - 4, top + 7, targetX + 4, top + 7);
+
+    this.tutorialSwipeCueGraphics.fillStyle(uiPalette.panelLight, state.alpha);
+    this.tutorialSwipeCueGraphics.fillCircle(targetX, fingerY, this.compactLayout ? 7 : 8);
+    this.tutorialSwipeCueGraphics.lineStyle(2, cueColor, state.alpha);
+    this.tutorialSwipeCueGraphics.strokeCircle(targetX, fingerY, this.compactLayout ? 7 : 8);
+    this.tutorialSwipeCueGraphics.fillStyle(cueColor, state.alpha);
+    this.tutorialSwipeCueGraphics.fillCircle(targetX, fingerY, this.compactLayout ? 2.5 : 3);
+
+    this.tutorialSwipeCueRect = {
+      x: targetX,
+      y: (top + bottom) / 2,
+      width: this.compactLayout ? 18 : 20,
+      height: Math.max(24, bottom - top + 18)
+    };
   }
 
   private shouldShowSlotHints(): boolean {
@@ -3515,6 +3611,9 @@ export class PlayScene extends Phaser.Scene {
           height: slot.yMax - slot.yMin
         }
       })),
+      tutorialTargetHintsVisible: this.tutorialMode && this.currentTutorialRound?.showTargetHints === true,
+      tutorialSwipeCueVisible: this.tutorialSwipeCueRect !== undefined,
+      tutorialSwipeCueRect: this.tutorialSwipeCueRect,
       snapDistancePx,
       previewDistancePx,
       inputModality: this.inputModality,

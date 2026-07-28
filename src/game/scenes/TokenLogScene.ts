@@ -21,7 +21,13 @@ import {
   type TokenLogSummary
 } from "../systems/TokenLogSystem";
 import { tokenLogSemanticSnapshot } from "../systems/TokenLogSemanticSystem";
-import { buttonVisual, drawDegradedBrowserSurface, uiFonts, uiPalette } from "../ui/VisualTheme";
+import {
+  applyUiTextResolution,
+  buttonVisual,
+  drawDegradedBrowserSurface,
+  uiFonts,
+  uiPalette
+} from "../ui/VisualTheme";
 
 interface TokenLogSceneRoute {
   semanticEntry?: boolean;
@@ -201,7 +207,7 @@ export class TokenLogScene extends Phaser.Scene {
     }).setOrigin(0, 0));
     this.addElement(this.add.text(right - 12, top + (compact ? 27 : 29), tokenLogEntryMetadata(entry), {
       fontFamily: uiFonts.mono,
-      fontSize: compact ? "10px" : "11px",
+      fontSize: compact ? "11px" : "12px",
       color: statusColor,
       align: "right"
     }).setOrigin(1, 0));
@@ -228,7 +234,7 @@ export class TokenLogScene extends Phaser.Scene {
       if (twoLineCell) {
         this.addElement(this.add.text(cell.x, cell.y + Math.min(8, cell.height * 0.23), `ID ${mapping.tokenId}`, {
           fontFamily: uiFonts.mono,
-          fontSize: compact ? "10px" : "11px",
+          fontSize: compact ? "11px" : "12px",
           color: "#944417",
           align: "center"
         }).setOrigin(0.5));
@@ -319,6 +325,7 @@ export class TokenLogScene extends Phaser.Scene {
   }
 
   private addElement<T extends Phaser.GameObjects.GameObject>(element: T): T {
+    applyUiTextResolution(element);
     this.elements.push(element);
     return element;
   }
@@ -363,18 +370,18 @@ export class TokenLogScene extends Phaser.Scene {
 }
 
 function tokenCellTextSize(displayText: string, cellWidth: number, compact: boolean): number {
-  const preferred = compact ? 10 : 11;
+  const preferred = compact ? 12 : 13;
   const estimatedWidthPerEm = 0.62;
   const availableWidth = Math.max(1, cellWidth - 8);
   const fitted = Math.floor(availableWidth / (Math.max(1, displayText.length + 2) * estimatedWidthPerEm));
-  return Math.max(7, Math.min(preferred, fitted));
+  return Math.max(9, Math.min(preferred, fitted));
 }
 
 function sentenceTextSize(text: string, rowWidth: number, compact: boolean): number {
   const preferred = compact ? 15 : 16;
   const availableWidth = Math.max(1, rowWidth - 24);
   const fitted = Math.floor(availableWidth / (Math.max(1, text.length) * 0.56));
-  return Math.max(10, Math.min(preferred, fitted));
+  return Math.max(12, Math.min(preferred, fitted));
 }
 
 function rectToQa(rect: TokenLogRect) {

@@ -30,7 +30,13 @@ import {
   type HighScoreSaveResult
 } from "../systems/StorageSystem";
 import { readSurfaceProfile } from "../systems/SurfaceProfileSystem";
-import { buttonVisual, drawDegradedBrowserSurface, uiFonts, uiPalette } from "../ui/VisualTheme";
+import {
+  applyUiTextResolution,
+  buttonVisual,
+  drawDegradedBrowserSurface,
+  uiFonts,
+  uiPalette
+} from "../ui/VisualTheme";
 
 export interface ResultsSceneData {
   runId?: string;
@@ -235,6 +241,7 @@ export class ResultsScene extends Phaser.Scene {
   }
 
   private addElement<T extends Phaser.GameObjects.GameObject>(element: T): T {
+    applyUiTextResolution(element);
     this.elements.push(element);
     return element;
   }

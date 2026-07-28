@@ -59,14 +59,15 @@ describe("TutorialSystem", () => {
       }
       expect(typeof round.showSlotHints).toBe("boolean");
       expect(typeof round.showTargetHints).toBe("boolean");
+      expect(typeof round.showSwipeCue).toBe("boolean");
     }
   });
 
   it("starts interactive play with action vocabulary already visible on screen", () => {
     const prompt = new TutorialSystem().activePromptFor(0);
 
-    expect(prompt).toContain("Swipe orange targets");
-    expect(prompt).toContain("every possible cut");
+    expect(prompt).toContain("Swipe up the dotted line");
+    expect(prompt).toContain("every target");
     expect(prompt).toContain("Resolve submits");
     expect(prompt.length).toBeLessThanOrEqual(110);
   });
@@ -79,6 +80,18 @@ describe("TutorialSystem", () => {
       expect(tutorial.firstCutFollowUpFor(index)).toBe(round.firstCutFollowUpLine);
     });
     expect(tutorial.firstCutFollowUpFor(99)).toBeUndefined();
+  });
+
+  it("teaches both correction controls before the worked examples end", () => {
+    const tutorial = new TutorialSystem();
+    const earlyCorrectionCopy = [
+      tutorial.firstCutFollowUpFor(0),
+      tutorial.activePromptFor(2),
+      tutorial.firstCutFollowUpFor(2)
+    ].join(" ");
+
+    expect(earlyCorrectionCopy).toContain("Undo");
+    expect(earlyCorrectionCopy).toContain("Clear");
   });
 
   it("distinguishes clean, missed-only, false-only, and mixed review outcomes", () => {
@@ -195,7 +208,7 @@ describe("TutorialSystem", () => {
     const tutorial = new TutorialSystem();
 
     expect(TUTORIAL_ROUND_DURATION_MS).toBe(32000);
-    expect(tutorial.activePromptFor(4)).toContain("Orange answers are gone");
+    expect(tutorial.activePromptFor(4)).toContain("Target guides are gone");
     expect(tutorial.activePromptFor(4)).toContain("'re-enter'");
     expect(tutorial.activePromptFor(5)).toContain("Apostrophes");
     expect(tutorial.activePromptFor(5)).toContain("contraction chunks");
@@ -229,6 +242,23 @@ describe("TutorialSystem", () => {
       true,
       true,
       true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]);
+  });
+
+  it("uses the animated swipe cue only for the first two worked examples", () => {
+    const rounds = configuredRounds(new TutorialSystem());
+
+    expect(rounds.map((round) => round.showSwipeCue)).toEqual([
+      true,
+      true,
+      false,
+      false,
       false,
       false,
       false,

@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { getEncoding } from "js-tiktoken";
 import { describe, expect, it } from "vitest";
 import type { LayoutRect } from "../src/game/systems/PlayLayoutSystem";
 import {
@@ -184,6 +185,23 @@ describe("Tutorial intake", () => {
     expect(pages.at(-1)?.primaryAction).toBe("Clock In");
     expect(pages[0].secondaryAction).toBe("Return to Menu");
     expect(pages.slice(1).every((page) => page.secondaryAction === "Previous")).toBe(true);
+  });
+
+  it("keeps the onboarding token example aligned with cl100k_base", () => {
+    const tokensPage = tutorialIntakeCopy(1);
+    const idsPage = tutorialIntakeCopy(2);
+    const tokenText = tokensPage.artifact.kind === "tokens"
+      ? tokensPage.artifact.tokenStrings.join("")
+      : "";
+    const encoding = getEncoding("cl100k_base");
+    const tokenIds = encoding.encode(tokenText);
+
+    expect(tokenText).toBe("please summarize this sentence");
+    expect(idsPage.artifact).toEqual({
+      kind: "tokens",
+      tokenStrings: tokenIds.map((tokenId) => encoding.decode([tokenId])),
+      tokenIds
+    });
   });
 
   it.each([

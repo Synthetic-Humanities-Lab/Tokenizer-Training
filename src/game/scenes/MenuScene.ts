@@ -13,7 +13,13 @@ import { StorageSystem } from "../systems/StorageSystem";
 import { readSurfaceProfile } from "../systems/SurfaceProfileSystem";
 import { tutorialIntakeRoutes } from "../systems/TutorialIntakeSystem";
 import { TUTORIAL_ROUND_COUNT } from "../systems/TutorialSystem";
-import { buttonVisual, drawDegradedBrowserSurface, uiFonts, uiPalette } from "../ui/VisualTheme";
+import {
+  applyUiTextResolution,
+  buttonVisual,
+  drawDegradedBrowserSurface,
+  uiFonts,
+  uiPalette
+} from "../ui/VisualTheme";
 import { addWienerImage } from "../ui/WienerSprite";
 
 interface MenuSceneRoute {
@@ -313,6 +319,7 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private addElement<T extends Phaser.GameObjects.GameObject>(element: T): T {
+    applyUiTextResolution(element);
     this.elements.push(element);
     return element;
   }

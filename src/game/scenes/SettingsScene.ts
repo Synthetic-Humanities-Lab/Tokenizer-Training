@@ -18,7 +18,6 @@ import { clearGameQaSnapshot, writeGameQaSnapshot, type GameQaElement } from "..
 import {
   HapticFeedbackSystem,
   hapticFeedbackCapability,
-  hapticFeedbackCapabilityLabel,
   type HapticFeedbackCapability
 } from "../systems/HapticFeedbackSystem";
 import {
@@ -41,7 +40,13 @@ import {
   settingsResetAnnouncement,
   settingsSemanticSnapshot
 } from "../systems/SettingsSemanticSystem";
-import { buttonVisual, drawDegradedBrowserSurface, uiFonts, uiPalette } from "../ui/VisualTheme";
+import {
+  applyUiTextResolution,
+  buttonVisual,
+  drawDegradedBrowserSurface,
+  uiFonts,
+  uiPalette
+} from "../ui/VisualTheme";
 
 interface SettingsSceneData {
   resetConfirmation?: boolean;
@@ -163,6 +168,8 @@ export class SettingsScene extends Phaser.Scene {
 
     const width = this.scale.width;
     const height = this.scale.height;
+    this.hapticCapability = hapticFeedbackCapability();
+    this.hapticPreference = this.hapticPreferenceRuntime.snapshot(this.hapticCapability.available);
     const layout = this.currentLayout();
     const highScore = this.storage.loadHighScore();
     const resetSnapshot = this.bestRankReset.snapshot();
@@ -204,8 +211,6 @@ export class SettingsScene extends Phaser.Scene {
     }, (text) => {
       this.reducedMotionText = text;
     });
-    this.hapticCapability = hapticFeedbackCapability();
-    this.hapticPreference = this.hapticPreferenceRuntime.snapshot(this.hapticCapability.available);
     if (this.hapticCapability.available) {
       const targetHapticsEnabled = !this.hapticPreference.enabled;
       this.createButton(layout.hapticsControl, this.hapticLabel(), () => {
@@ -213,8 +218,6 @@ export class SettingsScene extends Phaser.Scene {
       }, (text) => {
         this.hapticText = text;
       });
-    } else {
-      this.createUnavailableHapticsControl(layout);
     }
     this.createButton(layout.backButton, "Back", () => {
       this.commandBack(false);
@@ -355,10 +358,6 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   private hapticLabel(): string {
-    if (!this.hapticCapability.available) {
-      return hapticFeedbackCapabilityLabel(this.hapticCapability);
-    }
-
     return this.hapticPreference.enabled ? "Haptics: On" : "Haptics: Off";
   }
 
@@ -368,7 +367,8 @@ export class SettingsScene extends Phaser.Scene {
       this.scale.width,
       this.scale.height,
       surfaceProfile === "mobile",
-      readSafeAreaInsetsForSurface(surfaceProfile)
+      readSafeAreaInsetsForSurface(surfaceProfile),
+      this.hapticCapability.available
     );
   }
 
@@ -465,27 +465,6 @@ export class SettingsScene extends Phaser.Scene {
     }, undefined, { destructive: true });
   }
 
-  private createUnavailableHapticsControl(layout: SettingsLayout): void {
-    const bounds = layout.hapticsControl;
-    const panel = this.add.rectangle(
-      bounds.x,
-      bounds.y,
-      bounds.width,
-      bounds.height,
-      buttonVisual.disabledFill,
-      buttonVisual.disabledAlpha
-    ).setStrokeStyle(1, buttonVisual.stroke, 0.62);
-    const text = this.add.text(bounds.x, bounds.y, this.hapticLabel(), {
-      fontFamily: uiFonts.body,
-      fontSize: bounds.height <= 38 ? "12px" : "15px",
-      color: uiPalette.textFaint
-    }).setOrigin(0.5);
-
-    this.hapticText = text;
-    this.addElement(panel);
-    this.addElement(text);
-  }
-
   private addGrid(width: number, height: number): void {
     const grid = this.add.graphics();
     drawDegradedBrowserSurface(grid, width, height, { compact: width < 620 });
@@ -507,6 +486,7 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   private addElement<T extends Phaser.GameObjects.GameObject>(element: T): T {
+    applyUiTextResolution(element);
     this.elements.push(element);
     return element;
   }
@@ -565,13 +545,15 @@ export class SettingsScene extends Phaser.Scene {
           text: motionPreferenceLabel(this.motionPreference),
           rect: rectToQa(layout.reducedMotionControl)
         },
-        {
+        { id: "backButton", text: "Back", rect: rectToQa(layout.backButton) }
+      );
+      if (this.hapticCapability.available) {
+        elements.splice(elements.length - 1, 0, {
           id: "haptics",
           text: this.hapticLabel(),
           rect: rectToQa(layout.hapticsControl)
-        },
-        { id: "backButton", text: "Back", rect: rectToQa(layout.backButton) }
-      );
+        });
+      }
     }
 
     writeGameQaSnapshot({
