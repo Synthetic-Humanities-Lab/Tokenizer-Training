@@ -21239,59 +21239,61 @@
   },
   {
     "id": "prose_037",
-    "text": "reasoning contract pending",
+    "text": "outsourced inference pending",
     "category": "simple_prose",
     "tier": 3,
     "token_count": 4,
     "token_ids": [
-      20489,
-      287,
-      5226,
+      11934,
+      54492,
+      45478,
       15639
     ],
     "token_strings": [
-      "reason",
-      "ing",
-      " contract",
+      "outs",
+      "ourced",
+      " inference",
       " pending"
     ],
     "token_byte_spans": [
       [
         0,
-        6
+        4
       ],
       [
-        6,
-        9
+        4,
+        10
       ],
       [
-        9,
-        18
+        10,
+        20
       ],
       [
-        18,
-        26
+        20,
+        28
       ]
     ],
     "graphemes": [
-      "r",
-      "e",
-      "a",
+      "o",
+      "u",
+      "t",
       "s",
       "o",
-      "n",
+      "u",
+      "r",
+      "c",
+      "e",
+      "d",
+      " ",
       "i",
       "n",
-      "g",
-      " ",
-      "c",
-      "o",
-      "n",
-      "t",
+      "f",
+      "e",
       "r",
-      "a",
+      "e",
+      "n",
       "c",
-      "t",
+      "e",
       " ",
       "p",
       "e",
@@ -21405,17 +21407,25 @@
       [
         25,
         26
+      ],
+      [
+        26,
+        27
+      ],
+      [
+        27,
+        28
       ]
     ],
     "boundary_positions": [
-      6,
-      9,
-      18
+      4,
+      10,
+      20
     ],
     "boundary_byte_positions": [
-      6,
-      9,
-      18
+      4,
+      10,
+      20
     ],
     "difficulty_weight": 1.51,
     "notes": "human replacement frame; cl100k_base fixture; byte spans validated against grapheme boundaries",
@@ -22949,21 +22959,23 @@
   },
   {
     "id": "contract_002",
-    "text": "we've delegated the thinking",
+    "text": "we've outsourced the thinking",
     "category": "contraction",
     "tier": 2,
-    "token_count": 5,
+    "token_count": 6,
     "token_ids": [
       906,
       3077,
-      91757,
+      23651,
+      54492,
       279,
       7422
     ],
     "token_strings": [
       "we",
       "'ve",
-      " delegated",
+      " outs",
+      "ourced",
       " the",
       " thinking"
     ],
@@ -22978,15 +22990,19 @@
       ],
       [
         5,
-        15
+        10
       ],
       [
-        15,
-        19
+        10,
+        16
       ],
       [
-        19,
-        28
+        16,
+        20
+      ],
+      [
+        20,
+        29
       ]
     ],
     "graphemes": [
@@ -22996,13 +23012,14 @@
       "v",
       "e",
       " ",
-      "d",
-      "e",
-      "l",
-      "e",
-      "g",
-      "a",
+      "o",
+      "u",
       "t",
+      "s",
+      "o",
+      "u",
+      "r",
+      "c",
       "e",
       "d",
       " ",
@@ -23131,21 +23148,27 @@
       [
         27,
         28
+      ],
+      [
+        28,
+        29
       ]
     ],
     "boundary_positions": [
       2,
       5,
-      15,
-      19
+      10,
+      16,
+      20
     ],
     "boundary_byte_positions": [
       2,
       5,
-      15,
-      19
+      10,
+      16,
+      20
     ],
-    "difficulty_weight": 1.37,
+    "difficulty_weight": 1.45,
     "notes": "contraction and replacement frame; cl100k_base fixture; byte spans validated against grapheme boundaries",
     "tokenizer": "cl100k_base"
   },

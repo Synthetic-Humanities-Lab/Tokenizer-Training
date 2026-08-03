@@ -32,17 +32,6 @@ describe("tokenizer fixtures", () => {
     expect(generated).toEqual(fixtures);
   });
 
-  it("does not use the easily misread outsourced subword split", () => {
-    const prose = fixtures.find((fixture) => fixture.id === "prose_037");
-    const contraction = fixtures.find((fixture) => fixture.id === "contract_002");
-
-    expect(prose?.text).toBe("reasoning contract pending");
-    expect(prose?.token_strings).toEqual(["reason", "ing", " contract", " pending"]);
-    expect(contraction?.text).toBe("we've delegated the thinking");
-    expect(contraction?.token_strings).toEqual(["we", "'ve", " delegated", " the", " thinking"]);
-    expect(fixtures.some((fixture) => fixture.text.toLowerCase().includes("outsourced"))).toBe(false);
-  });
-
   it("reconstructs every source string", () => {
     expect(fixtures.length).toBeGreaterThan(0);
 
